@@ -1,2 +1,2 @@
 # node-cq-websocket
-A Node SDK  for developing CoolQ apps which are depending on WebSocket plugins on CoolQ.
+A Node websocket SDK for CoolQ HTTP API plugin.

@@ -1,0 +1,29 @@
+{
+  "name": "cq-websocket",
+  "version": "1.0.0",
+  "description": "A Node websocket SDK for CoolQ HTTP API plugin.",
+  "engines" : {
+    "node" : ">=6.5.0" 
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momocow/node-cq-websocket.git"
+  },
+  "keywords": [
+    "CoolQ",
+    "websocket"
+  ],
+  "author": "MomoCow",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/momocow/node-cq-websocket/issues"
+  },
+  "homepage": "https://github.com/momocow/node-cq-websocket#readme",
+  "dependencies": {
+    "websocket": "^1.0.25"
+  }
+}
