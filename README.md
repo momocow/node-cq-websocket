@@ -1,2 +1,4 @@
 # node-cq-websocket
-A Node websocket SDK for CoolQ HTTP API plugin.
+
+----------------------------------------------
+[![Build Status](https://travis-ci.org/momocow/node-cq-websocket.svg?branch=master)](https://travis-ci.org/momocow/node-cq-websocket)

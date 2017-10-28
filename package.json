@@ -2,12 +2,13 @@
   "name": "cq-websocket",
   "version": "1.0.0",
   "description": "A Node websocket SDK for CoolQ HTTP API plugin.",
-  "engines" : {
-    "node" : ">=6.5.0" 
+  "engines": {
+    "node": ">=6.5.0"
   },
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/nyc mocha",
+    "coverage": "./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,20 @@
   },
   "homepage": "https://github.com/momocow/node-cq-websocket#readme",
   "dependencies": {
+    "lodash.get": "^4.4.2",
     "websocket": "^1.0.25"
+  },
+  "devDependencies": {
+    "bluebird": "^3.5.1",
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.2.1",
+    "sinon": "^4.0.2"
+  },
+  "nyc": {
+    "include": [
+      "src/*.js"
+    ]
   }
 }

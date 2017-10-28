@@ -1,3 +1,4 @@
+const assert = require('assert')
 const { format, inspect } = require('util')
 
 const TYPE_ERR_MSG = '[TypeError] [TypeGuard#%s(...)] provided %s'
