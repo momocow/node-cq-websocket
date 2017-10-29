@@ -27,13 +27,15 @@ class CQEventBus{
       error: [],
       socket: {
         connect: [],
-        send: { // API socket only
-          pre: [],
-          post: []
-        },
-        response: [], // API socket only
         error: [ onSocketError ], // has a default handler; automatically removed when developers register their own ones
         close: []
+      },
+      api: {
+        response: [],
+        send: {
+          pre: [],
+          post: []
+        }
       }
     }
   }
@@ -78,7 +80,11 @@ class CQEventBus{
     if(queue && queue.length > 0){
       let cqevent = new CQEvent()
       for(let handler of queue){
-        let returned = handler(cqevent, ...args)
+        if(isResponsable && Array.isArray(args)){
+          args.unshift(cqevent)
+        }
+
+        let returned = handler(...args)
 
         if(isResponsable && typeof returned === "string"){
           cqevent.setMessage(returned)
@@ -133,7 +139,6 @@ class CQEvent{
 
   cancel(){
     this._isCanceled = true
-    this._message = ""
   }
 
   getMessage(){

@@ -27,8 +27,9 @@
 - [ ] 事件測試#8: `request`
 - [ ] 事件測試#9: `error`
 - [ ] 事件測試#10: `socket.connect`
-- [ ] 事件測試#11: `socket.send.pre`
-- [ ] 事件測試#12: `socket.send.post`
-- [ ] 事件測試#13: `socket.response`
+- [ ] 事件測試#11: `api.send.pre`
+- [ ] 事件測試#12: `api.send.post`
+- [ ] 事件測試#13: `api.response`
 - [ ] 事件測試#14: `socket.error`
 - [ ] 事件測試#15: `socket.close`
+- [ ] 事件測試#16: `ready`
