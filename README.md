@@ -66,11 +66,11 @@ const CQWebsocket = require('cq-websocket')
 
 | 事件類型 | 監聽器參數 `...args` | 說明 |
 | - | - | - |
-| message | `event` [CQEvent](#CQEvent-類別)<br> `context` object| 所有流入的訊息。 |
+| message | `event` [CQEvent](#cqevent-類別)<br> `context` object| 所有流入的訊息。 |
 | event | `context` object | 群組人數變化...等QQ事件。 |
 | request | `context` object | 好友請求...等QQ事件。 |
 | error | `err` Error | CoolQ HTTP API 送來之消息文本缺乏 `post_type` 字段 (理論上不會有這個事件發生)。 |
-| ready | `type` [WebsocketType](#CQWebsocket.WebsocketType-實例) <br> `this` | 連線成功並初始化完成，可以開始調用API (送消息...等操作)。 |
+| ready | `type` [WebsocketType](#cqwebsocketwebsockettype-實例) <br> `this` | 連線成功並初始化完成，可以開始調用API (送消息...等操作)。 |
 
 #### `message` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
@@ -106,7 +106,7 @@ const CQWebsocket = require('cq-websocket')
 
 由於在一次事件傳播中的所有監聽器都會收到同一個 `CQEvent` 實例，因此對於響應的決定方式，除了 `CQEvent #cancel()` 所提供的事件截獲機制之外，也可以採取協議式的方式，就是透過每個監聽器調用 `CQEvent #getMessage()` `CQEvent #setMessage(msg)` 協議出一個最終的響應訊息。
 
-CQEvent 的方法描述，見 [CQEvent](#CQEvent-類別)。
+CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 > 目前僅 `message` 及其子事件支援 CQEvent 相關機制。
 
 ### `socket.error` 默認監聽器
