@@ -6,7 +6,8 @@
 [![npm](https://img.shields.io/npm/v/cq-websocket.svg)](https://www.npmjs.com/package/cq-websocket)
 [![CQHttp](https://img.shields.io/badge/dependency-CQHttp-green.svg)](https://github.com/richardchien/coolq-http-api#readme)  
 
-> **!!特別注意!!** 本 SDK 尚處於測試階段，使用上仍有機會碰到Bug，歡迎提交PR或issue回報。 SDK 內容方向大體不會改變，可參見以下文件說明。
+> **!!特別注意!!** 本 SDK 尚處於測試階段，使用上仍有機會碰到Bug，歡迎提交PR或issue回報。 SDK 內容方向大體不會改變，可參見以下文件說明。  
+
 > 由於付費問題，本 SDK 目前僅針對酷Q Air做測試。
 
 本項目為酷Q的 CoolQ HTTP API 插件支持 websocket 部分之 Node SDK。  
