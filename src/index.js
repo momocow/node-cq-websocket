@@ -35,8 +35,10 @@ module.exports = class CQWebsocket extends $Callable{
     if(this._eventClient){
       this._eventClient
         .on('connect', conn => {
-          this._eventBus.emit('socket.connect', WebsocketType.EVENT, conn)
           this._eventSock = conn
+          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock)
+
+          this._eventSock
             .on('message', (msg) => {
               if (message.type === 'utf8') {
                 this._handle(JSON.parse(message.utf8Data))
@@ -46,7 +48,7 @@ module.exports = class CQWebsocket extends $Callable{
               this._eventSock = conn = null
               this._eventBus.emit('socket.close', WebsocketType.EVENT)
             })
-            .on('error', err => { console.log(err)
+            .on('error', err => {
               this._eventBus.emit('socket.error', WebsocketType.EVENT, err)
             })
           this._eventBus.emit('ready', WebsocketType.EVENT, this)
@@ -60,8 +62,10 @@ module.exports = class CQWebsocket extends $Callable{
     if(this._apiClient){
       this._apiClient
         .on('connect', conn => {
-          this._eventBus.emit('socket.connect', WebsocketType.API, conn)
           this._apiSock = conn
+          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock)
+
+          this._apiSock
             .on('message', () => {
               if (message.type === 'utf8') {
                 this._eventBus.emit('socket.response', WebsocketType.API, JSON.parse(message.utf8Data))
@@ -84,10 +88,12 @@ module.exports = class CQWebsocket extends $Callable{
   }
 
   on(event_type, handler){
-    //prevent unused handlers being registered
-    if($EventBus.has(event_type)){
-      this._eventBus.on(event_type, handler)
-    }
+    this._eventBus.on(event_type, handler)
+    return this
+  }
+
+  once(event_type, handler){
+    this._eventBus.once(event_type, handler)
     return this
   }
 
@@ -102,6 +108,8 @@ module.exports = class CQWebsocket extends $Callable{
     this._eventBus.emit("socket.send.pre", WebsocketType.API, apiRequest)
     this._apiSock.sendUTF(JSON.stringify(apiRequest))
     this._eventBus.emit("socket.send.post", WebsocketType.API)
+
+    return this
   }
 
   _handle(msgObj){
@@ -153,6 +161,27 @@ module.exports = class CQWebsocket extends $Callable{
       let tokenQS = this._token ? `?access_token=${this._token}`: ''
       this._apiClient.connect(`ws://${this._host}:${this._port}/api${tokenQS}`)
     }
+
+    return this
+  }
+
+  disconnect(){
+    if(this._eventSock){
+      this._eventSock.close()
+    }
+
+    if(this._apiSock){
+      this._apiSock.close()
+    }
+
+    return this
+  }
+
+  isConnected(){
+    let isEventReady = this._eventSock ? this._eventSock.connected : !this._event,
+      isAPIReady = this._apiSock ? this._apiSock.connected : !this._api
+
+    return isEventReady && isAPIReady
   }
 }
 

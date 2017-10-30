@@ -2,7 +2,7 @@ const $_get = require('lodash.get')
 
 const $safe = require('./util/typeguard')
 
-const isSocketErrorHandled = false
+let isSocketErrorHandled = false
 
 class CQEventBus{
   constructor(){
@@ -104,9 +104,25 @@ class CQEventBus{
     }
   }
 
+  once(event_type, handler){
+    return this.on(event_type, (...args) => {
+      let queue = this._getHandlerQueue(event_type),
+        qidx = queue.indexOf(handler)
+      let returned = handler(...args)
+      if(returned !== false){
+        queue.splice(qidx, 1)
+      }
+      return returned
+    })
+  }
+
   on(event_type, handler){
     event_type = $safe.string(event_type)
-    handler = $safe.Function(handler)
+    handler = $safe.function(handler)
+
+    if(!this.has(event_type)){
+      return this
+    }
 
     if(!isSocketErrorHandled && event_type === "socket.error"){
       this._EventMap.socket.error = []
@@ -122,7 +138,7 @@ class CQEventBus{
   }
 }
 
-function onSocketError(e, which, err){
+function onSocketError(which, err){
   err.which = which
   throw err
 }

@@ -1,12 +1,11 @@
-# 單元測試清單
+# 單元測試 TODO 清單
 (顯示勾選表示測試完成)
 
-## `new Websocket({...})`
-- [ ] `access_token`: 如不為空，連線時鍵結需附帶該參數
-- [ ] `enableAPI`: 啟用`/api`連線
-- [ ] `enableEvent`: 啟用`/event`連線
-- [ ] `host`, `port`: 建立基本連線
-- [ ] `qq`: 該bot之QQ號
+## `new Websocket({...}).connect()`
+- [x] `access_token`: 如不為空，連線時鍵結需附帶該參數
+- [x] `enableAPI`: 啟用`/api`連線
+- [x] `enableEvent`: 啟用`/event`連線
+- [x] `host`, `port`: 建立基本連線
 
 ## `Websocket(method, {...})`
 - [ ] 可向`/api`連線發送請求

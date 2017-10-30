@@ -3,11 +3,12 @@
   "version": "1.0.2",
   "description": "A Node websocket SDK for CoolQ HTTP API plugin.",
   "engines": {
-    "node": ">=6.5.0"
+    "node": ">=7.6.0"
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/nyc mocha",
+    "test": "./node_modules/.bin/nyc mocha test/unit.test.js",
+    "demo": "node ./test/coolq.test.js",
     "coverage": "./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls"
   },
   "repository": {

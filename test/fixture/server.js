@@ -22,7 +22,7 @@ const WebsocketType = {
  */
 
 function serveAPIConnection(controller, conn){
-  controller.emit('connect', WebsocketType.API)
+  controller.emit('connect', WebsocketType.API, conn)
 
   conn.on('message', function(msg){
     if(msg.type == "utf8"){
@@ -39,7 +39,7 @@ function serveAPIConnection(controller, conn){
 }
 
 function serveEventConnection(controller, conn){
-  controller.emit('connect', WebsocketType.EVENT)
+  controller.emit('connect', WebsocketType.EVENT, conn)
 
   controller.on('send', function(msg){
     if(conn){
@@ -88,15 +88,26 @@ function _createServer(host, port, resolve, reject){
   }
   controller.shutDown = function(){
     return new $Promise(function(resolve){
-      controller._sock.shutDown()
+      if(controller._sock){
+        controller._sock.shutDown()
+        controller._sock = null
+      }
       http_server.close(function(){
         controller.emit('shutDown')
         resolve()
       })
     })
   }
+  controller.reset = function(){
+    if(controller._sock){
+      controller._sock.closeAllConnections()
+    }
+    controller.removeAllListeners()
+  }
   controller.closeAllConnections = function(){
-    controller._sock.closeAllConnections()
+    if(controller._sock){
+      controller._sock.closeAllConnections()
+    }
   }
 
   try{

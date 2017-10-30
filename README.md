@@ -39,14 +39,29 @@ const CQWebsocket = require('cq-websocket')
 
 ## 建立連線
 ### CQWebsocket #connect()
-- 返回值: 該實例 (`this`)  
+- 返回值： `this`  
 
 此方法為一個非同步的方法，連線成功後會觸發 `socket.connect` 事件，連線失敗則會觸發 `socket.error` 事件。
+
+## 斷開連線
+### CQWebsocket #disconnect()
+- 返回值： `this`  
+
+此方法為一個非同步的方法，連線斷開後會觸發 `socket.close` 事件。
+
+## 連線就緒
+### CQWebsocket #isConnected()
+- 返回值： `boolean`
+
+檢查連線狀態是否就緒。
+
+> 僅檢查已透過 `enableAPI` 及 `enableEvent` 啟用之連線。
 
 ## 方法調用
 ### CQWebsocket(`method`, `params`)
 - `method` string
 - `params` object
+- 返回值： `this`
 
 `CQWebsocket` 的實例可直接作為方法調用，用於透過 `/api` 連線操作酷Q。  
 `method` 為欲調用的行為，透過 `params` 物件夾帶參數，詳細的規格請見 CoolQ HTTP API 之 [API 列表](https://richardchien.github.io/coolq-http-api/3.0/#/API?id=api-%E5%88%97%E8%A1%A8)。
@@ -58,6 +73,25 @@ const CQWebsocket = require('cq-websocket')
 - `event_type` string
 - `listener` function(`...args`){ }
   - `...args` 依事件類型不同，監聽器的參數也有所不同，詳細對應見下表。
+  - 返回值： `string` | `void`
+- 返回值： `this`
+
+註冊常駐監聽器。
+
+若返回值為 `string` ，則立即以該文字訊息作為響應發送。
+
+### CQWebsocket #once(`event_type`, `listener`)
+- `event_type` string
+- `listener` function(`...args`){ }
+  - `...args` 依事件類型不同，監聽器的參數也有所不同，詳細對應見下表。
+  - 返回值： `string` | `boolean` | `void`
+- 返回值： `this`
+
+註冊一次性監聽器。
+
+當返回值為 `boolean` 且為 `false` ，指涉該監聽器並未完成任務，則保留該監聽器繼續聽取事件，不做移除。下一次事件發生時，該監聽器在調用後會再次以返回值判定去留。若返回值為 `boolean` 且為 `true` ，指涉該監聽器處理完畢，立即移除。
+
+若返回值為 `string` ，則立即以該文字訊息作為響應發送，並移除該監聽器。
 
 #### 基本事件
 前三個基本事件之說明，可以另外參考 CoolQ HTTP API 的[數據上報格式](https://richardchien.github.io/coolq-http-api/3.0/#/Post?id=%E4%B8%8A%E6%8A%A5%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F)。
@@ -109,26 +143,6 @@ const CQWebsocket = require('cq-websocket')
 CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 > 目前僅 `message` 及其子事件支援 CQEvent 相關機制。
 
-### `socket.error` 默認監聽器
-由於 `socket.error` 屬於連線失誤的事件，如果沒有適當的監聽器配套措施，會造成無防備的狀況下無法順利連線，徒增猿們除蟲困擾。
-
-為此而產生了 `socket.error` 事件之默認監聽器，當開發者沒有主動監聽 `socket.error` 事件，則會使用默認監聽器，發生錯誤時會將收到的錯誤實例拋出，而該錯誤實例下有一個 `which` 字段(內容為 `string` 類型且必為 `/api` `/event` 兩者任一)指出是哪一個連線出了問題。
-
-該錯誤可透過在 `process` 上監聽 `uncaughtException` 事件取得。如下所示：
-```
-process.on('uncaughtException', function(err){
-  switch(err.which){
-    case CQWebsocket.WebsocketType.API:
-      // 錯誤處理
-      break
-    case CQWebsocket.WebsocketType.EVENT:
-      // 錯誤處理
-      break
-  }
-})
-
-// CQWebsocket.WebsocketType 下提供兩個常量對應分別至 /api 及 /event
-```
 
 #### 事件樹
 ```
@@ -153,6 +167,27 @@ process.on('uncaughtException', function(err){
           └─ @me
 
 ※: 表示無法在該節點進行監聽
+```
+
+### `socket.error` 默認監聽器
+由於 `socket.error` 屬於連線失誤的事件，如果沒有適當的監聽器配套措施，會造成無防備的狀況下無法順利連線，徒增猿們除蟲困擾。
+
+為此而產生了 `socket.error` 事件之默認監聽器，當開發者沒有主動監聽 `socket.error` 事件，則會使用默認監聽器，發生錯誤時會將收到的錯誤實例拋出，而該錯誤實例下有一個 `which` 字段(內容為 `string` 類型且必為 `/api` `/event` 兩者任一)指出是哪一個連線出了問題。
+
+該錯誤可透過在 `process` 上監聽 `uncaughtException` 事件取得。如下所示：
+```
+process.on('uncaughtException', function(err){
+  switch(err.which){
+    case CQWebsocket.WebsocketType.API:
+      // 錯誤處理
+      break
+    case CQWebsocket.WebsocketType.EVENT:
+      // 錯誤處理
+      break
+  }
+})
+
+// CQWebsocket.WebsocketType 下提供兩個常量對應分別至 /api 及 /event
 ```
 
 ## `CQEvent` 類別
@@ -217,3 +252,20 @@ bot.on('message', (e, context) => {
 
 bot.connect()
 ```
+
+## SDK 開發環境
+### 下載源碼
+`git clone https://github.com/momocow/node-cq-websocket.git`
+
+### 安裝依賴
+`npm install` 或 `yarn install`
+
+### 單元測試
+`npm test`
+
+### 在酷Q環境進行測試
+1. 請先配置好CoolQ。
+2. 安裝 CoolQ HTTP API 插件，正確地配置 websocket 伺服器並啟用。可參考該插件之[配置文件說明](https://richardchien.github.io/coolq-http-api/3.0/#/Configuration)。
+3. 測試用的配置文件位於 `./test/coolq.config.json` ，該配置內容請符合 CoolQ HTTP API 插件內關於websocket的配置。
+4. `npm run demo`
+5. 本測試為複讀所有私聊訊息，避免打擾機器人所屬的群組，你可以私聊你的機器人進行測試。
