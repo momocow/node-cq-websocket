@@ -8,7 +8,7 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "./node_modules/.bin/nyc mocha test/unit.test.js",
-    "demo": "node ./test/coolq.test.js",
+    "demo": "node ./demo/echo-bot.js",
     "coverage": "./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls"
   },
   "repository": {
@@ -35,6 +35,7 @@
     "coveralls": "^3.0.0",
     "mocha": "^4.0.1",
     "nyc": "^11.2.1",
+    "prompt": "^1.0.0",
     "sinon": "^4.0.2"
   },
   "nyc": {

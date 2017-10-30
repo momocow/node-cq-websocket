@@ -266,6 +266,6 @@ bot.connect()
 ### 在酷Q環境進行測試
 1. 請先配置好CoolQ。
 2. 安裝 CoolQ HTTP API 插件，正確地配置 websocket 伺服器並啟用。可參考該插件之[配置文件說明](https://richardchien.github.io/coolq-http-api/3.0/#/Configuration)。
-3. 測試用的配置文件位於 `./test/coolq.config.json` ，該配置內容請符合 CoolQ HTTP API 插件內關於websocket的配置。
+3. 測試用的配置文件位於 `./demo/config.json` ，該配置內容請符合 CoolQ HTTP API 插件內關於websocket的配置。
 4. `npm run demo`
 5. 本測試為複讀所有私聊訊息，避免打擾機器人所屬的群組，你可以私聊你的機器人進行測試。
