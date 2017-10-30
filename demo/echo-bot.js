@@ -1,5 +1,3 @@
-const $prompt = require('prompt')
-
 const CQWebsocket = require('../')
 
 const config = require('./coolq.config.json')
@@ -8,6 +6,8 @@ let bot = new CQWebsocket(config)
 
 // 設定訊息監聽
 bot.on('message.private', (e, context) => {
+  console.log(`A message is received.\n${context}`)
+
   // 以下提供三種方式將原訊息以原路送回
 
   // 1. 調用 CoolQ HTTP API 之 send_msg 方法
@@ -23,15 +23,21 @@ bot.on('message.private', (e, context) => {
 
 bot.connect()
 
-$prompt.start()
-getCMD()
+let cmd = ''
+process.stdin.on('data', data => {
+  if(data.toString() == "\n"){
 
-function getCMD(){
-  $prompt.get('$ ', function(e, r){
-    if(["stop", "exit", "quit"].indexOf(r['$ ']) >= 0){
-      bot.disconnect()
-      process.exit(0)
+    switch(cmd){
+      case "exit":
+      case "quit":
+      case "stop":
+        process.exit(0)
+        break
+      default:
     }
-    getCMD()
-  })
-}
+    cmd = ''
+  }
+  else{
+    cmd += data.toString()
+  }
+})
