@@ -40,8 +40,8 @@ module.exports = class CQWebsocket extends $Callable{
 
           this._eventSock
             .on('message', (msg) => {
-              if (message.type === 'utf8') {
-                this._handle(JSON.parse(message.utf8Data))
+              if (msg.type === 'utf8') {
+                this._handle(JSON.parse(msg.utf8Data))
               }
             })
             .on('close', () => {
@@ -66,9 +66,9 @@ module.exports = class CQWebsocket extends $Callable{
           this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock)
 
           this._apiSock
-            .on('message', () => {
-              if (message.type === 'utf8') {
-                this._eventBus.emit('socket.response', WebsocketType.API, JSON.parse(message.utf8Data))
+            .on('message', msg => {
+              if (msg.type === 'utf8') {
+                this._eventBus.emit('socket.response', WebsocketType.API, JSON.parse(msg.utf8Data))
               }
             })
             .on('close', () => {
