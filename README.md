@@ -228,7 +228,7 @@ process.on('uncaughtException', function(err){
 
 
 ## 範例
-基本創建一個複讀機器人的代碼範例如下：
+基本創建一個複讀機器人的代碼範例如下(可參見[demo/echo-bot.js](https://github.com/momocow/node-cq-websocket/blob/master/demo/echo-bot.js))：
 ```
 const CQWebsocket = require('cq-websocket')
 
