@@ -75,12 +75,12 @@ const CQWebsocket = require('cq-websocket')
 - `event_type` string
 - `listener` function(`...args`){ }
   - `...args` 依事件類型不同，監聽器的參數也有所不同，詳細對應見下表。
-  - 返回值： `string` | `void`
+  - 返回值： `string` | `Promise <string>`  | `void`
 - 返回值： `this`
 
 註冊常駐監聽器。
 
-若返回值為 `string` ，則立即以該文字訊息作為響應發送。
+若返回值為 `string` 或一個受理值 (resolved value) 為 `string` 之承諾 (Promise) 對象，則以該文字訊息作為響應發送。
 
 ### CQWebsocket #once(`event_type`, `listener`)
 - `event_type` string
@@ -138,7 +138,7 @@ const CQWebsocket = require('cq-websocket')
 
 舉個例子，群消息有人at某機器人，該機器人則會首先上報 `message.group.@me` 事件，該事件之親事件由下而上依序為 `message.group` 、 `message` ，則這兩個事件也會依照這個順序上報。
 
-`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #cancel()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息)作為響應，送回至 CoolQ HTTP API 。
+`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #cancel()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息，也可以透過 `Promise` 對象 resolve 之文字訊息)作為響應，送回至 CoolQ HTTP API 。
 
 由於在一次事件傳播中的所有監聽器都會收到同一個 `CQEvent` 實例，因此對於響應的決定方式，除了 `CQEvent #cancel()` 所提供的事件截獲機制之外，也可以採取協議式的方式，就是透過每個監聽器調用 `CQEvent #getMessage()` `CQEvent #setMessage(msg)` 協議出一個最終的響應訊息。
 
