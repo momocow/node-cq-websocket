@@ -1,5 +1,4 @@
 const $WebsocketClient = require('websocket').client
-const $util = require('util')
 
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $safe = require('./util/typeguard')
@@ -10,29 +9,29 @@ const WebsocketType = {
   EVENT: '/event'
 }
 
-module.exports = class CQWebsocket extends $Callable{
-  constructor({
-    access_token = '',
+module.exports = class CQWebsocket extends $Callable {
+  constructor ({
+    access_token: accessToken = '',
     enableAPI = true,
     enableEvent = true,
     host = '127.0.0.1',
     port = 6700,
     qq = -1
-  } = {}){
+  } = {}) {
     super('__call__')
 
     this._host = $safe.string(host)
     this._port = $safe.int(port)
-    this._token = $safe.string(access_token)
+    this._token = $safe.string(accessToken)
     this._event = $safe.boolean(enableEvent)
     this._api = $safe.boolean(enableAPI)
     this._qq = $safe.int(parseInt(qq))
 
     this._eventBus = new $CQEventBus()
-    this._eventClient = this._event ? new $WebsocketClient(): null
-    this._apiClient = this._api ? new $WebsocketClient(): null
+    this._eventClient = this._event ? new $WebsocketClient() : null
+    this._apiClient = this._api ? new $WebsocketClient() : null
 
-    if(this._eventClient){
+    if (this._eventClient) {
       this._eventClient
         .on('connect', conn => {
           this._eventSock = conn
@@ -59,7 +58,7 @@ module.exports = class CQWebsocket extends $Callable{
         })
     }
 
-    if(this._apiClient){
+    if (this._apiClient) {
       this._apiClient
         .on('connect', conn => {
           this._apiSock = conn
@@ -87,105 +86,103 @@ module.exports = class CQWebsocket extends $Callable{
     }
   }
 
-  on(event_type, handler){
-    this._eventBus.on(event_type, handler)
+  on (eventType, handler) {
+    this._eventBus.on(eventType, handler)
     return this
   }
 
-  once(event_type, handler){
-    this._eventBus.once(event_type, handler)
+  once (eventType, handler) {
+    this._eventBus.once(eventType, handler)
     return this
   }
 
-  __call__(method, params){
-    if(!this._apiSock) return
+  __call__ (method, params) {
+    if (!this._apiSock) return
 
     let apiRequest = {
-      "action": method,
-      "params": params
+      'action': method,
+      'params': params
     }
 
-    this._eventBus.emit("socket.send.pre", WebsocketType.API, apiRequest)
+    this._eventBus.emit('socket.send.pre', WebsocketType.API, apiRequest)
     this._apiSock.sendUTF(JSON.stringify(apiRequest))
-    this._eventBus.emit("socket.send.post", WebsocketType.API)
+    this._eventBus.emit('socket.send.post', WebsocketType.API)
 
     return this
   }
 
-  _handle(msgObj){
-    switch(msgObj.post_type){
-      case "message":
-        switch(msgObj.message_type){
-          case "private":
-            this._eventBus.emit("message.private", msgObj)
+  _handle (msgObj) {
+    switch (msgObj.post_type) {
+      case 'message':
+        switch (msgObj.message_type) {
+          case 'private':
+            this._eventBus.emit('message.private', msgObj)
             break
-          case "discuss":
-            if(isBotAtted(msgObj.message, this._qq)){
-              this._eventBus.emit("message.discuss.@me", msgObj)
-            }
-            else{
-              this._eventBus.emit("message.discuss", msgObj)
+          case 'discuss':
+            if (isBotAtted(msgObj.message, this._qq)) {
+              this._eventBus.emit('message.discuss.@me', msgObj)
+            } else {
+              this._eventBus.emit('message.discuss', msgObj)
             }
             break
-          case "group":
-            if(isBotAtted(msgObj.message, this._qq)){
-              this._eventBus.emit("message.group.@me", msgObj)
-            }
-            else{
-              this._eventBus.emit("message.group", msgObj)
+          case 'group':
+            if (isBotAtted(msgObj.message, this._qq)) {
+              this._eventBus.emit('message.group.@me', msgObj)
+            } else {
+              this._eventBus.emit('message.group', msgObj)
             }
             break
           default:
-            this._eventBus.emit("message", msgObj)
+            this._eventBus.emit('message', msgObj)
         }
         break
-      case "event":
-        this._eventBus.emit("event", msgObj)
+      case 'event':
+        this._eventBus.emit('event', msgObj)
         break
-      case "request":
-        this._eventBus.emit("request", msgObj)
+      case 'request':
+        this._eventBus.emit('request', msgObj)
         break
       default:
-        this._eventBus.emit("error",
+        this._eventBus.emit('error',
           new Error(`The message received from CoolQ HTTP API plugin has no property 'post_type'.message ${JSON.stringify(msgObj)}`))
     }
   }
 
-  connect(){
-    if(this._event){
-      let tokenQS = this._token ? `?access_token=${this._token}`: ''
+  connect () {
+    if (this._event) {
+      let tokenQS = this._token ? `?accessToken=${this._token}` : ''
       this._eventClient.connect(`ws://${this._host}:${this._port}/event${tokenQS}`)
     }
 
-    if(this._api){
-      let tokenQS = this._token ? `?access_token=${this._token}`: ''
+    if (this._api) {
+      let tokenQS = this._token ? `?accessToken=${this._token}` : ''
       this._apiClient.connect(`ws://${this._host}:${this._port}/api${tokenQS}`)
     }
 
     return this
   }
 
-  disconnect(){
-    if(this._eventSock){
+  disconnect () {
+    if (this._eventSock) {
       this._eventSock.close()
     }
 
-    if(this._apiSock){
+    if (this._apiSock) {
       this._apiSock.close()
     }
 
     return this
   }
 
-  isConnected(){
-    let isEventReady = this._eventSock ? this._eventSock.connected : !this._event,
-      isAPIReady = this._apiSock ? this._apiSock.connected : !this._api
+  isConnected () {
+    let isEventReady = this._eventSock ? this._eventSock.connected : !this._event
+    let isAPIReady = this._apiSock ? this._apiSock.connected : !this._api
 
     return isEventReady && isAPIReady
   }
 }
 
-function isBotAtted(msg, qq){
+function isBotAtted (msg, qq) {
   return msg.includes(`[CQ:at,qq=${qq}]`)
 }
 
