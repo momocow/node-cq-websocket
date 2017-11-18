@@ -21,103 +21,100 @@ const WebsocketType = {
  * 7. 'error'
  */
 
-function serveAPIConnection(controller, conn){
+function serveAPIConnection (controller, conn) {
   controller.emit('connect', WebsocketType.API, conn)
 
-  conn.on('message', function(msg){
-    if(msg.type == "utf8"){
+  conn.on('message', function (msg) {
+    if (msg.type === 'utf8') {
       controller.emit('message', msg.utf8Data)
     }
   })
-    .on('close', function(){
+    .on('close', function () {
       conn = null
       controller.emit('close', WebsocketType.API)
     })
-    .on('error', function(err){
+    .on('error', function (err) {
       controller.emit('error', WebsocketType.API, err)
     })
 }
 
-function serveEventConnection(controller, conn){
+function serveEventConnection (controller, conn) {
   controller.emit('connect', WebsocketType.EVENT, conn)
 
-  controller.on('send', function(msg){
-    if(conn){
+  controller.on('send', function (msg) {
+    if (conn) {
       conn.sendUTF(msg)
     }
   })
 
-  conn.on('close', function(){
+  conn.on('close', function () {
     conn = null
     controller.emit('close', WebsocketType.EVENT)
   })
-    .on('error', function(err){
+    .on('error', function (err) {
       controller.emit('error', WebsocketType.EVENT, err)
     })
 }
 
-function _createServer(host, port, resolve, reject){
+function _createServer (host, port, resolve, reject) {
   let controller = new $EventEmitter()
-  let http_server = $http.createServer()
+  let httpServer = $http.createServer()
 
   controller._sock =
     new $WebSocketServer({
-      httpServer: http_server,
+      httpServer: httpServer,
       autoAcceptConnections: false
     })
-    .on('request', function(request){
-      let matched = request.resource.match(/access_token=([^&]*)/),
-        token = (matched)? matched[1]: ''
+    .on('request', function (request) {
+      let matched = request.resource.match(/access_token=([^&]*)/)
+      let token = (matched) ? matched[1] : ''
 
-      if(request.resource.startsWith("/event")){
-        if(token) controller.emit('token', WebsocketType.EVENT, token)
+      if (request.resource.startsWith('/event')) {
+        if (token) controller.emit('token', WebsocketType.EVENT, token)
         serveEventConnection(controller, request.accept(null, request.origin))
-      }
-      else if(request.resource.startsWith("/api")){
-        if(token) controller.emit('token', WebsocketType.API, token)
+      } else if (request.resource.startsWith('/api')) {
+        if (token) controller.emit('token', WebsocketType.API, token)
         serveAPIConnection(controller, request.accept(null, request.origin))
-      }
-      else{
+      } else {
         controller.emit('connectFailed')
         request.reject()
       }
     })
 
-  controller.send = function(msg){
+  controller.send = function (msg) {
     controller.emit('send', msg)
   }
-  controller.shutDown = function(){
-    return new $Promise(function(resolve){
-      if(controller._sock){
+  controller.shutDown = function () {
+    return new $Promise(function (resolve) {
+      if (controller._sock) {
         controller._sock.shutDown()
         controller._sock = null
       }
-      http_server.close(function(){
+      httpServer.close(function () {
         controller.emit('shutDown')
         resolve()
       })
     })
   }
-  controller.reset = function(){
-    if(controller._sock){
+  controller.reset = function () {
+    if (controller._sock) {
       controller._sock.closeAllConnections()
     }
     controller.removeAllListeners()
   }
-  controller.closeAllConnections = function(){
-    if(controller._sock){
+  controller.closeAllConnections = function () {
+    if (controller._sock) {
       controller._sock.closeAllConnections()
     }
   }
 
-  try{
-    http_server.listen(port, host, function(){
-      let addrObj = http_server.address()
+  try {
+    httpServer.listen(port, host, function () {
+      let addrObj = httpServer.address()
       controller.emit('listen', addrObj.address, addrObj.port)
       resolve(controller)
     })
-  }
-  catch(err){
+  } catch (err) {
     reject(err)
   }
 }
@@ -125,8 +122,8 @@ function _createServer(host, port, resolve, reject){
 /**
  * @throws EADDRINUSE
  */
-module.exports = function(host, port){
-  return new $Promise(function(resolve, reject){
+module.exports = function (host, port) {
+  return new $Promise(function (resolve, reject) {
     _createServer(host, port, resolve, reject)
   })
 }

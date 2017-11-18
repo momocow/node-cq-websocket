@@ -150,12 +150,12 @@ module.exports = class CQWebsocket extends $Callable {
 
   connect () {
     if (this._event) {
-      let tokenQS = this._token ? `?accessToken=${this._token}` : ''
+      let tokenQS = this._token ? `?access_token=${this._token}` : ''
       this._eventClient.connect(`ws://${this._host}:${this._port}/event${tokenQS}`)
     }
 
     if (this._api) {
-      let tokenQS = this._token ? `?accessToken=${this._token}` : ''
+      let tokenQS = this._token ? `?access_token=${this._token}` : ''
       this._apiClient.connect(`ws://${this._host}:${this._port}/api${tokenQS}`)
     }
 
