@@ -67,7 +67,7 @@ class CQEventBus {
     return this
   }
 
-  _emitThroughHierarchy (eventType, ...args) {
+  async _emitThroughHierarchy (eventType, ...args) {
     let queue = []
     let isResponsable = eventType.startsWith('message')
 
@@ -85,7 +85,7 @@ class CQEventBus {
           args.unshift(cqevent)
         }
 
-        let returned = handler(...args)
+        let returned = await handler(...args)
 
         if (isResponsable && typeof returned === 'string') {
           cqevent.setMessage(returned)
