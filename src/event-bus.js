@@ -82,11 +82,11 @@ class CQEventBus {
 
     if (queue && queue.length > 0) {
       let cqevent = new CQEvent()
-      for (let handler of queue) {
-        if (isResponsable && Array.isArray(args)) {
-          args.unshift(cqevent)
-        }
+      if (isResponsable && Array.isArray(args)) {
+        args.unshift(cqevent)
+      }
 
+      for (let handler of queue) {
         let returned = await handler(...args)
 
         if (isResponsable && typeof returned === 'string') {
