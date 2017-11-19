@@ -5,7 +5,7 @@ const $safe = require('./util/typeguard')
 let isSocketErrorHandled = false
 
 class CQEventBus {
-  constructor () {
+  constructor (cqbot) {
     // eventType-to-handlers mapping
     // blank keys refer to default keys
     this._EventMap = {
@@ -38,6 +38,8 @@ class CQEventBus {
         }
       }
     }
+
+    this._bot = cqbot
   }
 
   _getHandlerQueue (eventType) {
@@ -97,7 +99,7 @@ class CQEventBus {
       }
 
       if (isResponsable && cqevent.hasMessage()) {
-        this('send_msg', {
+        this._bot('send_msg', {
           ...args[0],
           message: cqevent.getMessage()
         })

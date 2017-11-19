@@ -27,7 +27,7 @@ module.exports = class CQWebsocket extends $Callable {
     this._api = $safe.boolean(enableAPI)
     this._qq = $safe.int(parseInt(qq))
 
-    this._eventBus = new $CQEventBus()
+    this._eventBus = new $CQEventBus(this)
     this._eventClient = this._event ? new $WebsocketClient() : null
     this._apiClient = this._api ? new $WebsocketClient() : null
 
