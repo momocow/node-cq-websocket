@@ -67,7 +67,7 @@ module.exports = class CQWebsocket extends $Callable {
           this._apiSock
             .on('message', msg => {
               if (msg.type === 'utf8') {
-                this._eventBus.emit('socket.response', WebsocketType.API, JSON.parse(msg.utf8Data))
+                this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
               }
             })
             .on('close', () => {
@@ -104,9 +104,9 @@ module.exports = class CQWebsocket extends $Callable {
       'params': params
     }
 
-    this._eventBus.emit('socket.send.pre', WebsocketType.API, apiRequest)
+    this._eventBus.emit('api.send.pre', WebsocketType.API, apiRequest)
     this._apiSock.sendUTF(JSON.stringify(apiRequest))
-    this._eventBus.emit('socket.send.post', WebsocketType.API)
+    this._eventBus.emit('api.send.post', WebsocketType.API)
 
     return this
   }
