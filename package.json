@@ -32,9 +32,9 @@
   "devDependencies": {
     "bluebird": "^3.5.1",
     "chai": "^4.1.2",
-    "coveralls": "^3.0.0",
+    "coveralls": "^3.0.1",
     "mocha": "^4.0.1",
-    "nyc": "^11.2.1",
+    "nyc": "^11.9.0",
     "sinon": "^4.0.2"
   },
   "nyc": {
