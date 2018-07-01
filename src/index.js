@@ -28,8 +28,8 @@ module.exports = class CQWebsocket extends $Callable {
     this._qq = $safe.int(parseInt(qq))
 
     this._eventBus = new $CQEventBus(this)
-    this._eventClient = this._event ? new $WebsocketClient() : null
-    this._apiClient = this._api ? new $WebsocketClient() : null
+    this._eventClient = this._event ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
+    this._apiClient = this._api ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
 
     if (this._eventClient) {
       this._eventClient
