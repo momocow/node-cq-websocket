@@ -13,6 +13,12 @@
 本項目為酷Q的 CoolQ HTTP API 插件支持 websocket 部分之 Node SDK。  
 關於 CoolQ HTTP API 插件，見 [richardchien/coolq-http-api](https://github.com/richardchien/coolq-http-api#readme)
 
+## Known Issues
+- CoolQ HTTP API 插件尚未支援收發 Fragmant, 暫時禁用
+  - 自`v1.2.6`
+  - [node-cq-websocket #2](https://github.com/momocow/node-cq-websocket/pull/2)
+  - [coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
+
 ## 使用方式
 1. 通過 `npm install cq-websocket` 安裝 SDK
 2. 將 SDK 導入代碼   
