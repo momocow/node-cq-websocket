@@ -136,15 +136,84 @@ module.exports = class CQWebsocket extends $Callable {
             this._eventBus.emit('message', msgObj)
         }
         break
-      case 'event':
+      case 'event': // Deprecated, reason: CQHttp 3.X
         this._eventBus.emit('event', msgObj)
         break
+      case 'notice': // Added, reason: CQHttp 4.X
+        switch (msgObj.notice_type) {
+          case 'group_upload':
+            this._eventBus.emit('notice.group_upload', msgObj)
+            break
+          case 'group_admin':
+            switch (msgObj.sub_type) {
+              case 'set':
+                this._eventBus.emit('notice.group_admin.set', msgObj)
+                break
+              case 'unset':
+                this._eventBus.emit('notice.group_admin.unset', msgObj)
+                break
+              default:
+                this._eventBus.emit('notice.group_admin', msgObj)
+            }
+            break
+          case 'group_decrease':
+            switch (msgObj.sub_type) {
+              case 'leave':
+                this._eventBus.emit('notice.group_decrease.leave', msgObj)
+                break
+              case 'kick':
+                this._eventBus.emit('notice.group_decrease.kick', msgObj)
+                break
+              case 'kick_me':
+                this._eventBus.emit('notice.group_decrease.kick_me', msgObj)
+                break
+              default:
+                this._eventBus.emit('notice.group_decrease', msgObj)
+            }
+            break
+          case 'group_increase':
+            switch (msgObj.sub_type) {
+              case 'approve':
+                this._eventBus.emit('notice.group_increase.approve', msgObj)
+                break
+              case 'invite':
+                this._eventBus.emit('notice.group_increase.invite', msgObj)
+                break
+              default:
+                this._eventBus.emit('notice.group_increase', msgObj)
+            }
+            break
+          case 'friend_add':
+            this._eventBus.emit('notice.friend_add', msgObj)
+            break
+          default:
+            this._eventBus.emit('notice', msgObj)
+        }
+        break
       case 'request':
-        this._eventBus.emit('request', msgObj)
+        switch (msgObj.request_type) {
+          case 'friend':
+            this._eventBus.emit('request.friend', msgObj)
+            break
+          case 'group':
+            switch (msgObj.sub_type) {
+              case 'add':
+                this._eventBus.emit('request.group.add', msgObj)
+                break
+              case 'invite':
+                this._eventBus.emit('request.group.invite', msgObj)
+                break
+              default:
+                this._eventBus.emit('request.group', msgObj)
+            }
+            break
+          default:
+            this._eventBus.emit('request', msgObj)
+        }
         break
       default:
         this._eventBus.emit('error',
-          new Error(`The message received from CoolQ HTTP API plugin has no property 'post_type'.message ${JSON.stringify(msgObj)}`))
+          new Error(`The message received from CoolQ HTTP API plugin has invalid property 'post_type'.\n${JSON.stringify(msgObj)}`))
     }
   }
 

@@ -22,7 +22,36 @@ class CQEventBus {
         }
       },
       event: [],
-      request: [],
+      notice: {
+        '': [],
+        group_upload: [],
+        group_admin: {
+          '': [],
+          set: [],
+          unset: []
+        },
+        group_decrease: {
+          '': [],
+          leave: [],
+          kick: [],
+          kick_me: []
+        },
+        group_increase: {
+          '': [],
+          approve: [],
+          invite: []
+        },
+        friend_add: []
+      },
+      request: {
+        '': [],
+        friend: [],
+        group: {
+          '': [],
+          add: [],
+          invite: []
+        }
+      },
       ready: [],
       error: [],
       socket: {
