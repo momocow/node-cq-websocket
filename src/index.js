@@ -43,9 +43,9 @@ module.exports = class CQWebsocket extends $Callable {
                 this._handle(JSON.parse(msg.utf8Data))
               }
             })
-            .on('close', () => {
+            .on('close', (code, desc) => {
               this._eventSock = conn = null
-              this._eventBus.emit('socket.close', WebsocketType.EVENT)
+              this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
             })
             .on('error', err => {
               this._eventBus.emit('socket.error', WebsocketType.EVENT, err)
@@ -70,9 +70,9 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
               }
             })
-            .on('close', () => {
+            .on('close', (code, desc) => {
               this._apiSock = conn = null
-              this._eventBus.emit('socket.close', WebsocketType.API)
+              this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
             })
             .on('error', err => {
               this._eventBus.emit('socket.error', WebsocketType.API, err)
