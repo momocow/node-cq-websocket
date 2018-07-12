@@ -300,13 +300,26 @@ module.exports = class CQWebsocket extends $Callable {
   }
 
   reconnect (delay = 0, wsType) {
-    this.disconnect(wsType)
-    this._eventBus.once('socket.close', (closedWsType) => {
-      const which = closedWsType === WebsocketType.API ? 'API' : 'EVENT'
-      if (!wsType || closedWsType === wsType) {
-        setTimeout(() => {
-          this.connect(closedWsType)
-        }, delay)
+    const _reconnect = (_type) => {
+      setTimeout(() => {
+        this.connect(_type)
+      }, delay)
+    }
+
+    const socks = wsType ? [ wsType ] : [ WebsocketType.EVENT, WebsocketType.API ]
+
+    socks.forEach((sock) => {
+      if (this.isSockConnected(sock)) {
+        this.disconnect(sock)
+        this._eventBus.once('socket.close', (_type) => {
+          if (_type === sock) {
+            _reconnect(sock)
+            return
+          }
+          return false
+        })
+      } else {
+        _reconnect(sock)
       }
     })
   }
