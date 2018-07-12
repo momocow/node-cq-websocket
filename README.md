@@ -22,15 +22,16 @@
 
 ## 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
-### 1.4.0
+### v1.4.0
 增強對連線的管理與維護, 斷線後自動嘗試重新連線。
 - 新增
   - [`off()` 方法](#cqwebsocket-offevent_type-listener)以移除指定監聽器。
   - [reconnect() 方法](#cqwebsocket-reconnectdelay-wstype)以重新建立連線。
   - [isSockConnected() 方法](#cqwebsocket-issockconnectedwstype)檢測 socket 是否正在連線。
-  - 為 [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法新增參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 則為全部連線。
   - `socket.connecting`, `socket.failed` 及 `socket.closing` 事件(參見 [socket 子事件](#socket-子事件))。
-  - [CQWebsocket 建構子](#new-cqwebsocketopt)新增額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
+- 修改
+  - [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法增加參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 指涉全部連線。
+  - [CQWebsocket 建構子](#new-cqwebsocketopt)增加額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
 - 修正
   - [`once()` 方法](#cqwebsocket-onceevent_type-listener)執行後無法正確移除監聽器之問題。
 - 棄用
@@ -79,7 +80,7 @@ const CQWebsocket = require('cq-websocket')
 - 返回值: 一個新配置的 `CQWebsocket` 類別實例
 
 ## 自動重新連線說明
-將 `reconnection` 設定為 true 啟用自動重連, 
+將 `reconnection` 設定為 true 啟用自動重連, 若發生網路錯誤, 例如無法連線到伺服器端, 連線建立失敗將會觸發重連, 若連續發生連線錯誤, 則重連次數不超過 `reconnectionAttempts`, 每次重連間隔 `reconnectionDelay` 毫秒。連續連線失敗將會在下一次連線成功時重新計數。
 
 ## 建立連線
 ### CQWebsocket #connect(wsType)
