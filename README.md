@@ -142,15 +142,15 @@ const CQWebsocket = require('cq-websocket')
 #### `notice` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
 | - | - | - |
-| notice.group_upload | `event` CQEvent <br> `context` object | 群文件上傳。 |
-| notice.group_admin.set | `event` CQEvent <br> `context` object | 設置管理員。 |
-| notice.group_admin.unset | `event` CQEvent <br> `context` object | 取消管理員。 |
-| notice.group_decrease.leave | `event` CQEvent <br> `context` object | 自主退群。 |
-| notice.group_decrease.kick | `event` CQEvent <br> `context` object | 被動踢出群。 |
-| notice.group_decrease.kick_me | `event` CQEvent <br> `context` object | 機器人被踢出群。 |
-| notice.group_increase.approve | `event` CQEvent <br> `context` object | 管理員同意入群。 |
-| notice.group_increase.invite | `event` CQEvent <br> `context` object | 管理員邀請入群。 |
-| notice.friend_add | `event` CQEvent <br> `context` object | 新添加好友。 |
+| notice.group_upload | `context` object | 群文件上傳。 |
+| notice.group_admin.set | `context` object | 設置管理員。 |
+| notice.group_admin.unset | `context` object | 取消管理員。 |
+| notice.group_decrease.leave | `context` object | 自主退群。 |
+| notice.group_decrease.kick | `context` object | 被動踢出群。 |
+| notice.group_decrease.kick_me | `context` object | 機器人被踢出群。 |
+| notice.group_increase.approve | `context` object | 管理員同意入群。 |
+| notice.group_increase.invite | `context` object | 管理員邀請入群。 |
+| notice.friend_add | `context` object | 新添加好友。 |
 
 #### `request` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
@@ -160,10 +160,12 @@ const CQWebsocket = require('cq-websocket')
 | request.group.invite | `event` CQEvent <br> `context` object | 邀請入群。 |
 
 #### `socket` 子事件
+底層 socket 連線的事件, 可用於掌握連線狀況。
+
 | 事件類型 | 監聽器參數 | 說明 |
 | - | - | - |
 | socket.connect | `type` WebsocketType <br> `socket` [WebSocketConnection](https://github.com/theturtle32/WebSocket-Node/blob/d941f975e8ef6b55eafc0ef45996f4198013832c/docs/WebSocketConnection.md#websocketconnection) | 連線成功後，尚未初始化之前。 |
-| socket.close | `type` WebsocketType | 連線關閉。 |
+| socket.close | `type` WebsocketType <br> `` | 連線關閉。 |
 | socket.error | `type` WebsocketType <br> `err` Error | 連線失誤。 |
 
 #### `api` 子事件

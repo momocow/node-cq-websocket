@@ -1,8 +1,7 @@
 const $get = require('lodash.get')
 
 const $safe = require('./util/typeguard')
-
-let isSocketErrorHandled = false
+const $traverse = require('./util/traverse')
 
 class CQEventBus {
   constructor (cqbot) {
@@ -56,7 +55,7 @@ class CQEventBus {
       error: [],
       socket: {
         connect: [],
-        error: [ onSocketError ], // has a default handler; automatically removed when developers register their own ones
+        error: [], // has a default handler; automatically removed when developers register their own ones
         close: []
       },
       api: {
@@ -68,7 +67,10 @@ class CQEventBus {
       }
     }
 
+    this._isSocketErrorHandled = false
     this._bot = cqbot
+
+    this._installDefaultErrorHandler()
   }
 
   _getHandlerQueue (eventType) {
@@ -137,15 +139,67 @@ class CQEventBus {
   }
 
   once (eventType, handler) {
-    return this.on(eventType, (...args) => {
-      let queue = this._getHandlerQueue(eventType)
-      let qidx = queue.indexOf(handler)
+    const onceWrapper = (...args) => {
       let returned = handler(...args)
-      if (returned !== false) {
-        queue.splice(qidx, 1)
-      }
+      // if the returned value is `false` which indicates the handler have not yet finish its task,
+      // keep the handler for next event handling
+      if (returned === false) return
+
+      this.off(eventType, onceWrapper)
       return returned
-    })
+    }
+    return this.on(eventType, onceWrapper)
+  }
+
+  off (eventType, handler) {
+    if (typeof eventType !== 'string') {
+      $traverse(this._EventMap, (value, key, obj) => {
+        // clean all handler queues
+        if (Array.isArray(value)) {
+          obj[key] = []
+          return false
+        }
+      })
+      this._installDefaultErrorHandler()
+      return this
+    }
+
+    const queue = this._getHandlerQueue(eventType)
+    if (queue === undefined) {
+      return this
+    }
+
+    if (typeof handler !== 'function') {
+      // clean all handlers of the event queue specified by eventType
+      queue.splice(0, queue.length)
+      if (eventType === 'socket.error') {
+        this._installDefaultErrorHandler()
+      }
+      return this
+    }
+
+    const idx = queue.indexOf(handler)
+    if (idx >= 0) {
+      queue.splice(idx, 1)
+      if (eventType === 'socket.error' && queue.length === 0) {
+        this._installDefaultErrorHandler()
+      }
+    }
+    return this
+  }
+
+  _installDefaultErrorHandler () {
+    if (this._EventMap.socket.error.length === 0) {
+      this._EventMap.socket.error.push(onSocketError)
+      this._isSocketErrorHandled = false
+    }
+  }
+
+  _removeDefaultErrorHandler () {
+    if (!this._isSocketErrorHandled) {
+      this._EventMap.socket.error = []
+      this._isSocketErrorHandled = true
+    }
   }
 
   on (eventType, handler) {
@@ -156,10 +210,8 @@ class CQEventBus {
       return this
     }
 
-    if (!isSocketErrorHandled && eventType === 'socket.error') {
-      this._EventMap.socket.error = []
-
-      isSocketErrorHandled = true
+    if (eventType === 'socket.error') {
+      this._removeDefaultErrorHandler()
     }
 
     let queue = this._getHandlerQueue(eventType)

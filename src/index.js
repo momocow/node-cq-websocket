@@ -3,6 +3,7 @@ const $WebsocketClient = require('websocket').client
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $safe = require('./util/typeguard')
 const $Callable = require('./util/callable')
+const $wrapError = require('./errors')
 
 const WebsocketType = {
   API: '/api',
@@ -48,12 +49,12 @@ module.exports = class CQWebsocket extends $Callable {
               this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
             })
             .on('error', err => {
-              this._eventBus.emit('socket.error', WebsocketType.EVENT, err)
+              this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
             })
           this._eventBus.emit('ready', WebsocketType.EVENT, this)
         })
         .on('connectFailed', err => {
-          this._eventBus.emit('socket.error', WebsocketType.EVENT, err)
+          this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
           this._eventClient = null
         })
     }
@@ -75,15 +76,20 @@ module.exports = class CQWebsocket extends $Callable {
               this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
             })
             .on('error', err => {
-              this._eventBus.emit('socket.error', WebsocketType.API, err)
+              this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
             })
           this._eventBus.emit('ready', WebsocketType.API, this)
         })
         .on('connectFailed', err => {
-          this._eventBus.emit('socket.error', WebsocketType.API, err)
+          this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
           this._eventClient = null
         })
     }
+  }
+
+  off (eventType, handler) {
+    this._eventBus.off(eventType, handler)
+    return this
   }
 
   on (eventType, handler) {
