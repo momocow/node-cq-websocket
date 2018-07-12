@@ -22,17 +22,32 @@
 
 ## 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
+### 1.4.0
+增強對連線的管理與維護, 斷線後自動嘗試重新連線。
+- 新增
+  - [`off()` 方法](#cqwebsocket-offevent_type-listener)以移除指定監聽器。
+  - [reconnect() 方法](#cqwebsocket-reconnectdelay-wstype)以重新建立連線。
+  - [isSockConnected() 方法](#cqwebsocket-issockconnectedwstype)檢測 socket 是否正在連線。
+  - 為 [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法新增參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 則為全部連線。
+  - `socket.connecting`, `socket.failed` 及 `socket.closing` 事件(參見 [socket 子事件](#socket-子事件))。
+  - [CQWebsocket 建構子](#new-cqwebsocketopt)新增額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
+- 修正
+  - [`once()` 方法](#cqwebsocket-onceevent_type-listener)執行後無法正確移除監聽器之問題。
+- 棄用
+  - `isConnected()` 方法
+  > 重新命名為 [`isReady()`](#cqwebsocket-isready)。
+
 ### v1.3.0
 兼容 CoolQ HTTP API v3.x 及 v4.x 兩個主版本。
-#### 新增
-- 給予 CoolQ HTTP API v4.x 之上報事件 `notice` 實作更多[子事件](#notice-子事件)。(群文件上傳, 群管變動, 群成員增減, 好友添加)
-- 給予上報事件 `request` 實作更多[子事件](#request-子事件)。(好友請求, 群請求/群邀請)
-#### 棄用
-- 上報事件: `event` -> 請改用 `notice`事件。
+- 新增
+  - 給予 CoolQ HTTP API v4.x 之上報事件 `notice` 實作更多[子事件](#notice-子事件)。(群文件上傳, 群管變動, 群成員增減, 好友添加)
+  - 給予上報事件 `request` 實作更多[子事件](#request-子事件)。(好友請求, 群請求/群邀請)
+- 棄用
+  - 上報事件: `event` -> 請改用 `notice`事件。
 ### v1.2.6
-#### 修改
-- 禁用 websocket fragment, 待 CoolQ HTTP API 修正問題時再次啟用。
-> 於此帖追蹤進度。[coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
+- 修改
+  - 禁用 websocket fragment, 待 CoolQ HTTP API 修正問題時再次啟用。
+  > 於此帖追蹤進度。[coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
 
 ## 使用方式
 1. 通過 `npm install cq-websocket` 安裝 SDK
@@ -57,28 +72,86 @@ const CQWebsocket = require('cq-websocket')
 |  `host` | string | `"127.0.0.1"` | 伺服器 IP |
 |  `port` | number | 6700 | 伺服器端口 |
 |  `qq` | number &#124; string | -1 | 觸發 `@me` 事件用的QQ帳號，通常同登入酷Q之帳號，用在討論組消息及群消息中辨認是否有人at此帳號 |
+|  `reconnection` | boolean | true | 是否連線錯誤時自動重連 |
+|  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
+|  `reconnectionDelay` | number | 1000 | 重複連線的延遲時間, 單位: ms |
 
 - 返回值: 一個新配置的 `CQWebsocket` 類別實例
 
-## 建立連線
-### CQWebsocket #connect()
-- 返回值： `this`  
+## 自動重新連線說明
+將 `reconnection` 設定為 true 啟用自動重連, 
 
-此方法為一個非同步的方法，連線成功後會觸發 `socket.connect` 事件，連線失敗則會觸發 `socket.error` 事件。
+## 建立連線
+### CQWebsocket #connect(wsType)
+- `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
+- 返回值： `this`  
+- 事件
+  - `socket.connecting` 呼叫後立刻觸發，在任何連線嘗試之前。
+  - `socket.connect` 連線成功。
+  - `socket.failed` 連線失敗。
+  - `socket.error` 連線失敗會一併觸發 error 事件。
+
+`socket.connecting` 及 `socket.connect` 事件中帶有 attempts 參數, 可以用來對照哪次連線是否成功, attempts 的值表示**連續** *(N - 1)* 次失敗後的第 *N* 次連線嘗試。
+
+attempts 會在連線成功後歸零。
+
+範例:
+```js
+const CQWebsocket = require('cq-websocket')
+const { WebsocketType } = CQWebsocket
+const bot = new CQWebsocket()
+
+// 手動連接兩個連線
+bot.connect(WebsocketType.API)
+bot.connect(WebsocketType.EVENT)
+
+// 上面兩行 connect 代碼等同這一句
+bot.connect()
+
+bot.on('socket.connecting', function (wsType, attempts) {
+  console.log('嘗試第 %d 次連線 _(:з」∠)_', attempts)
+}).on('socket.connect', function (wsType, sock, attempts) {
+  console.log('第 %d 次連線嘗試成功 ヽ(✿ﾟ▽ﾟ)ノ', attempts)
+}).on('socket.failed', function (wsType, attempts) {
+  console.log('第 %d 次連線嘗試失敗 。･ﾟ･(つд`ﾟ)･ﾟ･', attempts)
+})
+```
 
 ## 斷開連線
-### CQWebsocket #disconnect()
-- 返回值： `this`  
+### CQWebsocket #disconnect(wsType)
+- `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
+- 返回值： `this`
+- 事件
+  - `socket.close` 連線斷開後。
 
-此方法為一個非同步的方法，連線斷開後會觸發 `socket.close` 事件。
+## 重新連線
+### CQWebsocket #reconnect(delay, wsType)
+- `delay` number
+- `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
+- 返回值： `this`
+- 事件
+  > 此方法會先呼叫 disconnect() 等待 `socket.close` 事件觸發後再呼叫 connect(), 可以參考以上兩個方法的事件。
+
+斷開現有連線, 並重新建立連線。
+
+`delay`單位為 ms，表示`socket.close`**事件觸發後的延遲時間**, 延遲時間過後才會呼叫 connect()。
+
+## 檢測連線
+### CQWebsocket #isSockConnected(wsType)
+- `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
+- 返回值： `boolean`
+
+若未給定 wsType 則使方法會拋出錯誤。
 
 ## 連線就緒
-### CQWebsocket #isConnected()
+### CQWebsocket #isReady()
 - 返回值： `boolean`
 
 檢查連線狀態是否就緒。
 
 > 僅檢查已透過 `enableAPI` 及 `enableEvent` 啟用之連線。
+
+> 原 #isConnected() 方法。
 
 ## 方法調用
 ### CQWebsocket(`method`, `params`)
@@ -115,6 +188,16 @@ const CQWebsocket = require('cq-websocket')
 當返回值為 `boolean` 且為 `false` ，指涉該監聽器並未完成任務，則保留該監聽器繼續聽取事件，不做移除。下一次事件發生時，該監聽器在調用後會再次以返回值判定去留。若返回值為 `boolean` 且為 `true` ，指涉該監聽器處理完畢，立即移除。
 
 若返回值為 `string` ，則立即以該文字訊息作為響應發送，並移除該監聽器。
+
+### CQWebsocket #off(`event_type`, `listener`)
+- `event_type` string
+- `listener` function
+- 返回值： `this`
+
+關於判定會被移除的監聽器, 以下條件, 第一個成立即適用。
+1. 若 `event_type` 不為字串, 則移除所有監聽器, 並且安裝默認的 `socket.error` 監聽器
+2. 若 `listener` 不為方法, 則移除所有 `event_type` 所指定事件下的監聽器, 若 `event_type` 指定的事件不存在則無事。
+3. 移除 `event_type` 下的 `listener` 監聽器(**參照 reference 須相同!**), 若 `listener` 不存在則無事。
 
 #### 基本事件
 前三個基本事件之說明，可以另外參考 CoolQ HTTP API 的[數據上報格式](https://cqhttp.cc/docs/4.2/#/Post?id=%E4%B8%8A%E6%8A%A5%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F)。
@@ -164,9 +247,12 @@ const CQWebsocket = require('cq-websocket')
 
 | 事件類型 | 監聽器參數 | 說明 |
 | - | - | - |
-| socket.connect | `type` WebsocketType <br> `socket` [WebSocketConnection](https://github.com/theturtle32/WebSocket-Node/blob/d941f975e8ef6b55eafc0ef45996f4198013832c/docs/WebSocketConnection.md#websocketconnection) | 連線成功後，尚未初始化之前。 |
-| socket.close | `type` WebsocketType <br> `` | 連線關閉。 |
-| socket.error | `type` WebsocketType <br> `err` Error | 連線失誤。 |
+| socket.connecting | `type` WebsocketType <br> `attempts` number | 開始嘗試連線, 連線成功/失敗之前。 |
+| socket.connect | `type` WebsocketType <br> `socket` [WebSocketConnection](https://github.com/theturtle32/WebSocket-Node/blob/d941f975e8ef6b55eafc0ef45996f4198013832c/docs/WebSocketConnection.md#websocketconnection) <br> `attempts` number | 連線成功後，尚未初始化之前。 |
+| socket.closing | `type` WebsocketType | 連線關閉之前。 |
+| socket.close | `type` WebsocketType <br> `code` number <br> `desc` string | 連線關閉。(連線關閉代碼 `code` 可參照 [RFC 文件](https://tools.ietf.org/html/rfc6455#section-7.4))) |
+| socket.failed | `type` WebsocketType <br> `attempts` number | 連線失敗。 |
+| socket.error | `type` WebsocketType <br> `err` Error | 連線錯誤。 |
 
 #### `api` 子事件
 | 事件類型 | 監聽器參數 | 說明 |

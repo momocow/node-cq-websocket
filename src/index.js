@@ -17,7 +17,10 @@ module.exports = class CQWebsocket extends $Callable {
     enableEvent = true,
     host = '127.0.0.1',
     port = 6700,
-    qq = -1
+    qq = -1,
+    reconnection = true,
+    reconnectionAttempts = Infinity,
+    reconnectionDelay = 1000
   } = {}) {
     super('__call__')
 
@@ -28,6 +31,17 @@ module.exports = class CQWebsocket extends $Callable {
     this._api = $safe.boolean(enableAPI)
     this._qq = $safe.int(parseInt(qq))
 
+    this._reconnectOptions = {
+      reconnection,
+      reconnectionAttempts,
+      reconnectionDelay
+    }
+
+    this._attemps = {
+      API: 0,
+      EVENT: 0
+    }
+
     this._eventBus = new $CQEventBus(this)
     this._eventClient = this._event ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
     this._apiClient = this._api ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
@@ -36,7 +50,8 @@ module.exports = class CQWebsocket extends $Callable {
       this._eventClient
         .on('connect', conn => {
           this._eventSock = conn
-          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock)
+          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._attemps.EVENT)
+          this._attemps.EVENT = 0
 
           this._eventSock
             .on('message', (msg) => {
@@ -47,6 +62,10 @@ module.exports = class CQWebsocket extends $Callable {
             .on('close', (code, desc) => {
               this._eventSock = conn = null
               this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
+              // code === 1000 : normal disconnection
+              if (code !== 1000 && this._reconnectOptions.reconnection) {
+                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
+              }
             })
             .on('error', err => {
               this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
@@ -54,8 +73,13 @@ module.exports = class CQWebsocket extends $Callable {
           this._eventBus.emit('ready', WebsocketType.EVENT, this)
         })
         .on('connectFailed', err => {
+          this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._attemps.EVENT)
           this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
-          this._eventClient = null
+          if (this._reconnectOptions.reconnection &&
+            this._attemps.EVENT <= this._reconnectOptions.reconnectionAttempts
+          ) {
+            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
+          }
         })
     }
 
@@ -63,7 +87,8 @@ module.exports = class CQWebsocket extends $Callable {
       this._apiClient
         .on('connect', conn => {
           this._apiSock = conn
-          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock)
+          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._attemps.API)
+          this._attemps.API = 0
 
           this._apiSock
             .on('message', msg => {
@@ -74,6 +99,10 @@ module.exports = class CQWebsocket extends $Callable {
             .on('close', (code, desc) => {
               this._apiSock = conn = null
               this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
+              // code === 1000 : normal disconnection
+              if (code !== 1000 && this._reconnectOptions.reconnection) {
+                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
+              }
             })
             .on('error', err => {
               this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
@@ -81,8 +110,13 @@ module.exports = class CQWebsocket extends $Callable {
           this._eventBus.emit('ready', WebsocketType.API, this)
         })
         .on('connectFailed', err => {
+          this._eventBus.emit('socket.failed', WebsocketType.API, this._attemps.API)
           this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
-          this._eventClient = null
+          if (this._reconnectOptions.reconnection &&
+            this._attemps.API <= this._reconnectOptions.reconnectionAttempts
+          ) {
+            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
+          }
         })
     }
   }
@@ -223,38 +257,74 @@ module.exports = class CQWebsocket extends $Callable {
     }
   }
 
-  connect () {
-    if (this._event) {
+  isSockConnected (wsType) {
+    if (wsType === WebsocketType.API) {
+      return this._apiSock && this._apiSock.connected
+    } else if (wsType === WebsocketType.EVENT) {
+      return this._eventSock && this._eventSock.connected
+    } else {
+      throw new Error('Invalid websocket type is specified.')
+    }
+  }
+
+  connect (wsType) {
+    if (this._event && (!wsType || wsType === WebsocketType.EVENT) && !this.isSockConnected(WebsocketType.EVENT)) {
       let tokenQS = this._token ? `?access_token=${this._token}` : ''
       this._eventClient.connect(`ws://${this._host}:${this._port}/event${tokenQS}`)
+      this._attemps.EVENT++
+      this._eventBus.emit('connecting', WebsocketType.EVENT, this._attemps.EVENT)
     }
 
-    if (this._api) {
+    if (this._api && (!wsType || wsType === WebsocketType.API) && !this.isSockConnected(WebsocketType.API)) {
       let tokenQS = this._token ? `?access_token=${this._token}` : ''
       this._apiClient.connect(`ws://${this._host}:${this._port}/api${tokenQS}`)
+      this._attemps.API++
+      this._eventBus.emit('connecting', WebsocketType.API, this._attemps.API)
     }
 
     return this
   }
 
-  disconnect () {
-    if (this._eventSock) {
+  disconnect (wsType) {
+    if ((!wsType || wsType === WebsocketType.EVENT) && this.isSockConnected(WebsocketType.EVENT)) {
       this._eventSock.close()
+      this._eventBus.emit('closing', WebsocketType.EVENT)
     }
 
-    if (this._apiSock) {
+    if ((!wsType || wsType === WebsocketType.API) && this.isSockConnected(WebsocketType.API)) {
       this._apiSock.close()
+      this._eventBus.emit('closing', WebsocketType.API)
     }
 
     return this
   }
 
-  isConnected () {
+  reconnect (delay = 0, wsType) {
+    this.disconnect(wsType)
+    this._eventBus.once('socket.close', (closedWsType) => {
+      const which = closedWsType === WebsocketType.API ? 'API' : 'EVENT'
+      if (!wsType || closedWsType === wsType) {
+        setTimeout(() => {
+          this.connect(closedWsType)
+        }, delay)
+      }
+    })
+  }
+
+  isReady () {
     let isEventReady = this._eventSock ? this._eventSock.connected : !this._event
     let isAPIReady = this._apiSock ? this._apiSock.connected : !this._api
 
     return isEventReady && isAPIReady
   }
+
+  /**
+   * @deprecated
+   */
+  isConnected () {
+    return this.isReady()
+  }
+
 }
 
 function isBotAtted (msg, qq) {

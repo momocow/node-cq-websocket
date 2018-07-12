@@ -54,8 +54,11 @@ class CQEventBus {
       ready: [],
       error: [],
       socket: {
+        connecting: [],
         connect: [],
+        failed: [],
         error: [], // has a default handler; automatically removed when developers register their own ones
+        closing: [],
         close: []
       },
       api: {
