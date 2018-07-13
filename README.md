@@ -22,6 +22,15 @@
 
 ## 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
+### v1.4.2
+- 新增
+  - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
+  - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
+- 修改
+  - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
+- 修正
+  - 事件名稱錯誤。(`closing` => `socket.closing`, `connecting` => `socket.connecting`)
+
 ### v1.4.0
 增強對連線的管理與維護, 斷線後自動嘗試重新連線。
 - 新增
@@ -150,6 +159,8 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 檢查連線狀態是否就緒。
 
+> 可透過 `ready` 事件監聽。 
+
 > 僅檢查已透過 `enableAPI` 及 `enableEvent` 啟用之連線。
 
 > 原 #isConnected() 方法。
@@ -212,7 +223,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | notice  | `context` object | 群文件上傳, 群管變動, 群成員增減, 好友添加...等QQ事件。 |
 | request | `context` object | 好友請求, 群請求/群邀請...等QQ事件。 |
 | error | `err` Error | CoolQ HTTP API 送來之消息文本缺乏 `post_type` 字段 (理論上不會有這個事件發生)。 |
-| ready | `type` [WebsocketType](#cqwebsocketwebsockettype-實例) <br> `this` | 連線成功並初始化完成，可以開始調用API (送消息...等操作)。 |
+| ready | `this` | 設定中啟用之連線均成功並初始化完成，可以開始調用API (送消息...等操作)。 |
 
 #### `message` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
@@ -239,9 +250,9 @@ bot.on('socket.connecting', function (wsType, attempts) {
 #### `request` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
 | - | - | - |
-| request.friend | `event` CQEvent <br> `context` object | 私聊消息。 |
-| request.group.add | `event` CQEvent <br> `context` object | 加群請求。 |
-| request.group.invite | `event` CQEvent <br> `context` object | 邀請入群。 |
+| request.friend | `context` object | 私聊消息。 |
+| request.group.add | `context` object | 加群請求。 |
+| request.group.invite | `context` object | 邀請入群。 |
 
 #### `socket` 子事件
 底層 socket 連線的事件, 可用於掌握連線狀況。
