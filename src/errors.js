@@ -1,3 +1,9 @@
+class InvalidWsTypeError extends Error {
+  constructor (type) {
+    super(`"${type}" is not a valid websocket type.`)
+  }
+}
+
 class SocketError extends Error {
   /**
    * @param {string} desc
@@ -8,10 +14,15 @@ class SocketError extends Error {
   }
 }
 
-module.exports = function wrapError (err) {
+function wrapSockError (err) {
   if (typeof err === 'string') {
     return new SocketError(err)
   }
 
   return err
+}
+
+module.exports = {
+  wrapSockError,
+  InvalidWsTypeError
 }

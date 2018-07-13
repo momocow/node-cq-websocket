@@ -3,11 +3,15 @@ const $WebsocketClient = require('websocket').client
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $safe = require('./util/typeguard')
 const $Callable = require('./util/callable')
-const $wrapError = require('./errors')
+const { wrapSockError: $wrapSockError, InvalidWsTypeError } = require('./errors')
 
 const WebsocketType = {
   API: '/api',
   EVENT: '/event'
+}
+
+const WebsocketState = {
+  DISABLED: -1, INIT: 0, CONNECTING: 1, CONNECTED: 2, CLOSING: 3, CLOSED: 4
 }
 
 module.exports = class CQWebsocket extends $Callable {
@@ -24,6 +28,10 @@ module.exports = class CQWebsocket extends $Callable {
   } = {}) {
     super('__call__')
 
+    ///*****************/
+    //     options
+    ///*****************/
+
     this._host = $safe.string(host)
     this._port = $safe.int(port)
     this._token = $safe.string(accessToken)
@@ -37,9 +45,19 @@ module.exports = class CQWebsocket extends $Callable {
       reconnectionDelay
     }
 
-    this._attemps = {
-      API: 0,
-      EVENT: 0
+    ///*****************/
+    //     states
+    ///*****************/
+
+    this._monitor = {
+      EVENT: {
+        attempts: 0,
+        state: this._event ? WebsocketState.INIT : WebsocketState.DISABLED
+      },
+      API: {
+        attempts: 0,
+        state: this._api ? WebsocketState.INIT : WebsocketState.DISABLED
+      }
     }
 
     this._eventBus = new $CQEventBus(this)
@@ -50,8 +68,9 @@ module.exports = class CQWebsocket extends $Callable {
       this._eventClient
         .on('connect', conn => {
           this._eventSock = conn
-          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._attemps.EVENT)
-          this._attemps.EVENT = 0
+          this._monitor.EVENT.state = WebsocketState.CONNECTED
+          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._monitor.EVENT.attempts)
+          this._monitor.EVENT.attempts = 0
 
           this._eventSock
             .on('message', (msg) => {
@@ -61,6 +80,7 @@ module.exports = class CQWebsocket extends $Callable {
             })
             .on('close', (code, desc) => {
               this._eventSock = conn = null
+              this._monitor.EVENT.state = WebsocketState.CLOSED
               this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
               // code === 1000 : normal disconnection
               if (code !== 1000 && this._reconnectOptions.reconnection) {
@@ -68,15 +88,19 @@ module.exports = class CQWebsocket extends $Callable {
               }
             })
             .on('error', err => {
-              this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
+              this._monitor.EVENT.state = WebsocketState.CLOSING
+              this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
             })
-          this._eventBus.emit('ready', WebsocketType.EVENT, this)
+            if (this.isReady()) {
+              this._eventBus.emit('ready', this)
+            }
         })
         .on('connectFailed', err => {
-          this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._attemps.EVENT)
-          this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapError(err))
+          this._monitor.EVENT.state = WebsocketState.CLOSED
+          this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
+          this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
           if (this._reconnectOptions.reconnection &&
-            this._attemps.EVENT <= this._reconnectOptions.reconnectionAttempts
+            this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
           ) {
             this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
           }
@@ -87,8 +111,9 @@ module.exports = class CQWebsocket extends $Callable {
       this._apiClient
         .on('connect', conn => {
           this._apiSock = conn
-          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._attemps.API)
-          this._attemps.API = 0
+          this._monitor.API.state = WebsocketState.CONNECTED
+          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._monitor.API.attempts)
+          this._monitor.API.attempts = 0
 
           this._apiSock
             .on('message', msg => {
@@ -98,6 +123,7 @@ module.exports = class CQWebsocket extends $Callable {
             })
             .on('close', (code, desc) => {
               this._apiSock = conn = null
+              this._monitor.API.state = WebsocketState.CLOSED
               this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
               // code === 1000 : normal disconnection
               if (code !== 1000 && this._reconnectOptions.reconnection) {
@@ -105,15 +131,20 @@ module.exports = class CQWebsocket extends $Callable {
               }
             })
             .on('error', err => {
-              this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
+              this._monitor.API.state = WebsocketState.CLOSING
+              this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
             })
-          this._eventBus.emit('ready', WebsocketType.API, this)
+
+          if (this.isReady()) {
+            this._eventBus.emit('ready', this)
+          }
         })
         .on('connectFailed', err => {
-          this._eventBus.emit('socket.failed', WebsocketType.API, this._attemps.API)
-          this._eventBus.emit('socket.error', WebsocketType.API, $wrapError(err))
+          this._monitor.API.state = WebsocketState.CLOSED
+          this._eventBus.emit('socket.failed', WebsocketType.API, this._monitor.API.attempts)
+          this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
           if (this._reconnectOptions.reconnection &&
-            this._attemps.API <= this._reconnectOptions.reconnectionAttempts
+            this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
           ) {
             this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
           }
@@ -257,45 +288,59 @@ module.exports = class CQWebsocket extends $Callable {
     }
   }
 
+  /**
+   * @param {(wsType: "/api"|"/event", label: "EVENT"|"API", client: $WebsocketClient) => void} cb
+   * @param {"/api"|"/event"} [types]
+   */
+  _forEachSock (cb, types = [ WebsocketType.EVENT, WebsocketType.API ]) {
+    if (!Array.isArray(types)) {
+      if (![ WebsocketType.EVENT, WebsocketType.API ].includes(types)) {
+        throw new InvalidWsTypeError(wsType)
+      }
+
+      types = [ types ]
+    }
+
+    types.forEach((wsType) => {
+      cb(wsType, wsType === WebsocketType.EVENT ? 'EVENT' : 'API')
+    })
+  }
+
   isSockConnected (wsType) {
     if (wsType === WebsocketType.API) {
-      return this._apiSock && this._apiSock.connected
+      return this._monitor.API.state === WebsocketState.CONNECTED
     } else if (wsType === WebsocketType.EVENT) {
-      return this._eventSock && this._eventSock.connected
+      return this._monitor.EVENT.state === WebsocketState.CONNECTED
     } else {
-      throw new Error('Invalid websocket type is specified.')
+      throw new InvalidWsTypeError(wsType)
     }
   }
 
   connect (wsType) {
-    if (this._event && (!wsType || wsType === WebsocketType.EVENT) && !this.isSockConnected(WebsocketType.EVENT)) {
-      let tokenQS = this._token ? `?access_token=${this._token}` : ''
-      this._eventClient.connect(`ws://${this._host}:${this._port}/event${tokenQS}`)
-      this._attemps.EVENT++
-      this._eventBus.emit('connecting', WebsocketType.EVENT, this._attemps.EVENT)
-    }
+    this._forEachSock((_type, _label) => {
+      if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
+        const _client = _type === WebsocketType.EVENT ? this._eventClient : this._apiClient
+        const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
-    if (this._api && (!wsType || wsType === WebsocketType.API) && !this.isSockConnected(WebsocketType.API)) {
-      let tokenQS = this._token ? `?access_token=${this._token}` : ''
-      this._apiClient.connect(`ws://${this._host}:${this._port}/api${tokenQS}`)
-      this._attemps.API++
-      this._eventBus.emit('connecting', WebsocketType.API, this._attemps.API)
-    }
-
+        this._monitor[_label].state = WebsocketState.CONNECTING
+        this._monitor[_label].attempts++
+        _client.connect(`ws://${this._host}:${this._port}/event${tokenQS}`)
+        this._eventBus.emit('socket.connecting', _type, this._monitor[_label].attempts)
+      }
+    }, wsType)
     return this
   }
 
   disconnect (wsType) {
-    if ((!wsType || wsType === WebsocketType.EVENT) && this.isSockConnected(WebsocketType.EVENT)) {
-      this._eventSock.close()
-      this._eventBus.emit('closing', WebsocketType.EVENT)
-    }
+    this._forEachSock((_type, _label) => {
+      if (this._monitor[_label].state === WebsocketState.CONNECTED) {
+        const _sock = _type === WebsocketType.EVENT ? this._eventSock : this._apiSock
 
-    if ((!wsType || wsType === WebsocketType.API) && this.isSockConnected(WebsocketType.API)) {
-      this._apiSock.close()
-      this._eventBus.emit('closing', WebsocketType.API)
-    }
-
+        this._monitor[_label].state = WebsocketState.CLOSING
+        _sock.close()
+        this._eventBus.emit('socket.closing', _type)
+      }
+    }, wsType)
     return this
   }
 
@@ -306,22 +351,22 @@ module.exports = class CQWebsocket extends $Callable {
       }, delay)
     }
 
-    const socks = wsType ? [ wsType ] : [ WebsocketType.EVENT, WebsocketType.API ]
-
-    socks.forEach((sock) => {
-      if (this.isSockConnected(sock)) {
-        this.disconnect(sock)
-        this._eventBus.once('socket.close', (_type) => {
-          if (_type === sock) {
-            _reconnect(sock)
-            return
-          }
-          return false
-        })
-      } else {
-        _reconnect(sock)
+    this._forEachSock((_type, _label) => {
+      switch (this._monitor[_label].state) {
+        case WebsocketState.CONNECTED:
+          this.disconnect(_type)
+          this._eventBus.once('socket.close', (_closedType) => {
+            return _closedType === _type ? _reconnect(_type) : false
+          })
+          break
+        case WebsocketState.CLOSED:
+        case WebsocketState.INIT:
+          _reconnect(sock)
+          break
+        default:
       }
-    })
+    }, wsType)
+    return this
   }
 
   isReady () {
