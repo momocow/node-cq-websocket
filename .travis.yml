@@ -4,5 +4,12 @@ node_js:
   - "8"
   - "9"
   - "10"
+  
+install:
+- npm ci
+
+cache:
+  directories:
+  - "$HOME/.npm"
 
 after_success: npm run coverage
