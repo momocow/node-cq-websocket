@@ -1,8 +1,8 @@
-import * as CQWebsocket from '../../..'
-import { spy, stub } from 'sinon'
+const CQWebsocket = require('../../..')
+const { spy, stub } = require('sinon')
 
-export default function () {
-  const bot = new CQWebsocket()
+module.exports = function (options) {
+  const bot = new CQWebsocket(options)
   const spies = {
     connecting: spy(),
     connect: spy(),
@@ -11,10 +11,14 @@ export default function () {
     close: spy(),
     error: spy()
   }
+  const stubs = {
+    EVENT: stub(bot._eventClient, 'connect'),
+    API: stub(bot._apiClient, 'connect')
+  }
 
   bot
     .on('socket.connecting', spies.connecting)
-    .on('socket.connect', spies.connecting)
+    .on('socket.connect', spies.connect)
     .on('socket.closing', spies.closing)
     .on('socket.close', spies.close)
     .on('socket.failed', spies.failed)
@@ -25,30 +29,29 @@ export default function () {
     spies,
 
     /**
-     * @param {function} fakeEventConnect
-     * @param {function} fakeApiConnect
+     * 
+     * @param {(stubEvent: sinon.SinonStub, stubApi: sinon.SinonStub)=>void} cb 
      */
-    stubRemote (fakeEventConnect, fakeApiConnect) {
-      stub(bot._eventClient, 'connect').callsFake(fakeEventConnect)
-      stub(bot._apiClient, 'connect').callsFake(fakeApiConnect)
+    stubRemote (cb) {
+      cb(stubs.EVENT, stubs.API)
     },
 
-    /**
-     * @param {number} connectingCount
-     * @param {number} connectCount
-     * @param {number} failedCount
-     * @param {number} closingCount
-     * @param {number} closeCount
-     * @param {number} errorCount
-     */
-    assertSpies (connectingCount = 0, connectCount, failedCount, closingCount, closeCount, errorCount) {
+    planCount () {
+      return 6
+    },
 
+    assertSpies (t, { connectingCount = 0, connectCount = 0, failedCount = 0, closingCount = 0, closeCount = 0, errorCount = 0 } = {}) {
+      t.is(spies.connecting.callCount, connectingCount)
+      t.is(spies.connect.callCount, connectCount)
+      t.is(spies.closing.callCount, closingCount)
+      t.is(spies.close.callCount, closeCount)
+      t.is(spies.error.callCount, errorCount)
+      t.is(spies.failed.callCount, failedCount)
     },
 
     done () {
-      Object.values(spies).forEach(_spy => {
-        _spy.restore()
-      })
+      stubs.EVENT.restore()
+      stubs.API.restore()
     }
   }
 }

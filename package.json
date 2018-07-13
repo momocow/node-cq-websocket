@@ -7,7 +7,7 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "nyc ava",
+    "test": "nyc ava test/*.test.js",
     "demo": "node ./demo/echo-bot.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
@@ -30,7 +30,7 @@
     "websocket": "^1.0.25"
   },
   "devDependencies": {
-    "ava": "^0.25.0",
+    "ava": "^1.0.0-beta.6",
     "coveralls": "^3.0.1",
     "nyc": "^11.9.0",
     "sinon": "^4.5.0"

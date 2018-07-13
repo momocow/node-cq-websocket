@@ -26,6 +26,7 @@
 - 新增
   - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
   - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
+  - `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
 - 修改
   - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
 - 修正
@@ -264,6 +265,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | socket.closing | `type` WebsocketType | 連線關閉之前。 |
 | socket.close | `type` WebsocketType <br> `code` number <br> `desc` string | 連線關閉。(連線關閉代碼 `code` 可參照 [RFC 文件](https://tools.ietf.org/html/rfc6455#section-7.4))) |
 | socket.failed | `type` WebsocketType <br> `attempts` number | 連線失敗。 |
+| socket.max_reconnect | `type` WebsocketType <br> `attempts` number | 已抵達重連次數上限。 |
 | socket.error | `type` WebsocketType <br> `err` Error | 連線錯誤。 |
 
 #### `api` 子事件
@@ -312,7 +314,11 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 ├─ error  
 ├─ ready  
 ├─ socket ※
+│    ├─ connecting  
 │    ├─ connect  
+│    ├─ failed  
+│    ├─ max_reconnect  
+│    ├─ closing    
 │    ├─ close    
 │    └─ error
 ├─ api ※

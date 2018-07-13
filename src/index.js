@@ -103,6 +103,8 @@ module.exports = class CQWebsocket extends $Callable {
             this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
           ) {
             this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
+          } else {
+            this._eventBus.emit('socket.max_reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
           }
         })
     }
@@ -147,6 +149,8 @@ module.exports = class CQWebsocket extends $Callable {
             this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
           ) {
             this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
+          } else {
+            this._eventBus.emit('socket.max_reconnect', WebsocketType.API, this._monitor.API.attempts)
           }
         })
     }
@@ -361,7 +365,7 @@ module.exports = class CQWebsocket extends $Callable {
           break
         case WebsocketState.CLOSED:
         case WebsocketState.INIT:
-          _reconnect(sock)
+          _reconnect(_type)
           break
         default:
       }
@@ -370,9 +374,8 @@ module.exports = class CQWebsocket extends $Callable {
   }
 
   isReady () {
-    let isEventReady = this._eventSock ? this._eventSock.connected : !this._event
-    let isAPIReady = this._apiSock ? this._apiSock.connected : !this._api
-
+    let isEventReady = this._monitor.EVENT.state === WebsocketState.DISABLED || this._monitor.EVENT.state === WebsocketState.CONNECTED
+    let isAPIReady = this._monitor.API.state === WebsocketState.DISABLED || this._monitor.API.state === WebsocketState.CONNECTED
     return isEventReady && isAPIReady
   }
 

@@ -57,7 +57,8 @@ class CQEventBus {
         connecting: [],
         connect: [],
         failed: [],
-        error: [], // has a default handler; automatically removed when developers register their own ones
+        max_reconnect: [],
+        error: [],
         closing: [],
         close: []
       },
@@ -73,6 +74,7 @@ class CQEventBus {
     this._isSocketErrorHandled = false
     this._bot = cqbot
 
+    // has a default handler; automatically removed when developers register their own ones
     this._installDefaultErrorHandler()
   }
 

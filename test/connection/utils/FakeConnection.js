@@ -1,6 +1,6 @@
-import { EventEmitter } from 'events'
+const { EventEmitter } = require('events')
 
-export default class FakeConnection extends EventEmitter {
+module.exports = class FakeConnection extends EventEmitter {
   sendUTF () { }
 
   /**

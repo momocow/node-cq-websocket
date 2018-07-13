@@ -1,40 +1,31 @@
-import setup from './utils/setup'
-import FakeConnection from './utils/FakeConnection'
-
 // configs
 const CONNECT_DELAY = 500
 
-const { bot, spies, stubRemote, done } = setup()
-stubRemote(fakeEventConnect, fakeApiConnect)
+const setup = require('./utils/setup')
+const FakeConnection = require('./utils/FakeConnection')
+
+const { bot, planCount, assertSpies, stubRemote, done } = setup()
+
+function connectSucceed () {
+  setTimeout(() => {
+    this.emit('connect', new FakeConnection())
+  }, CONNECT_DELAY)
+}
+
+stubRemote((stubEvent, stubApi) => {
+  stubEvent.callsFake(connectSucceed)
+  stubApi.callsFake(connectSucceed)
+})
 
 module.exports = function (t) {
-  t.plan()
+  t.plan(planCount())
 
   bot
     .on('ready', function () {
       // Assertion
-      t.true(spies.connecting.calledTwice)
-      t.true(spies.connect.calledTwice)
-      t.true(spies.closing.notCalled)
-      t.true(spies.closed.notCalled)
-      t.true(spies.error.notCalled)
-      t.true(spies.failed.notCalled)
+      assertSpies(t, { connectCount: 2, connectingCount: 2 })
+      t.end()
+      done()
     })
     .connect()
-}
-
-function complete () {
-
-}
-
-function fakeEventConnect () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
-}
-
-function fakeApiConnect () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
 }
