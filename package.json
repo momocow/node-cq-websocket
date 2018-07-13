@@ -7,9 +7,9 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/nyc mocha test/unit.test.js",
+    "test": "nyc ava",
     "demo": "node ./demo/echo-bot.js",
-    "coverage": "./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -30,12 +30,10 @@
     "websocket": "^1.0.25"
   },
   "devDependencies": {
-    "bluebird": "^3.5.1",
-    "chai": "^4.1.2",
+    "ava": "^0.25.0",
     "coveralls": "^3.0.1",
-    "mocha": "^4.0.1",
     "nyc": "^11.9.0",
-    "sinon": "^4.0.2"
+    "sinon": "^4.5.0"
   },
   "nyc": {
     "include": [

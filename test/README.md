@@ -1,34 +1,23 @@
-# 單元測試 TODO 清單
-(顯示勾選表示測試完成)
+# TODO
 
-## `new Websocket({...}).connect()`
-- [x] `access_token`: 如不為空，連線時鍵結需附帶該參數
-- [x] `enableAPI`: 啟用`/api`連線
-- [x] `enableEvent`: 啟用`/event`連線
-- [x] `host`, `port`: 建立基本連線
+## Connection Behavior
+- [ ] success without failure
+- [ ] success after serveral consecutive failures
+- [ ] continuous failure without success
+- [ ] error after connection established
 
-## `Websocket(method, {...})`
-- [ ] 可向`/api`連線發送請求
-- [ ] 列舉測試#1: `/send_private_msg`
-- [ ] 列舉測試#2: `/send_group_msg`
-- [ ] 列舉測試#3: `/send_discuss_msg`
-- [ ] 列舉測試#4: `/send_msg`
+## Connection State
+Read more at [#5](https://github.com/momocow/node-cq-websocket/issues/5)
 
-## `Websocket#on(...)`
-- [ ] 如果沒有監聽`socket.error`事件，則由預設監聽器代為拋出錯誤; 監聽該事件時會移除預設監聽器
-- [ ] 事件測試#1: `message`
-- [ ] 事件測試#2: `message.private`
-- [ ] 事件測試#3: `message.discuss`
-- [ ] 事件測試#4: `message.discuss.@me`
-- [ ] 事件測試#5: `message.group`
-- [ ] 事件測試#6: `message.group.@me`
-- [ ] 事件測試#7: `event`
-- [ ] 事件測試#8: `request`
-- [ ] 事件測試#9: `error`
-- [ ] 事件測試#10: `socket.connect`
-- [ ] 事件測試#11: `api.send.pre`
-- [ ] 事件測試#12: `api.send.post`
-- [ ] 事件測試#13: `api.response`
-- [ ] 事件測試#14: `socket.error`
-- [ ] 事件測試#15: `socket.close`
-- [ ] 事件測試#16: `ready`
+`connect()`
+- [ ] effective if and only if it's in the `init` or `closed` state
+
+`disconnect()`
+- [ ] effective if and only if it's in the `connected` state
+
+`reconnect()`
+- [ ] effective if and only if it's in the `init`, `connected` or `closed` state
+
+Others
+- [ ] no connection would establish if it's in the `disabled` state
+- [ ] no connection-related actions would be taken in an unstable state like `connecting` or `closing`
