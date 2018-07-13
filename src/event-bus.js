@@ -227,6 +227,7 @@ class CQEventBus {
 
 function onSocketError (which, err) {
   err.which = which
+  console.error('\nYou should listen on "socket.error" yourself to avoid those unhandled promise warnings.\n')
   throw err
 }
 
