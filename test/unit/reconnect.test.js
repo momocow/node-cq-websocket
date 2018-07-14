@@ -16,19 +16,25 @@ test.after.always(function () {
   fakeConnect.restore()
 })
 
-test('#reconnect() returns the bot itself', function (t) {
+test.cb('#reconnect() returns the bot itself', function (t) {
   t.plan(1)
 
   const bot = new CQWebsocket()
+    .on('ready', function () {
+      t.end()
+    })
   t.is(bot.reconnect(), bot)
 })
 
-test('#reconnect()', function (t) {
+test.cb('#reconnect()', function (t) {
   t.plan(3)
 
   const _spy = spy()
   const bot = new CQWebsocket()
     .on('socket.reconnecting', _spy)
+    .on('ready', function () {
+      t.end()
+    })
     .reconnect()
 
   t.true(bot._monitor.API.reconnecting)
