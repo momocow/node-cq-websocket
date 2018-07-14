@@ -1,4 +1,4 @@
-const CQWebsocket = require('../../..')
+const CQWebsocket = require('../..')
 const { spy, stub } = require('sinon')
 
 module.exports = function (options) {
@@ -7,6 +7,9 @@ module.exports = function (options) {
     connecting: spy(),
     connect: spy(),
     failed: spy(),
+    reconnecting: spy(),
+    reconnect: spy(),
+    reconnect_failed: spy(),
     closing: spy(),
     close: spy(),
     error: spy()
@@ -19,6 +22,9 @@ module.exports = function (options) {
   bot
     .on('socket.connecting', spies.connecting)
     .on('socket.connect', spies.connect)
+    .on('socket.reconnecting', spies.reconnecting)
+    .on('socket.reconnect', spies.reconnect)
+    .on('socket.reconnect_failed', spies.reconnect_failed)
     .on('socket.closing', spies.closing)
     .on('socket.close', spies.close)
     .on('socket.failed', spies.failed)
@@ -27,6 +33,7 @@ module.exports = function (options) {
   return {
     bot,
     spies,
+    stubs,
 
     /**
      * 
@@ -37,16 +44,32 @@ module.exports = function (options) {
     },
 
     planCount () {
-      return 6
+      return 9
     },
 
-    assertSpies (t, { connectingCount = 0, connectCount = 0, failedCount = 0, closingCount = 0, closeCount = 0, errorCount = 0 } = {}) {
+    assertSpies (
+      t,
+      {
+        connectingCount = 0,
+        connectCount = 0,
+        failedCount = 0,
+        reconnectingCount = 0,
+        reconnectCount = 0,
+        reconnectFailedCount = 0,
+        closingCount = 0,
+        closeCount = 0,
+        errorCount = 0
+      } = {}
+    ) {
       t.is(spies.connecting.callCount, connectingCount)
       t.is(spies.connect.callCount, connectCount)
       t.is(spies.closing.callCount, closingCount)
       t.is(spies.close.callCount, closeCount)
       t.is(spies.error.callCount, errorCount)
       t.is(spies.failed.callCount, failedCount)
+      t.is(spies.reconnecting.callCount, reconnectingCount)
+      t.is(spies.reconnect.callCount, reconnectCount)
+      t.is(spies.reconnect_failed.callCount, reconnectFailedCount)
     },
 
     done () {

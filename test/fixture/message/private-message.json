@@ -1,7 +1,0 @@
-{
-  "post_type": "message",
-  "message_type": "private",
-  "sub_type": "other",
-  "user_id": 1,
-  "message": "Hello World"
-}

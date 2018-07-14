@@ -26,7 +26,8 @@
 - 新增
   - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
   - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
-  - `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
+  - `socket.reconnecting`, `socket.reconnect`, `socket.reconnect_failed` 及 `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
+  - CQWebsocket 建構時的選項增加 `baseUrl` 一項, 為某些如反向代理之網路環境提供較彈性的設定方式。
 - 修改
   - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
 - 修正
@@ -82,12 +83,17 @@ const CQWebsocket = require('cq-websocket')
 |  `enableEvent` | boolean | `true` | 啟用 /event 連線 |
 |  `host` | string | `"127.0.0.1"` | 伺服器 IP |
 |  `port` | number | 6700 | 伺服器端口 |
+|  `baseUrl` | string | 6700 | 伺服器位址 (SDK在建立連線時會依照此設定加上前綴項 `ws://` 及後綴項 `/<api|event>[?access_token={token}]`) |
 |  `qq` | number &#124; string | -1 | 觸發 `@me` 事件用的QQ帳號，通常同登入酷Q之帳號，用在討論組消息及群消息中辨認是否有人at此帳號 |
 |  `reconnection` | boolean | true | 是否連線錯誤時自動重連 |
 |  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
 |  `reconnectionDelay` | number | 1000 | 重複連線的延遲時間, 單位: ms |
 
 - 返回值: 一個新配置的 `CQWebsocket` 類別實例
+
+設定 ws 伺服器位址時, 你可以從以下方式擇一配置。SDK會依下表順序檢查是否正確配置(越前面優先序越高), 若成立則使用該配置進行連線。
+  1. 使用 `host` 項指定伺服器, `port` 項為可選。
+  2. 使用 `baseUrl` 項指定伺服器 URL。
 
 ## 自動重新連線說明
 將 `reconnection` 設定為 true 啟用自動重連, 若發生網路錯誤, 例如無法連線到伺服器端, 連線建立失敗將會觸發重連, 若連續發生連線錯誤, 則重連次數不超過 `reconnectionAttempts`, 每次重連間隔 `reconnectionDelay` 毫秒。連續連線失敗將會在下一次連線成功時重新計數。
@@ -262,10 +268,13 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | - | - | - |
 | socket.connecting | `type` WebsocketType <br> `attempts` number | 開始嘗試連線, 連線成功/失敗之前。 |
 | socket.connect | `type` WebsocketType <br> `socket` [WebSocketConnection](https://github.com/theturtle32/WebSocket-Node/blob/d941f975e8ef6b55eafc0ef45996f4198013832c/docs/WebSocketConnection.md#websocketconnection) <br> `attempts` number | 連線成功後，尚未初始化之前。 |
+| socket.failed | `type` WebsocketType <br> `attempts` number | 連線失敗。 |
+| socket.reconnecting | `type` WebsocketType <br> `attempts` number | 開始嘗試重新連線, 若存在持續中的連線, 則先斷線。 |
+| socket.reconnect | `type` WebsocketType <br> `attempts` number | 重連成功。 |
+| socket.reconnect_failed | `type` WebsocketType <br> `attempts` number | 重連失敗。 |
+| socket.max_reconnect | `type` WebsocketType <br> `attempts` number | 已抵達重連次數上限。 |
 | socket.closing | `type` WebsocketType | 連線關閉之前。 |
 | socket.close | `type` WebsocketType <br> `code` number <br> `desc` string | 連線關閉。(連線關閉代碼 `code` 可參照 [RFC 文件](https://tools.ietf.org/html/rfc6455#section-7.4))) |
-| socket.failed | `type` WebsocketType <br> `attempts` number | 連線失敗。 |
-| socket.max_reconnect | `type` WebsocketType <br> `attempts` number | 已抵達重連次數上限。 |
 | socket.error | `type` WebsocketType <br> `err` Error | 連線錯誤。 |
 
 #### `api` 子事件
@@ -317,6 +326,9 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 │    ├─ connecting  
 │    ├─ connect  
 │    ├─ failed  
+│    ├─ reconnecting  
+│    ├─ reconnect  
+│    ├─ reconnect_failed  
 │    ├─ max_reconnect  
 │    ├─ closing    
 │    ├─ close    

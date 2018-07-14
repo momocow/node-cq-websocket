@@ -1,6 +1,5 @@
 const $get = require('lodash.get')
 
-const $safe = require('./util/typeguard')
 const $traverse = require('./util/traverse')
 
 class CQEventBus {
@@ -57,6 +56,9 @@ class CQEventBus {
         connecting: [],
         connect: [],
         failed: [],
+        reconnecting: [],
+        reconnect: [],
+        reconnect_failed: [],
         max_reconnect: [],
         error: [],
         closing: [],
@@ -88,21 +90,16 @@ class CQEventBus {
   }
 
   count (eventType) {
-    eventType = $safe.string(eventType)
-
     let queue = this._getHandlerQueue(eventType)
     return queue ? queue.length : undefined
   }
 
   has (eventType) {
-    eventType = $safe.string(eventType)
-
     return this._getHandlerQueue(eventType) !== undefined
   }
 
   emit (eventType, ...args) {
-    this._emitThroughHierarchy($safe.string(eventType), ...args)
-    return this
+    return this._emitThroughHierarchy(eventType, ...args)
   }
 
   async _emitThroughHierarchy (eventType, ...args) {
@@ -161,7 +158,7 @@ class CQEventBus {
       $traverse(this._EventMap, (value, key, obj) => {
         // clean all handler queues
         if (Array.isArray(value)) {
-          obj[key] = []
+          value.splice(0, value.length)
           return false
         }
       })
@@ -202,15 +199,12 @@ class CQEventBus {
 
   _removeDefaultErrorHandler () {
     if (!this._isSocketErrorHandled) {
-      this._EventMap.socket.error = []
+      this._EventMap.socket.error.splice(0, this._EventMap.socket.error.length)
       this._isSocketErrorHandled = true
     }
   }
 
   on (eventType, handler) {
-    eventType = $safe.string(eventType)
-    handler = $safe.function(handler)
-
     if (!this.has(eventType)) {
       return this
     }
@@ -256,7 +250,7 @@ class CQEvent {
   }
 
   setMessage (msgIn) {
-    this._message = $safe.string(msgIn)
+    this._message = String(msgIn)
   }
 }
 

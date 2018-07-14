@@ -7,7 +7,7 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "nyc ava test/*.test.js",
+    "test": "nyc ava test/*/*.test.js",
     "demo": "node ./demo/echo-bot.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
@@ -39,5 +39,9 @@
     "include": [
       "src/*.js"
     ]
+  },
+  "ava": {
+    "babel": false,
+    "compileEnhancements": false
   }
 }

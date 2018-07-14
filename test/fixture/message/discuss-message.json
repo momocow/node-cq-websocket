@@ -1,7 +1,0 @@
-{
-  "post_type": "message",
-  "message_type": "discuss",
-  "discuss_id": 1,
-  "user_id": 2,
-  "message": "Hello World"
-}

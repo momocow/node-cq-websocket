@@ -2,8 +2,8 @@
 const CONNECT_DELAY = 500
 const FAILURE_COUNT = 5
 
-const setup = require('./utils/setup')
-const FakeConnection = require('./utils/FakeConnection')
+const setup = require('../fixture/setup')
+const FakeConnection = require('../fixture/FakeConnection')
 
 const { bot, planCount, assertSpies, stubRemote, done } = setup()
 
@@ -39,7 +39,10 @@ module.exports = function (t) {
         connectCount: 2,
         connectingCount: FAILURE_COUNT * 2 + 2,
         failedCount: FAILURE_COUNT * 2,
-        errorCount: FAILURE_COUNT * 2
+        errorCount: FAILURE_COUNT * 2,
+        reconnectingCount: FAILURE_COUNT * 2,
+        reconnectCount: 2,
+        reconnectFailedCount: (FAILURE_COUNT - 1) * 2
       })
       t.end()
       done()
