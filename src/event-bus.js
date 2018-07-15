@@ -120,7 +120,7 @@ class CQEventBus {
       }
 
       for (let handler of queue) {
-        let returned = await handler(...args)
+        let returned = await Promise.resolve(handler(...args))
 
         if (isResponsable && typeof returned === 'string') {
           cqevent.setMessage(returned)
