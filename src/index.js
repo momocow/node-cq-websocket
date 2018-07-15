@@ -213,14 +213,14 @@ module.exports = class CQWebsocket extends $Callable {
             this._eventBus.emit('message.private', msgObj)
             break
           case 'discuss':
-            if (isBotAtted(msgObj.message, this._qq)) {
+            if (isBotAtted(msgObj.raw_message, this._qq)) {
               this._eventBus.emit('message.discuss.@me', msgObj)
             } else {
               this._eventBus.emit('message.discuss', msgObj)
             }
             break
           case 'group':
-            if (isBotAtted(msgObj.message, this._qq)) {
+            if (isBotAtted(msgObj.raw_message, this._qq)) {
               this._eventBus.emit('message.group.@me', msgObj)
             } else {
               this._eventBus.emit('message.group', msgObj)
