@@ -1,6 +1,6 @@
 {
   "name": "cq-websocket",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A Node websocket SDK for CoolQ HTTP API plugin.",
   "engines": {
     "node": ">=7.6.0"
