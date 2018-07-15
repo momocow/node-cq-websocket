@@ -15,21 +15,20 @@ const CQWebsocket = require('../..')
 const CQEvent = CQWebsocket.CQEvent
 const { test } = require('ava')
 
-let eventSock
-let bot
-
-function emitEvent (msgObj = {}, cb = function () {}) {
+function emitEvent (t, msgObj = {}) {
   setTimeout(function () {
-    eventSock.emit('message', {
+    t.context.sock.emit('message', {
       type: 'utf8',
       utf8Data: JSON.stringify(msgObj)
     })
-    cb()
   }, EMIT_DELAY)
 }
 
 function macro (t, event) {
-  // bot
+  const atMe = event.endsWith('.@me')
+  if (atMe) {
+    event = event.substr(0, event.length - 4)
+  }
 
   const arrEvent = event.split('.')
   const [ majorType, minorType, subType ] = arrEvent
@@ -51,6 +50,7 @@ function macro (t, event) {
   switch (majorType) {
     case 'message':
       msgObj.message_type = minorType
+      msgObj.raw_message = `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
       break
     case 'notice':
       msgObj.notice_type = minorType
@@ -74,11 +74,18 @@ function macro (t, event) {
   
     const prefix = i > 0 ? arrEvent[i - 1] + '.' : ''
     arrEvent[i] = prefix + arrEvent[i]
-    bot.on(arrEvent[i], _spy)
+    t.context.bot.on(arrEvent[i], _spy)
   }
 
-  emitEvent(msgObj, function () {
-    t.plan(spies.length * 3 - 1)
+  if (atMe) {
+    const _spy = spy()
+    spies.push(_spy)
+    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
+  }
+
+  // Assertion after root event has been emitted
+  t.context.bot.on(arrEvent[0], function () {
+    t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
   
     // 相關母子事件均被觸發過
     spies.forEach(_spy => {
@@ -99,24 +106,21 @@ function macro (t, event) {
 
     // 觸發順序
     spies.forEach((_spy, i) => {
-      if (i < spies.length - 2) {
+      if (i < spies.length - 1) {
         t.true(_spy.calledAfter(spies[i + 1]))
       }
     })
 
-    spies.forEach((_spy, i) => {
-      _spy.restore()
-      bot.off(arrEvent[i], _spy)
-    })
-
     t.end()
   })
+
+  emitEvent(t, msgObj)
 }
 
-test.before.cb(function (t) {
-  bot = new CQWebsocket()
+test.beforeEach.cb(function (t) {
+  t.context.bot = new CQWebsocket()
     .on('ready', function () {
-      eventSock = bot._eventSock
+      t.context.sock = t.context.bot._eventSock
       t.end()
     })
     .connect()
@@ -127,5 +131,5 @@ test.before.cb(function (t) {
  */
 const eventlist = require('./events')
 eventlist.forEach(function (event) {
-  test.cb.skip(`Event [${event}]`, macro, event, new CQWebsocket())
+  test.cb(`Event [${event}]`, macro, event)
 })
