@@ -342,9 +342,17 @@ module.exports = class CQWebsocket extends $Callable {
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
-        const _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, {
+        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, {
           fragmentOutgoingMessages: false
         })
+
+        const _onMessage = (e) => {
+          if (_type === WebsocketType.EVENT) {
+            this._handle(JSON.parse(e.data))
+          } else {
+            this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(e.data))
+          }
+        }
 
         if (_type === WebsocketType.EVENT) {
           this._eventSock = _sock
@@ -364,32 +372,36 @@ module.exports = class CQWebsocket extends $Callable {
           if (this.isReady()) {
             this._eventBus.emit('ready', this)
           }
+        }, {
+          once: true
         })
 
-        _sock.addEventListener('message', (e) => {
-          if (_type === WebsocketType.EVENT) {
-            this._handle(JSON.parse(e.data))
-          } else {
-            this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(e.data))
-          }
-        })
+        _sock.addEventListener('message', _onMessage)
 
-        _sock.addEventListener('close', () => {
-          if (_type === WebsocketType.EVENT) {
-            this._eventSock = _sock = null
-          } else {
-            this._apiSock = _sock = null
-          }
+        _sock.addEventListener('close', (e) => {
           this._monitor[_label].state = WebsocketState.CLOSED
-          this._eventBus.emit('socket.close', WebsocketType[_label], code, desc)
+          this._eventBus.emit('socket.close', WebsocketType[_label], e.code, e.reason)
           // code === 1000 : normal disconnection
-          if (code !== 1000 && this._reconnectOptions.reconnection) {
+          if (e.code !== 1000 && this._reconnectOptions.reconnection) {
             this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType[_label])
           }
+
+          // clean up events
+          _sock.removeEventListener('message', _onMessage)
+
+          // clean up refs
+          _sock = null
+          if (_type === WebsocketType.EVENT) {
+            this._eventSock = null
+          } else {
+            this._apiSock = null
+          }
+        }, {
+          once: true
         })
 
-        _sock.addEventListener('error', () => {
-          this._eventBus.emit('socket.error', WebsocketType[_label], $wrapSockError(err))
+        _sock.addEventListener('error', (e) => {
+          this._eventBus.emit('socket.error', WebsocketType[_label], $wrapSockError(e.error))
           if (this._monitor[_label].state === WebsocketState.CONNECTED) {
             // error occurs after the websocket is connected
             this._monitor[_label].state = WebsocketState.CLOSING
@@ -410,6 +422,8 @@ module.exports = class CQWebsocket extends $Callable {
               this._eventBus.emit('socket.max_reconnect', WebsocketType[_label], this._monitor[_label].attempts)
             }
           }
+        }, {
+          once: true
         })
 
         this._monitor[_label].state = WebsocketState.CONNECTING
