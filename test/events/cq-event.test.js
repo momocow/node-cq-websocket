@@ -37,7 +37,7 @@ let callSpy
 test.before.cb(function (t) {
   bot = new CQWebsocket()
     .on('ready', function () {
-      sock = bot._eventSock
+      sock = bot._eventSock._connection
       t.end()
     })
     .connect()

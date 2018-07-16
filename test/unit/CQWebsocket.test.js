@@ -1,4 +1,5 @@
 const CQWebsocket = require('../..')
+const { WebsocketState } = CQWebsocket
 
 const { test } = require('ava')
 
@@ -7,8 +8,8 @@ test('new Websocket() with default options', function (t) {
 
   const bot = new CQWebsocket()
 
-  t.true(bot._event)
-  t.true(bot._api)
+  t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
+  t.is(bot._monitor.API.state, WebsocketState.INIT)
   t.is(bot._baseUrl, '127.0.0.1:6700')
   t.is(bot._qq, -1)
   t.is(bot._token, '')
@@ -33,8 +34,8 @@ test('new Websocket() with custom options', function (t) {
     reconnectionDelay: 5000
   })
 
-  t.true(bot._event)
-  t.false(bot._api)
+  t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
+  t.is(bot._monitor.API.state, WebsocketState.DISABLED)
   t.is(bot._baseUrl, '8.8.8.8:8888/ws')
   t.is(bot._qq, 123456789)
   t.is(bot._token, 'qwerasdf')

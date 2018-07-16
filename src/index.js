@@ -1,5 +1,4 @@
-const $WebsocketClient = this === this.window ? require('websocket').w3cwebsocket : require('websocket').client
-
+const $WebSocket = require('websocket').w3cwebsocket
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
 const { wrapSockError: $wrapSockError, InvalidWsTypeError } = require('./errors')
@@ -33,8 +32,6 @@ module.exports = class CQWebsocket extends $Callable {
     ///*****************/
 
     this._token = String(accessToken)
-    this._event = Boolean(enableEvent)
-    this._api = Boolean(enableAPI)
     this._qq = parseInt(qq)
     this._baseUrl = host ? `${host}${port ? `:${port}` : '' }` : baseUrl
 
@@ -51,127 +48,125 @@ module.exports = class CQWebsocket extends $Callable {
     this._monitor = {
       EVENT: {
         attempts: 0,
-        state: this._event ? WebsocketState.INIT : WebsocketState.DISABLED,
+        state: enableEvent ? WebsocketState.INIT : WebsocketState.DISABLED,
         reconnecting: false
       },
       API: {
         attempts: 0,
-        state: this._api ? WebsocketState.INIT : WebsocketState.DISABLED,
+        state: enableAPI ? WebsocketState.INIT : WebsocketState.DISABLED,
         reconnecting: false
       }
     }
 
     this._eventBus = new $CQEventBus(this)
-    this._eventClient = this._event ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
-    this._apiClient = this._api ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
 
-    if (this._eventClient) {
-      this._eventClient
-        .on('connect', conn => {
-          this._eventSock = conn
-          this._monitor.EVENT.state = WebsocketState.CONNECTED
-          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._monitor.EVENT.attempts)
-          if (this._monitor.EVENT.reconnecting) {
-            this._eventBus.emit('socket.reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-          this._monitor.EVENT.attempts = 0
-          this._monitor.EVENT.reconnecting = false
+    if (false) {
+      // this._eventClient
+      //   .on('connect', conn => {
+      //     this._eventSock = conn
+      //     this._monitor.EVENT.state = WebsocketState.CONNECTED
+      //     this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._monitor.EVENT.attempts)
+      //     if (this._monitor.EVENT.reconnecting) {
+      //       this._eventBus.emit('socket.reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
+      //     }
+      //     this._monitor.EVENT.attempts = 0
+      //     this._monitor.EVENT.reconnecting = false
 
-          this._eventSock
-            .on('message', (msg) => {
-              if (msg.type === 'utf8') {
-                this._handle(JSON.parse(msg.utf8Data))
-              }
-            })
-            .on('close', (code, desc) => {
-              this._eventSock = conn = null
-              this._monitor.EVENT.state = WebsocketState.CLOSED
-              this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
-              // code === 1000 : normal disconnection
-              if (code !== 1000 && this._reconnectOptions.reconnection) {
-                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-              }
-            })
-            .on('error', err => {
-              this._monitor.EVENT.state = WebsocketState.CLOSING
-              this._eventBus.emit('socket.closing', WebsocketType.EVENT)
-              this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-            })
-            if (this.isReady()) {
-              this._eventBus.emit('ready', this)
-            }
-        })
-        .on('connectFailed', err => {
-          this._monitor.EVENT.state = WebsocketState.CLOSED
-          this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-          if (this._monitor.EVENT.reconnecting) {
-            this._eventBus.emit('socket.reconnect_failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-          this._monitor.EVENT.reconnecting = false
-          if (this._reconnectOptions.reconnection &&
-            this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
-          ) {
-            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-          } else {
-            this._eventBus.emit('socket.max_reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-        })
+      //     this._eventSock
+      //       .on('message', (msg) => {
+      //         if (msg.type === 'utf8') {
+      //           this._handle(JSON.parse(msg.utf8Data))
+      //         }
+      //       })
+      //       .on('close', (code, desc) => {
+      //         this._eventSock = conn = null
+      //         this._monitor.EVENT.state = WebsocketState.CLOSED
+      //         this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
+      //         // code === 1000 : normal disconnection
+      //         if (code !== 1000 && this._reconnectOptions.reconnection) {
+      //           this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
+      //         }
+      //       })
+      //       .on('error', err => {
+      //         this._monitor.EVENT.state = WebsocketState.CLOSING
+      //         this._eventBus.emit('socket.closing', WebsocketType.EVENT)
+      //         this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
+      //       })
+      //       if (this.isReady()) {
+      //         this._eventBus.emit('ready', this)
+      //       }
+      //   })
+      //   .on('connectFailed', err => {
+      //     this._monitor.EVENT.state = WebsocketState.CLOSED
+      //     this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
+      //     this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
+      //     if (this._monitor.EVENT.reconnecting) {
+      //       this._eventBus.emit('socket.reconnect_failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
+      //     }
+      //     this._monitor.EVENT.reconnecting = false
+      //     if (this._reconnectOptions.reconnection &&
+      //       this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
+      //     ) {
+      //       this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
+      //     } else {
+      //       this._eventBus.emit('socket.max_reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
+      //     }
+      //   })
     }
 
-    if (this._apiClient) {
-      this._apiClient
-        .on('connect', conn => {
-          this._apiSock = conn
-          this._monitor.API.state = WebsocketState.CONNECTED
-          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._monitor.API.attempts)
-          if (this._monitor.API.reconnecting) {
-            this._eventBus.emit('socket.reconnect', WebsocketType.API, this._monitor.API.attempts)
-          }
-          this._monitor.API.attempts = 0
-          this._monitor.API.reconnecting = false
+    if (false) {
+      // this._apiClient
+      //   .on('connect', conn => {
+      //     this._apiSock = conn
+      //     this._monitor.API.state = WebsocketState.CONNECTED
+      //     this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._monitor.API.attempts)
+      //     if (this._monitor.API.reconnecting) {
+      //       this._eventBus.emit('socket.reconnect', WebsocketType.API, this._monitor.API.attempts)
+      //     }
+      //     this._monitor.API.attempts = 0
+      //     this._monitor.API.reconnecting = false
 
-          this._apiSock
-            .on('message', msg => {
-              if (msg.type === 'utf8') {
-                this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
-              }
-            })
-            .on('close', (code, desc) => {
-              this._apiSock = conn = null
-              this._monitor.API.state = WebsocketState.CLOSED
-              this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
-              // code === 1000 : normal disconnection
-              if (code !== 1000 && this._reconnectOptions.reconnection) {
-                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-              }
-            })
-            .on('error', err => {
-              this._monitor.API.state = WebsocketState.CLOSING
-              this._eventBus.emit('socket.closing', WebsocketType.API)
-              this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-            })
+      //     this._apiSock
+      //       .on('message', msg => {
+      //         if (msg.type === 'utf8') {
+      //           this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
+      //         }
+      //       })
+      //       .on('close', (code, desc) => {
+      //         this._apiSock = conn = null
+      //         this._monitor.API.state = WebsocketState.CLOSED
+      //         this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
+      //         // code === 1000 : normal disconnection
+      //         if (code !== 1000 && this._reconnectOptions.reconnection) {
+      //           this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
+      //         }
+      //       })
+      //       .on('error', err => {
+      //         this._monitor.API.state = WebsocketState.CLOSING
+      //         this._eventBus.emit('socket.closing', WebsocketType.API)
+      //         this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
+      //       })
 
-          if (this.isReady()) {
-            this._eventBus.emit('ready', this)
-          }
-        })
-        .on('connectFailed', err => {
-          this._monitor.API.state = WebsocketState.CLOSED
-          this._eventBus.emit('socket.failed', WebsocketType.API, this._monitor.API.attempts)
-          this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-          if (this._monitor.API.reconnecting) {
-            this._eventBus.emit('socket.reconnect_failed', WebsocketType.API, this._monitor.API.attempts)
-          }
-          this._monitor.API.reconnecting = false
-          if (this._reconnectOptions.reconnection &&
-            this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
-          ) {
-            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-          } else {
-            this._eventBus.emit('socket.max_reconnect', WebsocketType.API, this._monitor.API.attempts)
-          }
-        })
+      //     if (this.isReady()) {
+      //       this._eventBus.emit('ready', this)
+      //     }
+      //   })
+      //   .on('connectFailed', err => {
+      //     this._monitor.API.state = WebsocketState.CLOSED
+      //     this._eventBus.emit('socket.failed', WebsocketType.API, this._monitor.API.attempts)
+      //     this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
+      //     if (this._monitor.API.reconnecting) {
+      //       this._eventBus.emit('socket.reconnect_failed', WebsocketType.API, this._monitor.API.attempts)
+      //     }
+      //     this._monitor.API.reconnecting = false
+      //     if (this._reconnectOptions.reconnection &&
+      //       this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
+      //     ) {
+      //       this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
+      //     } else {
+      //       this._eventBus.emit('socket.max_reconnect', WebsocketType.API, this._monitor.API.attempts)
+      //     }
+      //   })
     }
   }
 
@@ -199,7 +194,7 @@ module.exports = class CQWebsocket extends $Callable {
     }
 
     this._eventBus.emit('api.send.pre', WebsocketType.API, apiRequest)
-    this._apiSock.sendUTF(JSON.stringify(apiRequest))
+    this._apiSock.send(JSON.stringify(apiRequest))
     this._eventBus.emit('api.send.post', WebsocketType.API)
 
     return this
@@ -312,7 +307,7 @@ module.exports = class CQWebsocket extends $Callable {
   }
 
   /**
-   * @param {(wsType: "/api"|"/event", label: "EVENT"|"API", client: $WebsocketClient) => void} cb
+   * @param {(wsType: "/api"|"/event", label: "EVENT"|"API", client: $WebSocket) => void} cb
    * @param {"/api"|"/event"} [types]
    */
   _forEachSock (cb, types = [ WebsocketType.EVENT, WebsocketType.API ]) {
@@ -341,13 +336,84 @@ module.exports = class CQWebsocket extends $Callable {
 
   connect (wsType) {
     this._forEachSock((_type, _label) => {
+      // check if the connection is enabled
+      if (this._monitor[_label].state === WebsocketState.DISABLED) return
+
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
-        const _client = _type === WebsocketType.EVENT ? this._eventClient : this._apiClient
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
+
+        const _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, {
+          fragmentOutgoingMessages: false
+        })
+
+        if (_type === WebsocketType.EVENT) {
+          this._eventSock = _sock
+        } else {
+          this._apiSock = _sock
+        }
+
+        _sock.addEventListener('open', () => {
+          this._monitor[_label].state = WebsocketState.CONNECTED
+          this._eventBus.emit('socket.connect', WebsocketType[_label], _sock, this._monitor[_label].attempts)
+          if (this._monitor[_label].reconnecting) {
+            this._eventBus.emit('socket.reconnect', WebsocketType[_label], this._monitor[_label].attempts)
+          }
+          this._monitor[_label].attempts = 0
+          this._monitor[_label].reconnecting = false
+
+          if (this.isReady()) {
+            this._eventBus.emit('ready', this)
+          }
+        })
+
+        _sock.addEventListener('message', (e) => {
+          if (_type === WebsocketType.EVENT) {
+            this._handle(JSON.parse(e.data))
+          } else {
+            this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(e.data))
+          }
+        })
+
+        _sock.addEventListener('close', () => {
+          if (_type === WebsocketType.EVENT) {
+            this._eventSock = _sock = null
+          } else {
+            this._apiSock = _sock = null
+          }
+          this._monitor[_label].state = WebsocketState.CLOSED
+          this._eventBus.emit('socket.close', WebsocketType[_label], code, desc)
+          // code === 1000 : normal disconnection
+          if (code !== 1000 && this._reconnectOptions.reconnection) {
+            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType[_label])
+          }
+        })
+
+        _sock.addEventListener('error', () => {
+          this._eventBus.emit('socket.error', WebsocketType[_label], $wrapSockError(err))
+          if (this._monitor[_label].state === WebsocketState.CONNECTED) {
+            // error occurs after the websocket is connected
+            this._monitor[_label].state = WebsocketState.CLOSING
+            this._eventBus.emit('socket.closing', WebsocketType[_label])
+          } else if (this._monitor[_label].state === WebsocketState.CONNECTING) {
+            // error occurs while trying to establish the connection
+            this._monitor[_label].state = WebsocketState.CLOSED
+            this._eventBus.emit('socket.failed', WebsocketType[_label], this._monitor[_label].attempts)
+            if (this._monitor[_label].reconnecting) {
+              this._eventBus.emit('socket.reconnect_failed', WebsocketType[_label], this._monitor[_label].attempts)
+            }
+            this._monitor[_label].reconnecting = false
+            if (this._reconnectOptions.reconnection &&
+              this._monitor[_label].attempts <= this._reconnectOptions.reconnectionAttempts
+            ) {
+              this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType[_label])
+            } else {
+              this._eventBus.emit('socket.max_reconnect', WebsocketType[_label], this._monitor[_label].attempts)
+            }
+          }
+        })
 
         this._monitor[_label].state = WebsocketState.CONNECTING
         this._monitor[_label].attempts++
-        _client.connect(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`)
         this._eventBus.emit('socket.connecting', _type, this._monitor[_label].attempts)
       }
     }, wsType)
@@ -360,7 +426,8 @@ module.exports = class CQWebsocket extends $Callable {
         const _sock = _type === WebsocketType.EVENT ? this._eventSock : this._apiSock
 
         this._monitor[_label].state = WebsocketState.CLOSING
-        _sock.close()
+        // explicitly provide status code to support both browsers and Node environment
+        _sock.close(1000, 'Normal connection closure')
         this._eventBus.emit('socket.closing', _type)
       }
     }, wsType)

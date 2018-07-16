@@ -1,5 +1,10 @@
 const CQWebsocket = require('../..')
+const { WebsocketType } = CQWebsocket
 const { spy, stub } = require('sinon')
+
+const WebSocket = require('websocket').w3cwebsocket
+
+const wsStub = stub(WebSocket.prototype, 'constructor')
 
 module.exports = function (options) {
   const bot = new CQWebsocket(options)
@@ -14,10 +19,19 @@ module.exports = function (options) {
     close: spy(),
     error: spy()
   }
+
   const stubs = {
-    EVENT: stub(bot._eventClient, 'connect'),
-    API: stub(bot._apiClient, 'connect')
+    EVENT: stub(),
+    API: stub()
   }
+
+  wsStub.callsFake(function (url) {
+    if (url.includes(WebsocketType.EVENT)) {
+      stubs.EVENT(url)
+    } else if (url.includes(WebsocketType.API)) {
+      stubs.API(url)
+    }
+  })
 
   bot
     .on('socket.connecting', spies.connecting)
@@ -73,8 +87,7 @@ module.exports = function (options) {
     },
 
     done () {
-      stubs.EVENT.restore()
-      stubs.API.restore()
+      wsStub.reset()
     }
   }
 }

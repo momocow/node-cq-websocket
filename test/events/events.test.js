@@ -120,7 +120,7 @@ function macro (t, event) {
 test.beforeEach.cb(function (t) {
   t.context.bot = new CQWebsocket()
     .on('ready', function () {
-      t.context.sock = t.context.bot._eventSock
+      t.context.sock = t.context.bot._eventSock._connection
       t.end()
     })
     .connect()
