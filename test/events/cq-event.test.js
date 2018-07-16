@@ -2,16 +2,8 @@ const EMIT_DELAY = 100
 
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
-const { client } = require('websocket')
-const FakeConnection = require('../fixture/FakeConnection')
-const fakeConnect = stub(client.prototype, 'connect')
-fakeConnect.callsFake(function () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, 500)
-})
 
-const CQWebsocket = require('../..')
+const { CQWebsocket } = require('../fixture/connect-success')()
 const { test } = require('ava')
 
 const MSG_OBJ = {
@@ -22,10 +14,7 @@ const MSG_OBJ = {
 
 function emitMessage () {
   setTimeout(function () {
-    sock.emit('message', {
-      type: 'utf8',
-      utf8Data: JSON.stringify(MSG_OBJ)
-    })
+    sock.onMessage(JSON.stringify(MSG_OBJ))
   }, EMIT_DELAY)
 }
 
@@ -37,7 +26,7 @@ let callSpy
 test.before.cb(function (t) {
   bot = new CQWebsocket()
     .on('ready', function () {
-      sock = bot._eventSock._connection
+      sock = bot._eventSock
       t.end()
     })
     .connect()

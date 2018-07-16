@@ -1,26 +1,15 @@
 const EMIT_DELAY = 100
 
 // stuffs of stubbing
-const { stub, spy } = require('sinon')
-const { client } = require('websocket')
-const FakeConnection = require('../fixture/FakeConnection')
-const fakeConnect = stub(client.prototype, 'connect')
-fakeConnect.callsFake(function () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, 500)
-})
+const { spy } = require('sinon')
 
-const CQWebsocket = require('../..')
+const { CQWebsocket } = require('../fixture/connect-success')()
 const CQEvent = CQWebsocket.CQEvent
 const { test } = require('ava')
 
 function emitEvent (t, msgObj = {}) {
   setTimeout(function () {
-    t.context.sock.emit('message', {
-      type: 'utf8',
-      utf8Data: JSON.stringify(msgObj)
-    })
+    t.context.sock.onMessage(JSON.stringify(msgObj))
   }, EMIT_DELAY)
 }
 
@@ -82,10 +71,11 @@ function macro (t, event) {
     spies.push(_spy)
     t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
   }
+  
+  t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
 
   // Assertion after root event has been emitted
   t.context.bot.on(arrEvent[0], function () {
-    t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
   
     // 相關母子事件均被觸發過
     spies.forEach(_spy => {
@@ -120,7 +110,7 @@ function macro (t, event) {
 test.beforeEach.cb(function (t) {
   t.context.bot = new CQWebsocket()
     .on('ready', function () {
-      t.context.sock = t.context.bot._eventSock._connection
+      t.context.sock = t.context.bot._eventSock
       t.end()
     })
     .connect()
@@ -132,4 +122,75 @@ test.beforeEach.cb(function (t) {
 const eventlist = require('./events')
 eventlist.forEach(function (event) {
   test.cb(`Event [${event}]`, macro, event)
+})
+
+test.cb(`Event [fake event]`, function (t) {
+  t.plan(2)
+
+  const _spy = spy()
+  t.context.bot
+    .on('error', _spy)
+    .on('error', (err) => {
+      t.true(err instanceof Error)
+      t.true(_spy.calledOnce)
+      t.end()
+    })
+
+  emitEvent(t, {
+    post_type: 'fake'
+  })
+})
+
+test.cb(`Event [invalid message]`, function (t) {
+  t.plan(2)
+
+  const _spy = spy()
+  t.context.bot
+    .on('error', _spy)
+    .on('error', (err) => {
+      t.true(err instanceof Error)
+      t.true(_spy.calledOnce)
+      t.end()
+    })
+
+  emitEvent(t, {
+    post_type: 'message',
+    message_type: 'fake'
+  })
+})
+
+test.cb(`Event [invalid notice]`, function (t) {
+  t.plan(2)
+
+  const _spy = spy()
+  t.context.bot
+    .on('error', _spy)
+    .on('error', (err) => {
+      t.true(err instanceof Error)
+      t.true(_spy.calledOnce)
+      t.end()
+    })
+
+  emitEvent(t, {
+    post_type: 'notice',
+    notice_type: 'fake'
+  })
+})
+
+test.cb(`Event [invalid request]`, function (t) {
+  t.plan(2)
+
+  const _spy = spy()
+  t.context.bot
+    .on('error', _spy)
+    .on('error', (err) => {
+      t.true(err instanceof Error)
+      t.true(_spy.calledOnce)
+      t.end()
+    })
+
+  emitEvent(t, {
+    post_type: 'request',
+    request_type: 'fake'
+  })
 })

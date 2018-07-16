@@ -1,11 +1,7 @@
-// configs
-const CONNECT_DELAY = 500
-
 const { stub } = require('sinon')
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
 
-const { bot, planCount, assertSpies, stubRemote, done } = setup()
+const { bot, planCount, assertSpies, done } = setup()
 
 const manualReconnectAfterClosed = stub()
 manualReconnectAfterClosed.onCall(0).callsFake(function () {
@@ -15,21 +11,8 @@ manualReconnectAfterClosed.onCall(1).callsFake(function () {
   bot.reconnect()
 })
 
-function connectSucceed () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
-}
-
-stubRemote((stubEvent, stubApi) => {
-  stubEvent.callsFake(connectSucceed)
-  stubApi.callsFake(connectSucceed)
-})
-
 module.exports = function (t) {
   t.plan(planCount())
-
-  let times = 0
 
   bot
     .on('ready', function () {
@@ -43,9 +26,7 @@ module.exports = function (t) {
       }
     })
     .on('socket.close', function () {
-      times++
-
-      if (times === 2) {
+      if (manualReconnectAfterClosed.callCount === 1) {
         manualReconnectAfterClosed()
       }
     })

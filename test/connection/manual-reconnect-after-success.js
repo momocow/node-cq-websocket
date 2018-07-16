@@ -1,26 +1,11 @@
-// configs
-const CONNECT_DELAY = 500
-
 const { stub } = require('sinon')
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
 
-const { bot, planCount, assertSpies, stubRemote, done } = setup()
+const { bot, planCount, assertSpies, done } = setup()
 
 const manualReconnect = stub()
 manualReconnect.callsFake(function () {
   bot.reconnect()
-})
-
-function connectSucceed () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
-}
-
-stubRemote((stubEvent, stubApi) => {
-  stubEvent.callsFake(connectSucceed)
-  stubApi.callsFake(connectSucceed)
 })
 
 module.exports = function (t) {

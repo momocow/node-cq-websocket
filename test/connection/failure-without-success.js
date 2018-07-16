@@ -1,22 +1,11 @@
-// configs
-const CONNECT_DELAY = 500
 const RECONNECT_ATTEMPTS = 10
 
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
+const { wsStub, bot, planCount, assertSpies, done } = setup({ reconnectionAttempts: RECONNECT_ATTEMPTS })
 
-const { bot, planCount, assertSpies, stubRemote, done } = setup({ reconnectionAttempts: RECONNECT_ATTEMPTS })
-
-function connectFail () {
-  setTimeout(() => {
-    this.emit('connectFailed', 'connection failed')
-  }, CONNECT_DELAY)
-}
-
-stubRemote((stubEvent, stubApi) => {
-  stubEvent.callsFake(connectFail)
-  stubApi.callsFake(connectFail)
-})
+const FakeWebSocket = require('../fixture/FakeWebSocket')
+const fws = FakeWebSocket.getSeries(Infinity)
+wsStub.callsFake(fws)
 
 module.exports = function (t) {
   t.plan(planCount() + 2)

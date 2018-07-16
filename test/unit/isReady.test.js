@@ -1,21 +1,9 @@
 // stuffs of stubbing
-const { stub, spy } = require('sinon')
-const { client } = require('websocket')
-const FakeConnection = require('../fixture/FakeConnection')
-const fakeConnect = stub(client.prototype, 'connect')
-fakeConnect.callsFake(function () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, 500)
-})
+const { stub } = require('sinon')
 
 const { test } = require('ava')
-const CQWebsocket = require('../..')
+const { CQWebsocket } = require('../fixture/connect-success')()
 const { WebsocketType } = CQWebsocket
-
-test.after.always(function () {
-  fakeConnect.restore()
-})
 
 test.cb('#isReady(): event-enabled, api-enabled, event-connected, api-connected', function (t) {
   t.plan(3)

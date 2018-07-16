@@ -1,12 +1,12 @@
-const CQWebsocket = require('../..')
-const { WebsocketType } = CQWebsocket
-const { spy, stub } = require('sinon')
+const { spy } = require('sinon')
 
-const WebSocket = require('websocket').w3cwebsocket
 
-const wsStub = stub(WebSocket.prototype, 'constructor')
+const connectSuccess = require('./connect-success')
 
 module.exports = function (options) {
+  const { wsStub, CQWebsocket } = connectSuccess()
+  const { WebsocketType } = CQWebsocket
+
   const bot = new CQWebsocket(options)
   const spies = {
     connecting: spy(),
@@ -19,19 +19,6 @@ module.exports = function (options) {
     close: spy(),
     error: spy()
   }
-
-  const stubs = {
-    EVENT: stub(),
-    API: stub()
-  }
-
-  wsStub.callsFake(function (url) {
-    if (url.includes(WebsocketType.EVENT)) {
-      stubs.EVENT(url)
-    } else if (url.includes(WebsocketType.API)) {
-      stubs.API(url)
-    }
-  })
 
   bot
     .on('socket.connecting', spies.connecting)
@@ -47,14 +34,24 @@ module.exports = function (options) {
   return {
     bot,
     spies,
-    stubs,
+    wsStub,
 
-    /**
-     * 
-     * @param {(stubEvent: sinon.SinonStub, stubApi: sinon.SinonStub)=>void} cb 
-     */
-    stubRemote (cb) {
-      cb(stubs.EVENT, stubs.API)
+    onMessage (wsType, data) {
+      if (!wsType || wsType === WebsocketType.EVENT) {
+        bot._eventSock.onMessage(data)
+      }
+      if (!wsType || wsType === WebsocketType.API) {
+        bot._apiSock.onMessage(data)
+      }
+    },
+
+    onError (wsType) {
+      if (!wsType || wsType === WebsocketType.EVENT) {
+        bot._eventSock.onError()
+      }
+      if (!wsType || wsType === WebsocketType.API) {
+        bot._apiSock.onError()
+      }
     },
 
     planCount () {

@@ -1,39 +1,10 @@
-// configs
-const CONNECT_DELAY = 500
-const CLOSE_DELAY = 500
-
 const { spy } = require('sinon')
 
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
-
-const { bot, stubs, planCount, assertSpies, stubRemote, done } = setup()
-
-/**
- * @type {{[label:string]: sinon.SinonSpy}}
- */
-const connectionSpies = {
-  EVENT: null,
-  API: null
-}
-
-function factoryConnectSucceed (label) {
-  const conn = new FakeConnection({ CLOSE_DELAY })
-  connectionSpies[label] = spy(conn, 'close')
-  return function () {
-    setTimeout(() => {
-      this.emit('connect', conn)
-    }, CONNECT_DELAY)
-  }
-}
-
-stubRemote((stubEvent, stubApi) => {
-  stubEvent.callsFake(factoryConnectSucceed('EVENT'))
-  stubApi.callsFake(factoryConnectSucceed('API'))
-})
+const { bot, wsStub, planCount, assertSpies, done } = setup()
 
 module.exports = function (t) {
-  t.plan(planCount() + 4)
+  t.plan(planCount() + 3)
 
   let hasRun = false
 
@@ -42,6 +13,11 @@ module.exports = function (t) {
       if (hasRun) return
 
       hasRun = true
+
+      const closeSpies = {
+        EVENT: spy(bot._eventSock, 'close'),
+        API: spy(bot._apiSock, 'close')
+      }
 
       bot
         .reconnect()
@@ -57,7 +33,7 @@ module.exports = function (t) {
           .reconnect()
           .reconnect()
           .reconnect()
-      }, CONNECT_DELAY + CLOSE_DELAY - 100)
+      }, 900) // connect_delay + close_delay - 100 (tolerance)
 
       setTimeout(function () {
         // Assertion
@@ -69,16 +45,15 @@ module.exports = function (t) {
           reconnectingCount: 2,
           reconnectCount: 2
         })
-        t.true(stubs.EVENT.calledTwice)
-        t.true(stubs.API.calledTwice)
-        t.true(connectionSpies.EVENT.calledOnce)
-        t.true(connectionSpies.API.calledOnce)
+        t.is(wsStub.callCount, 4) // API and EVENT of #connect() + API and EVENT of #reconnect()
+        t.true(closeSpies.EVENT.calledOnce)
+        t.true(closeSpies.API.calledOnce)
         t.end()
         done()
 
-        connectionSpies.EVENT.restore()
-        connectionSpies.API.restore()
-      }, CONNECT_DELAY + CLOSE_DELAY + 500)
+        closeSpies.EVENT.restore()
+        closeSpies.API.restore()
+      }, 1500) // connect_delay + close_delay + 500 (tolerance)
     })
     .connect()
 }
