@@ -14,15 +14,7 @@ class SocketError extends Error {
   }
 }
 
-function wrapSockError (err) {
-  if (typeof err === 'string') {
-    return new SocketError(err)
-  }
-
-  return err
-}
-
 module.exports = {
-  wrapSockError,
+  SocketError,
   InvalidWsTypeError
 }

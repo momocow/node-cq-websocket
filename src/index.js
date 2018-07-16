@@ -1,7 +1,7 @@
 const $WebSocket = require('websocket').w3cwebsocket
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
-const { wrapSockError: $wrapSockError, InvalidWsTypeError } = require('./errors')
+const { SocketError, InvalidWsTypeError } = require('./errors')
 
 const WebsocketType = {
   API: '/api',
@@ -59,115 +59,6 @@ module.exports = class CQWebsocket extends $Callable {
     }
 
     this._eventBus = new $CQEventBus(this)
-
-    if (false) {
-      // this._eventClient
-      //   .on('connect', conn => {
-      //     this._eventSock = conn
-      //     this._monitor.EVENT.state = WebsocketState.CONNECTED
-      //     this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._monitor.EVENT.attempts)
-      //     if (this._monitor.EVENT.reconnecting) {
-      //       this._eventBus.emit('socket.reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-      //     }
-      //     this._monitor.EVENT.attempts = 0
-      //     this._monitor.EVENT.reconnecting = false
-
-      //     this._eventSock
-      //       .on('message', (msg) => {
-      //         if (msg.type === 'utf8') {
-      //           this._handle(JSON.parse(msg.utf8Data))
-      //         }
-      //       })
-      //       .on('close', (code, desc) => {
-      //         this._eventSock = conn = null
-      //         this._monitor.EVENT.state = WebsocketState.CLOSED
-      //         this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
-      //         // code === 1000 : normal disconnection
-      //         if (code !== 1000 && this._reconnectOptions.reconnection) {
-      //           this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-      //         }
-      //       })
-      //       .on('error', err => {
-      //         this._monitor.EVENT.state = WebsocketState.CLOSING
-      //         this._eventBus.emit('socket.closing', WebsocketType.EVENT)
-      //         this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-      //       })
-      //       if (this.isReady()) {
-      //         this._eventBus.emit('ready', this)
-      //       }
-      //   })
-      //   .on('connectFailed', err => {
-      //     this._monitor.EVENT.state = WebsocketState.CLOSED
-      //     this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-      //     this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-      //     if (this._monitor.EVENT.reconnecting) {
-      //       this._eventBus.emit('socket.reconnect_failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-      //     }
-      //     this._monitor.EVENT.reconnecting = false
-      //     if (this._reconnectOptions.reconnection &&
-      //       this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
-      //     ) {
-      //       this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-      //     } else {
-      //       this._eventBus.emit('socket.max_reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-      //     }
-      //   })
-    }
-
-    if (false) {
-      // this._apiClient
-      //   .on('connect', conn => {
-      //     this._apiSock = conn
-      //     this._monitor.API.state = WebsocketState.CONNECTED
-      //     this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._monitor.API.attempts)
-      //     if (this._monitor.API.reconnecting) {
-      //       this._eventBus.emit('socket.reconnect', WebsocketType.API, this._monitor.API.attempts)
-      //     }
-      //     this._monitor.API.attempts = 0
-      //     this._monitor.API.reconnecting = false
-
-      //     this._apiSock
-      //       .on('message', msg => {
-      //         if (msg.type === 'utf8') {
-      //           this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
-      //         }
-      //       })
-      //       .on('close', (code, desc) => {
-      //         this._apiSock = conn = null
-      //         this._monitor.API.state = WebsocketState.CLOSED
-      //         this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
-      //         // code === 1000 : normal disconnection
-      //         if (code !== 1000 && this._reconnectOptions.reconnection) {
-      //           this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-      //         }
-      //       })
-      //       .on('error', err => {
-      //         this._monitor.API.state = WebsocketState.CLOSING
-      //         this._eventBus.emit('socket.closing', WebsocketType.API)
-      //         this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-      //       })
-
-      //     if (this.isReady()) {
-      //       this._eventBus.emit('ready', this)
-      //     }
-      //   })
-      //   .on('connectFailed', err => {
-      //     this._monitor.API.state = WebsocketState.CLOSED
-      //     this._eventBus.emit('socket.failed', WebsocketType.API, this._monitor.API.attempts)
-      //     this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-      //     if (this._monitor.API.reconnecting) {
-      //       this._eventBus.emit('socket.reconnect_failed', WebsocketType.API, this._monitor.API.attempts)
-      //     }
-      //     this._monitor.API.reconnecting = false
-      //     if (this._reconnectOptions.reconnection &&
-      //       this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
-      //     ) {
-      //       this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-      //     } else {
-      //       this._eventBus.emit('socket.max_reconnect', WebsocketType.API, this._monitor.API.attempts)
-      //     }
-      //   })
-    }
   }
 
   off (eventType, handler) {
@@ -222,7 +113,7 @@ module.exports = class CQWebsocket extends $Callable {
             }
             break
           default:
-            this._eventBus.emit('message', msgObj)
+            this._eventBus.emit('error', new Error('[Message event] the message contains invalid "message_type" field'))
         }
         break
       case 'event': // Deprecated, reason: CQHttp 3.X
@@ -276,7 +167,7 @@ module.exports = class CQWebsocket extends $Callable {
             this._eventBus.emit('notice.friend_add', msgObj)
             break
           default:
-            this._eventBus.emit('notice', msgObj)
+          this._eventBus.emit('error', new Error('[Notice event] the message contains invalid "notice_type" field'))
         }
         break
       case 'request':
@@ -297,7 +188,7 @@ module.exports = class CQWebsocket extends $Callable {
             }
             break
           default:
-            this._eventBus.emit('request', msgObj)
+            this._eventBus.emit('error', new Error('[Request event] the message contains invalid "request_type" field'))
         }
         break
       default:
@@ -336,9 +227,6 @@ module.exports = class CQWebsocket extends $Callable {
 
   connect (wsType) {
     this._forEachSock((_type, _label) => {
-      // check if the connection is enabled
-      if (this._monitor[_label].state === WebsocketState.DISABLED) return
-
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
@@ -400,8 +288,14 @@ module.exports = class CQWebsocket extends $Callable {
           once: true
         })
 
-        _sock.addEventListener('error', (e) => {
-          this._eventBus.emit('socket.error', WebsocketType[_label], $wrapSockError(e.error))
+        _sock.addEventListener('error', () => {
+          const errMsg = this._monitor[_label].state === WebsocketState.CONNECTING
+            ? 'Failed to establish the websocket connection.'
+            : this._monitor[_label].state === WebsocketState.CONNECTED
+              ? 'The websocket connection has been hung up unexpectedly.'
+              : `Unknown error occured. Conection state: ${this._monitor[_label].state}`
+          this._eventBus.emit('socket.error', WebsocketType[_label], new SocketError(errMsg))
+
           if (this._monitor[_label].state === WebsocketState.CONNECTED) {
             // error occurs after the websocket is connected
             this._monitor[_label].state = WebsocketState.CLOSING
