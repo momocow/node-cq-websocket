@@ -1,4 +1,4 @@
-const $WebsocketClient = require('websocket').client
+const $WebsocketClient = this === this.window ? require('websocket').w3cwebsocket : require('websocket').client
 
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
