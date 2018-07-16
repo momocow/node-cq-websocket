@@ -8,6 +8,8 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "nyc ava test/*/*.test.js",
+    "build": "webpack --config test/webpack/webpack.config.js",
+    "http-server": "http-server test/webpack/www",
     "demo": "node ./demo/echo-bot.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
@@ -32,9 +34,12 @@
   "devDependencies": {
     "ava": "^1.0.0-beta.6",
     "coveralls": "^3.0.1",
+    "http-server": "^0.11.1",
     "nyc": "^11.9.0",
     "proxyquire": "^2.0.1",
-    "sinon": "^4.5.0"
+    "sinon": "^4.5.0",
+    "webpack": "^4.16.1",
+    "webpack-cli": "^3.0.8"
   },
   "nyc": {
     "include": [
@@ -44,5 +49,6 @@
   "ava": {
     "babel": false,
     "compileEnhancements": false
-  }
+  },
+  "browser": "./src/index.js"
 }
