@@ -19,6 +19,19 @@
   - 自`v1.2.6`
   - [node-cq-websocket #2](https://github.com/momocow/node-cq-websocket/pull/2)
   - [coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
+- 在 Node 10.x 下, Buffer 寫入時的 RangeError (發生在本 SDK 調用 CQHttp API 的方法時)。
+  - 這應該是 Node 的問題, 暫時用 Node 8.x 就沒問題。
+```
+RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be >= 0 and <= 4294967295. Received -805456141
+    at checkInt (internal/buffer.js:35:11)
+    at writeU_Int32BE (internal/buffer.js:625:3)
+    at Buffer.writeUInt32BE (internal/buffer.js:638:10)
+    at WebSocketFrame.toBuffer (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketFrame.js:257:24)
+    at WebSocketConnection.sendFrame (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:857:43)
+    at WebSocketConnection.fragmentAndSend (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:793:14)
+    at WebSocketConnection.sendUTF (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:733:10)
+    at W3CWebSocket.send (/***/node-cq-websocket/node_modules/websocket/lib/W3CWebSocket.js:116:26)
+```
 
 ## TODO
 - [ ] API 請求與響應配對。

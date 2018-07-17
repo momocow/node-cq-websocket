@@ -29,7 +29,7 @@ class FakeWebSocket extends EventEmitter {
   }
 
   removeEventListener (event, listener) {
-    return this.off(event, listener)
+    return this.removeListener(event, listener)
   }
 
   send () {}

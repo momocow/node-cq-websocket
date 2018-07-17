@@ -20,7 +20,6 @@ if (options.help) {
   console.log('    --token CQHttp ws server access token')
   console.log('    --qq QQ account of the bot, used to determine whether someone "@" the bot or not')
 } else {
-  const $util = require('util')
   const CQWebsocket = require('../')
   let bot = new CQWebsocket({
     host: options.host,
@@ -37,15 +36,13 @@ if (options.help) {
     .on('socket.connecting', (wsType) => console.log('[%s] 建立連線中, 請稍後...', wsType))
     .on('socket.connect', (wsType, sock, attempts) => console.log('[%s] 連線成功 ヽ(✿ﾟ▽ﾟ)ノ 蛆蛆%d個嘗試', wsType, attempts))
     .on('socket.failed', (wsType, attempts) => console.log('[%s] 連線失敗 。･ﾟ･(つд`ﾟ)･ﾟ･ [丑%d] 對噗起', wsType, attempts))
+    .on('api.response', (resObj) => console.log('伺服器響應: %O', resObj))
     .on('ready', () => console.log('今天又是複讀複讀的一天 ｡:.ﾟヽ(*´∀`)ﾉﾟ.:｡'))
 
     // 聽取私人信息
     .on('message.private', (e, context) => {
       console.log('叮咚 ✿')
-      whois(bot, context.user_id)
-        .then(function (name) {
-          console.log(`您有來自 ${name} 的訊息 (♡˙︶˙♡)\n${$util.inspect(context)}`)
-        })
+      console.log(context)
     
       // 以下提供三種方式將原訊息以原路送回
       switch (Date.now() % 3) {
@@ -65,25 +62,3 @@ if (options.help) {
   
   bot.connect()
 }
-
-// 查詢暱稱
-function whois (bot, uid) {
-  return new Promise(function (resolve) {
-    function returnNickName (msgObj) {
-      resolve(msgObj.nickname)
-    }
-
-    bot.once('api.response', returnNickName)
-
-    bot('/get_stranger_info', {
-      user_id: uid
-    })
-
-    // 30秒後若沒有響應則忽略查詢
-    setTimeout(function () {
-      bot.off('api.response', returnNickName)
-      resolve('匿名好友')
-    }, 30000)
-  })
-}
-
