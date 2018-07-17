@@ -35,6 +35,7 @@
     "ava": "^1.0.0-beta.6",
     "coveralls": "^3.0.1",
     "http-server": "^0.11.1",
+    "mri": "^1.1.1",
     "nyc": "^11.9.0",
     "proxyquire": "^2.0.1",
     "sinon": "^4.5.0",
