@@ -2,6 +2,8 @@ const $get = require('lodash.get')
 
 const $traverse = require('./util/traverse')
 
+const SYM_ORI = Symbol('_ORIGINAL_LISTENER_')
+
 class CQEventBus {
   constructor (cqbot) {
     // eventType-to-handlers mapping
@@ -72,6 +74,16 @@ class CQEventBus {
         }
       }
     }
+
+    /**
+     * A function-to-function mapping
+     *   from the original listener received via #once(event, listener)
+     *   to the once listener wrapper function
+     *     which wraps the original listener
+     *     and is the listener that is actually registered via #on(event, listener) 
+     * @type {Map<Function, Function>}
+     */
+    this._onceListeners = new Map()
 
     this._isSocketErrorHandled = false
     this._bot = cqbot
@@ -151,12 +163,15 @@ class CQEventBus {
       this.off(eventType, onceWrapper)
       return returned
     }
+    onceWrapper[SYM_ORI] = handler
+    this._onceListeners.set(handler, onceWrapper)
     return this.on(eventType, onceWrapper)
   }
 
   off (eventType, handler) {
     if (typeof eventType !== 'string') {
-      $traverse(this._EventMap, (value, key, obj) => {
+      this._onceListeners.clear()
+      $traverse(this._EventMap, (value) => {
         // clean all handler queues
         if (Array.isArray(value)) {
           value.splice(0, value.length)
@@ -173,6 +188,12 @@ class CQEventBus {
     }
 
     if (typeof handler !== 'function') {
+      // remove all once listeners associated with the specified event queue
+      queue.forEach(_listener => {
+        if (_listener[SYM_ORI]) {
+          this._onceListeners.delete(_listener[SYM_ORI])
+        }
+      })
       // clean all handlers of the event queue specified by eventType
       queue.splice(0, queue.length)
       if (eventType === 'socket.error') {
@@ -182,12 +203,30 @@ class CQEventBus {
     }
 
     const idx = queue.indexOf(handler)
-    if (idx >= 0) {
-      queue.splice(idx, 1)
+    const wrapperIdx = this._onceListeners.has(handler)
+      ? queue.indexOf(this._onceListeners.get(handler)) : -1
+    
+    // no matter the listener is a once listener wrapper or not,
+    // the first occurence of the "handler" (2nd arg passed in) or its wrapper will be removed from the queue
+    const victimIdx = idx >= 0 && wrapperIdx >= 0
+      ? Math.min(idx, wrapperIdx)
+      : idx >= 0
+        ? idx
+        : wrapperIdx >= 0
+          ? wrapperIdx
+          : -1
+
+    if (victimIdx >= 0) {
+      queue.splice(victimIdx, 1)
+      if (victimIdx === wrapperIdx) {
+        this._onceListeners.delete(handler)
+      }
       if (eventType === 'socket.error' && queue.length === 0) {
         this._installDefaultErrorHandler()
       }
+      return this
     }
+
     return this
   }
 
@@ -256,5 +295,5 @@ class CQEvent {
 }
 
 module.exports = {
-  CQEventBus, CQEvent
+  CQEventBus, CQEvent, SYM_ORI
 }
