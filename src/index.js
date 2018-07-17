@@ -1,7 +1,9 @@
 const $WebSocket = require('websocket').w3cwebsocket
+const shortid = require('shortid')
+const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
-const { SocketError, InvalidWsTypeError } = require('./errors')
+const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebsocketType = {
   API: '/api',
@@ -81,6 +83,11 @@ module.exports = class CQWebsocket extends $Callable {
       }
     }
 
+    /**
+     * @type {Map<string, Function>}
+     */
+    this._responseHandlers = new Map()
+
     this._eventBus = new $CQEventBus(this)
   }
 
@@ -99,19 +106,42 @@ module.exports = class CQWebsocket extends $Callable {
     return this
   }
 
-  __call__ (method, params) {
-    if (!this._apiSock) return
+  __call__ (method, params, { timeout = Infinity }) {
+    if (!this._apiSock) return Promise.reject(new Error('API socket has not been initialized.'))
 
-    let apiRequest = {
-      'action': method,
-      'params': params
-    }
+    return new Promise((resolve, reject) => {
+      let ticket
+      const apiRequest = {
+        action: method,
+        params: params
+      }
+  
+      this._eventBus.emit('api.send.pre', apiRequest)
 
-    this._eventBus.emit('api.send.pre', apiRequest)
-    this._apiSock.send(JSON.stringify(apiRequest))
-    this._eventBus.emit('api.send.post')
+      apiRequest.echo = {
+        reqid: shortid.generate()
+      }
 
-    return this
+      this._responseHandlers.set(apiRequest.echo.reqid, (ctxt) => {
+        if (ticket) {
+          clearTimeout(ticket)
+          ticket = undefined
+        }
+        resolve(ctxt)
+      })
+
+      this._apiSock.send(JSON.stringify(apiRequest))
+
+      this._eventBus.emit('api.send.post')
+
+      if (timeout < Infinity) {
+        ticket = setTimeout(() => {
+          this._responseHandlers.delete(apiRequest.echo.reqid)
+          delete apiRequest.echo
+          reject(new ApiTimoutError(timeout, apiRequest))
+        }, timeout)
+      }
+    })
   }
 
   _handle (msgObj) {
@@ -255,14 +285,6 @@ module.exports = class CQWebsocket extends $Callable {
 
         let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
 
-        const _onMessage = (e) => {
-          if (_type === WebsocketType.EVENT) {
-            this._handle(JSON.parse(e.data))
-          } else {
-            this._eventBus.emit('api.response', JSON.parse(e.data))
-          }
-        }
-
         if (_type === WebsocketType.EVENT) {
           this._eventSock = _sock
         } else {
@@ -285,6 +307,31 @@ module.exports = class CQWebsocket extends $Callable {
           once: true
         })
 
+        const _onMessage = (e) => {
+          let context
+          try {
+            context = JSON.parse(e.data)
+          } catch (e) {
+            this._eventBus.emit('error', new InvalidContextError(_type, e.data))
+            return
+          }
+
+          if (_type === WebsocketType.EVENT) {
+            this._handle(context)
+          } else {
+            const reqid = $get(context, 'echo.reqid', '')
+            let cb = this._responseHandlers.get(reqid)
+
+            this._responseHandlers.delete(reqid)
+            delete context.echo // only we know there was a request id
+
+            if (typeof cb === 'function') {
+              cb(context)
+            }
+
+            this._eventBus.emit('api.response', context)
+          }
+        }
         _sock.addEventListener('message', _onMessage)
 
         _sock.addEventListener('close', (e) => {

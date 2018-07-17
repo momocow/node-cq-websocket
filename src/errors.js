@@ -4,6 +4,13 @@ class InvalidWsTypeError extends Error {
   }
 }
 
+class InvalidContextError extends SyntaxError {
+  constructor (type, data) {
+    super(`[Websocket: ${type}] has received an invalid context.\nRaw data: ${data}`)
+    this.name = 'InvalidContextError'
+  }
+}
+
 class SocketError extends Error {
   /**
    * @param {string} desc
@@ -14,7 +21,16 @@ class SocketError extends Error {
   }
 }
 
+class ApiTimoutError extends Error {
+  constructor (timeout, apiReq) {
+    super(`The API response has reached the timeout (${timeout} ms).`)
+    this.req = apiReq
+  }
+}
+
 module.exports = {
   SocketError,
-  InvalidWsTypeError
+  InvalidWsTypeError,
+  InvalidContextError,
+  ApiTimoutError
 }

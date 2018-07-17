@@ -132,6 +132,11 @@ class CQEventBus {
       }
 
       for (let handler of queue) {
+        if (isResponsable) {
+          // reset
+          cqevent._errorHandler = cqevent._responseHandler = null
+        }
+
         let returned = await Promise.resolve(handler(...args))
 
         if (isResponsable && typeof returned === 'string') {
@@ -139,7 +144,7 @@ class CQEventBus {
           cqevent.setMessage(returned)
         }
 
-        if (isResponsable && cqevent.isCanceled()) {
+        if (isResponsable && cqevent._isCanceled) {
           break
         }
       }
@@ -148,6 +153,16 @@ class CQEventBus {
         this._bot('send_msg', {
           ...args[1],
           message: cqevent.getMessage()
+        }).then(ctxt => {
+          if (typeof cqevent._responseHandler === 'function') {
+            cqevent._responseHandler(ctxt)
+          }
+        }).catch(err => {
+          if (typeof cqevent._errorHandler === 'function') {
+            cqevent._errorHandler(err)
+          } else {
+            this.emit('error', err)
+          }
         })
       }
     }
@@ -272,13 +287,17 @@ class CQEvent {
     this._isCanceled = false
     this._message = ''
     this._responseHandler = null
+    this._errorHandler = null
   }
 
-  isCanceled () {
-    return this._isCanceled
-  }
-
+  /**
+   * @deprecated
+   */
   cancel () {
+    return this.stopPropagation()
+  }
+
+  stopPropagation () {
     this._isCanceled = true
   }
 
@@ -294,8 +313,18 @@ class CQEvent {
     this._message = String(msgIn)
   }
 
+  /**
+   * @param {(res: object)=>void} handler
+   */
   onResponse (handler) {
     this._responseHandler = handler
+  }
+
+  /**
+   * @param {(error: Error)=>void} handler
+   */
+  onError (handler) {
+    this._errorHandler = handler
   }
 }
 

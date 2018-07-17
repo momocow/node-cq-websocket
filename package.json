@@ -30,6 +30,7 @@
   "homepage": "https://github.com/momocow/node-cq-websocket#readme",
   "dependencies": {
     "lodash.get": "^4.4.2",
+    "shortid": "^2.2.12",
     "websocket": "^1.0.25"
   },
   "devDependencies": {

@@ -42,8 +42,15 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
 - 新增
   - 支持在 browser 環境運行。(須使用 browserify 或 webpack 等工具先行打包, 可見 [/demo/webpack 示例](./demo/webpack)))
   - 本倉庫 dist/ 目錄下已經打包了一個 cq-websocket.min.js 可直接在 web 引用, 並透過 `window.CQWebSocket` 變數使用本 SDK。
+  - [`message` 事件快速響應](#事件傳播)的新機制: 為了追蹤快速響應的結果(成功或失敗), 監聽器一旦判定該訊息須由它來進行回應, 則須先調用 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權, 同監聽器內還可透過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 則會觸發 [`error` 事件](#基本事件)。
+
 - 變更
   - [api 子事件](#api-子事件) 移除監聽器中原第一個參數 WebsocketType。
+  - 直接對 CQWebSocket 實例進行[方法調用](#方法調用)之返回值, 由 `this` 變更為 `Promise<ResObj>`, 用以追蹤方法調用的結果。
+
+- 棄用
+  - CQEvent `#cancel()` => [`#stopPropagation()`](#cqevent-stoppropagation))
+  - CQEvent `#isCanceled()` (禁用, 無替代)
 
 ### v1.4.2
 - 新增
@@ -196,13 +203,19 @@ bot.on('socket.connecting', function (wsType, attempts) {
 > 原 #isConnected() 方法。
 
 ## 方法調用
-### CQWebSocket(`method`, `params`)
+### CQWebSocket(`method`, `params`, `options`)
 - `method` string
 - `params` object
-- 返回值： `this`
+- `options` object
+  - `timeout` number (默認: `Infinity`)
+- 返回值： `Promise<ResObj>`
 
 `CQWebSocket` 的實例可直接作為方法調用，用於透過 `/api` 連線操作酷Q。  
 `method` 為欲調用的行為，透過 `params` 物件夾帶參數，詳細的規格請見 CoolQ HTTP API 之 [API 列表](https://cqhttp.cc/docs/4.2/#/API?id=api-%E5%88%97%E8%A1%A8)。
+
+返回值為一個 Promise 對象, 用作追蹤該次方法調用的結果。Promise 對象實現後第一個參數會拿到 `ResObj` 對象, 此為 CQHttp API 的[回應對象](https://cqhttp.cc/docs/4.3/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。
+
+若有配置 `timeout` 選項(原先默認為 `Infinity`, 不會對請求計時), 則發生超時之後, 將放棄收取本次調用的結果, 並拋出一個 `ApiTimeoutError`。
 
 ## 事件處理
 事件處理應為機器人的運行過程中最主要的環節，情報收集主要是透過來自 `/event` 連線的事件上報，判讀事件文本並採取方法調用。
@@ -252,7 +265,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | ~~event~~ | `context` object | **[棄用]** 群組人數變化...等QQ事件。(此事件不支援子事件, 若需要 notice 子事件, 請將 CoolQ HTTP API 升級至 v4.x) |
 | notice  | `context` object | 群文件上傳, 群管變動, 群成員增減, 好友添加...等QQ事件。 |
 | request | `context` object | 好友請求, 群請求/群邀請...等QQ事件。 |
-| error | `err` Error | CoolQ HTTP API 送來之消息文本缺乏 `post_type` 字段 (理論上不會有這個事件發生)。 |
+| error | `err` Error | 應用層面的錯誤, 如 CQHttp API 消息格式錯誤, 響應超時... 等 |
 | ready | `this` | 設定中啟用之連線均成功並初始化完成，可以開始調用API (送消息...等操作)。 |
 
 #### `message` 子事件
@@ -314,13 +327,15 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 舉個例子，群消息有人at某機器人，該機器人則會首先上報 `message.group.@me` 事件，該事件之親事件由下而上依序為 `message.group` 、 `message` ，則這兩個事件也會依照這個順序上報。
 
-`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #cancel()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息，也可以透過 `Promise` 對象 resolve 之文字訊息)作為響應，送回至 CoolQ HTTP API 。
+`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #stopPropagation()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息，也可以透過 `Promise` 對象 resolve 之文字訊息)作為響應，送回至 CoolQ HTTP API 。
 
-由於在一次事件傳播中的所有監聽器都會收到同一個 `CQEvent` 實例，因此對於響應的決定方式，除了 `CQEvent #cancel()` 所提供的事件截獲機制之外，也可以採取協議式的方式，就是透過每個監聽器調用 `CQEvent #getMessage()` `CQEvent #setMessage(msg)` 協議出一個最終的響應訊息。
+由於在一次事件傳播中的所有監聽器都會收到同一個 `CQEvent` 實例，因此對於響應的決定方式，除了 `CQEvent #stopPropagation()` 所提供的事件截獲機制之外，也可以採取協議式的方式，就是透過每個監聽器調用 `CQEvent #getMessage()` `CQEvent #setMessage(msg)` 協議出一個最終的響應訊息。
 
 CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 > 目前僅 `message` 及其子事件支援 CQEvent 相關機制。
 
+#### 響應結果追蹤
+為了追蹤快速響應的結果(成功或失敗), 監聽器在調用上述之 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權之後, 同時還可通過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 則會觸發 [`error` 事件](#基本事件)。
 
 #### 事件樹
 ```
@@ -393,15 +408,18 @@ process.on('uncaughtException', function(err){
 ```
 
 ## `CQEvent` 類別
-### CQEvent #isCanceled()
+### ~~CQEvent #isCanceled()~~
 - 返回值： `boolean`
 
-監聽器中調用這個方法基本上是 `true` ，畢竟該監聽器仍可以運行表示事件沒有被截獲。
+> 棄用中, 無替代
 
-### CQEvent #cancel()
+### ~~CQEvent #cancel()~~
+### CQEvent #stopPropagation()
 - 返回值： `void`
 
 截獲事件並停止[事件傳播](#事件傳播)。
+
+> 棄用中 #cancel(), 更名為 #stopPropagation()
 
 ### CQEvent #getMessage()
 - 返回值： `string`
@@ -419,6 +437,16 @@ process.on('uncaughtException', function(err){
 
 是否有響應訊息。
 
+### CQEvent #onResponse(handler)
+- `handler` (res: object) => void
+
+設置響應結果的處理器, 用以追蹤訊息是否傳送成功。
+
+### CQEvent #onError(handler)
+- `handler` (err: ApiTimeoutError) => void
+
+設置錯誤處理器, 可能的錯誤已知有響應超時。
+
 ## `CQWebSocket.WebsocketType` 實例
 下有兩個常量對應至 `/api` 及 `/event` 。
 
@@ -431,7 +459,7 @@ process.on('uncaughtException', function(err){
 
 ## 範例
 基本創建一個複讀機器人的代碼範例如下(可參見[demo/echo-bot.js](https://github.com/momocow/node-cq-websocket/blob/master/demo/echo-bot.js))：
-```
+```js
 const CQWebSocket = require('cq-websocket')
 
 // 採用默認參數創建機器人實例
@@ -439,16 +467,26 @@ let bot = new CQWebSocket()
 
 // 設定訊息監聽
 bot.on('message', (e, context) => {
+  // 若要追蹤訊息發送狀況, 須獲取事件處理權, 並使用下面2或3的方式響應訊息
+  e.stopPropagation()
+  // 監聽訊息發送成功與否
+  e.onResponse(console.log)
+  // 監聽訊息發送超時與否
+  e.onError(console.error)
+
   // 以下提供三種方式將原訊息以原路送回
 
   // 1. 調用 CoolQ HTTP API 之 send_msg 方法
-  bot('send_msg', context)
+  //   (這就是一般的API方法調用, 直接在該方法的返回值之Promise追蹤結果)
+  // bot('send_msg', context)
+  //   .then(console.log)
+  //   .catch(console.error)
 
   // 2. 或者透過返回值快速響應
   // return context.message
 
   // 3. 或者透過CQEvent實例，先獲取事件處理權再設置響應訊息
-  // e.cancel()
+  // e.stopPropagation()
   // e.setMessage(context.message)
 })
 
