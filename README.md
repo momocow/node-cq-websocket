@@ -41,6 +41,7 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
 ### v1.5.0
 - 新增
   - 支持在 browser 環境運行。(須使用 browserify 或 webpack 等工具先行打包, 可見 [/demo/webpack 示例](./demo/webpack)))
+  - 本倉庫 dist/ 目錄下已經打包了一個 cq-websocket.min.js 可直接在 web 引用, 並透過 `window.CQWebSocket` 變數使用本 SDK。
 - 變更
   - [api 子事件](#api-子事件) 移除監聽器中原第一個參數 WebsocketType。
 
@@ -49,7 +50,7 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
   - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
   - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
   - `socket.reconnecting`, `socket.reconnect`, `socket.reconnect_failed` 及 `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
-  - CQWebsocket 建構時的選項增加 `baseUrl` 一項, 為某些如反向代理之網路環境提供較彈性的設定方式。
+  - CQWebSocket 建構時的選項增加 `baseUrl` 一項, 為某些如反向代理之網路環境提供較彈性的設定方式。
 - 變更
   - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
 - 修正
@@ -64,7 +65,7 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
   - `socket.connecting`, `socket.failed` 及 `socket.closing` 事件(參見 [socket 子事件](#socket-子事件))。
 - 變更
   - [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法增加參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 指涉全部連線。
-  - [CQWebsocket 建構子](#new-cqwebsocketopt)增加額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
+  - [CQWebSocket 建構子](#new-cqwebsocketopt)增加額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
 - 修正
   - [`once()` 方法](#cqwebsocket-onceevent_type-listener)執行後無法正確移除監聽器之問題。
 - 棄用
@@ -87,15 +88,15 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
 1. 通過 `npm install cq-websocket` 安裝 SDK
 2. 將 SDK 導入代碼   
 ```
-const CQWebsocket = require('cq-websocket')
+const CQWebSocket = require('cq-websocket')
 ```
-> 該導入過程引用了一個類別進來，以下將以 `CQWebsocket` 作為該類別名稱進行說明，實際使用時請依自己的命名編寫。
+> 該導入過程引用了一個類別進來，以下將以 `CQWebSocket` 作為該類別名稱進行說明，實際使用時請依自己的命名編寫。
 
-## 關於 `CQWebsocket` 類別
+## 關於 `CQWebSocket` 類別
 為此 SDK 的主要類別，底下封裝了兩個用於與 CoolQ HTTP API 連線之 socket，分別為 `/api` 和 `/event` (詳細功能描述可見 [coolq-http-api/websocket](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3))。
 
 ## 創建實例
-### new CQWebsocket(`opt`)
+### new CQWebSocket(`opt`)
 - `opt` object
 
 | 屬性 | 類型 | 默認值 |  說明
@@ -111,7 +112,7 @@ const CQWebsocket = require('cq-websocket')
 |  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
 |  `reconnectionDelay` | number | 1000 | 重複連線的延遲時間, 單位: ms |
 
-- 返回值: 一個新配置的 `CQWebsocket` 類別實例
+- 返回值: 一個新配置的 `CQWebSocket` 類別實例
 
 設定 ws 伺服器位址時, 你可以從以下方式擇一配置。SDK會依下表順序檢查是否正確配置(越前面優先序越高), 若成立則使用該配置進行連線。
   1. 使用 `host` 項指定伺服器, `port` 項為可選。
@@ -121,7 +122,7 @@ const CQWebsocket = require('cq-websocket')
 將 `reconnection` 設定為 true 啟用自動重連, 若發生網路錯誤, 例如無法連線到伺服器端, 連線建立失敗將會觸發重連, 若連續發生連線錯誤, 則重連次數不超過 `reconnectionAttempts`, 每次重連間隔 `reconnectionDelay` 毫秒。連續連線失敗將會在下一次連線成功時重新計數。
 
 ## 建立連線
-### CQWebsocket #connect(wsType)
+### CQWebSocket #connect(wsType)
 - `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
 - 返回值： `this`  
 - 事件
@@ -136,9 +137,9 @@ attempts 會在連線成功後歸零。
 
 範例:
 ```js
-const CQWebsocket = require('cq-websocket')
-const { WebsocketType } = CQWebsocket
-const bot = new CQWebsocket()
+const CQWebSocket = require('cq-websocket')
+const { WebsocketType } = CQWebSocket
+const bot = new CQWebSocket()
 
 // 手動連接兩個連線
 bot.connect(WebsocketType.API)
@@ -157,14 +158,14 @@ bot.on('socket.connecting', function (wsType, attempts) {
 ```
 
 ## 斷開連線
-### CQWebsocket #disconnect(wsType)
+### CQWebSocket #disconnect(wsType)
 - `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
 - 返回值： `this`
 - 事件
   - `socket.close` 連線斷開後。
 
 ## 重新連線
-### CQWebsocket #reconnect(delay, wsType)
+### CQWebSocket #reconnect(delay, wsType)
 - `delay` number
 - `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
 - 返回值： `this`
@@ -176,14 +177,14 @@ bot.on('socket.connecting', function (wsType, attempts) {
 `delay`單位為 ms，表示`socket.close`**事件觸發後的延遲時間**, 延遲時間過後才會呼叫 connect()。
 
 ## 檢測連線
-### CQWebsocket #isSockConnected(wsType)
+### CQWebSocket #isSockConnected(wsType)
 - `wsType` [WebsocketType](#cqwebsocketwebsockettype-實例)
 - 返回值： `boolean`
 
 若未給定 wsType 則使方法會拋出錯誤。
 
 ## 連線就緒
-### CQWebsocket #isReady()
+### CQWebSocket #isReady()
 - 返回值： `boolean`
 
 檢查連線狀態是否就緒。
@@ -195,18 +196,18 @@ bot.on('socket.connecting', function (wsType, attempts) {
 > 原 #isConnected() 方法。
 
 ## 方法調用
-### CQWebsocket(`method`, `params`)
+### CQWebSocket(`method`, `params`)
 - `method` string
 - `params` object
 - 返回值： `this`
 
-`CQWebsocket` 的實例可直接作為方法調用，用於透過 `/api` 連線操作酷Q。  
+`CQWebSocket` 的實例可直接作為方法調用，用於透過 `/api` 連線操作酷Q。  
 `method` 為欲調用的行為，透過 `params` 物件夾帶參數，詳細的規格請見 CoolQ HTTP API 之 [API 列表](https://cqhttp.cc/docs/4.2/#/API?id=api-%E5%88%97%E8%A1%A8)。
 
 ## 事件處理
 事件處理應為機器人的運行過程中最主要的環節，情報收集主要是透過來自 `/event` 連線的事件上報，判讀事件文本並採取方法調用。
 
-### CQWebsocket #on(`event_type`, `listener`)
+### CQWebSocket #on(`event_type`, `listener`)
 - `event_type` string
 - `listener` function(`...args`){ }
   - `...args` 依事件類型不同，監聽器的參數也有所不同，詳細對應見下表。
@@ -217,7 +218,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 若返回值為 `string` 或一個受理值 (resolved value) 為 `string` 之承諾 (Promise) 對象，則以該文字訊息作為響應發送。
 
-### CQWebsocket #once(`event_type`, `listener`)
+### CQWebSocket #once(`event_type`, `listener`)
 - `event_type` string
 - `listener` function(`...args`){ }
   - `...args` 依事件類型不同，監聽器的參數也有所不同，詳細對應見下表。
@@ -230,7 +231,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 若返回值為 `string` ，則立即以該文字訊息作為響應發送，並移除該監聽器。
 
-### CQWebsocket #off(`event_type`, `listener`)
+### CQWebSocket #off(`event_type`, `listener`)
 - `event_type` string
 - `listener` function
 - 返回值： `this`
@@ -379,16 +380,16 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 ```
 process.on('uncaughtException', function(err){
   switch(err.which){
-    case CQWebsocket.WebsocketType.API:
+    case CQWebSocket.WebsocketType.API:
       // 錯誤處理
       break
-    case CQWebsocket.WebsocketType.EVENT:
+    case CQWebSocket.WebsocketType.EVENT:
       // 錯誤處理
       break
   }
 })
 
-// CQWebsocket.WebsocketType 下提供兩個常量對應分別至 /api 及 /event
+// CQWebSocket.WebsocketType 下提供兩個常量對應分別至 /api 及 /event
 ```
 
 ## `CQEvent` 類別
@@ -418,7 +419,7 @@ process.on('uncaughtException', function(err){
 
 是否有響應訊息。
 
-## `CQWebsocket.WebsocketType` 實例
+## `CQWebSocket.WebsocketType` 實例
 下有兩個常量對應至 `/api` 及 `/event` 。
 
 ### `WebsocketType.API`
@@ -431,10 +432,10 @@ process.on('uncaughtException', function(err){
 ## 範例
 基本創建一個複讀機器人的代碼範例如下(可參見[demo/echo-bot.js](https://github.com/momocow/node-cq-websocket/blob/master/demo/echo-bot.js))：
 ```
-const CQWebsocket = require('cq-websocket')
+const CQWebSocket = require('cq-websocket')
 
 // 採用默認參數創建機器人實例
-let bot = new CQWebsocket()
+let bot = new CQWebSocket()
 
 // 設定訊息監聽
 bot.on('message', (e, context) => {

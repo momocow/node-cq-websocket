@@ -8,7 +8,8 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "nyc ava test/*/*.test.js",
-    "build": "webpack --config demo/webpack/webpack.config.js",
+    "build": "webpack --config ./webpack.config.js",
+    "build-demo": "webpack --config demo/webpack/webpack.config.js",
     "demo-browser": "http-server demo/webpack/www",
     "demo-echobot": "node ./demo/echobot.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
