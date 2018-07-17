@@ -1,12 +1,12 @@
-const CQWebsocket = require('../..')
-const { WebsocketState } = CQWebsocket
+const CQWebSocket = require('../..')
+const { WebsocketState } = CQWebSocket
 
 const { test } = require('ava')
 
 test('new Websocket() with default options', function (t) {
-  t.plan(6)
+  t.plan(7)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
 
   t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
   t.is(bot._monitor.API.state, WebsocketState.INIT)
@@ -18,12 +18,15 @@ test('new Websocket() with default options', function (t) {
     reconnectionAttempts: Infinity,
     reconnectionDelay: 1000
   })
+  t.deepEqual(bot._wsOptions, {
+    fragmentOutgoingMessages: false
+  })
 })
 
 test('new Websocket() with custom options', function (t) {
-  t.plan(6)
+  t.plan(7)
 
-  const bot = new CQWebsocket({
+  const bot = new CQWebSocket({
     enableAPI: false,
     enableEvent: true,
     baseUrl: '8.8.8.8:8888/ws',
@@ -31,7 +34,9 @@ test('new Websocket() with custom options', function (t) {
     access_token: 'qwerasdf',
     reconnection: true,
     reconnectionAttempts: 10,
-    reconnectionDelay: 5000
+    reconnectionDelay: 5000,
+    fragmentOutgoingMessages: true,
+    fragmentationThreshold: 0x4000
   })
 
   t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
@@ -43,5 +48,9 @@ test('new Websocket() with custom options', function (t) {
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 5000
+  })
+  t.deepEqual(bot._wsOptions, {
+    fragmentOutgoingMessages: true,
+    fragmentationThreshold: 0x4000
   })
 })

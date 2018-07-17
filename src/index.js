@@ -14,16 +14,26 @@ const WebsocketState = {
 
 module.exports = class CQWebsocket extends $Callable {
   constructor ({
-    access_token: accessToken = '',
-    enableAPI = true,
-    enableEvent = true,
+    // connectivity configs
     host,
     port,
+    access_token: accessToken = '',
     baseUrl = '127.0.0.1:6700',
+
+    // application aware configs
+    enableAPI = true,
+    enableEvent = true,
     qq = -1,
+
+    // reconnection configs
     reconnection = true,
     reconnectionAttempts = Infinity,
-    reconnectionDelay = 1000
+    reconnectionDelay = 1000,
+
+    // underlying websocket configs, only meaningful in Nodejs environment
+    fragmentOutgoingMessages = false,
+    fragmentationThreshold,
+    tlsOptions
   } = {}) {
     super('__call__')
 
@@ -40,6 +50,19 @@ module.exports = class CQWebsocket extends $Callable {
       reconnectionAttempts,
       reconnectionDelay
     }
+
+    this._wsOptions = { }
+
+    Object
+      .entries({
+        fragmentOutgoingMessages,
+        fragmentationThreshold,
+        tlsOptions
+      })
+      .filter(([ k, v ]) => v !== undefined)
+      .forEach(([ k, v ]) => {
+        this._wsOptions[k] = v
+      })
 
     ///*****************/
     //     states
@@ -230,9 +253,7 @@ module.exports = class CQWebsocket extends $Callable {
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
-        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, {
-          fragmentOutgoingMessages: false
-        })
+        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
 
         const _onMessage = (e) => {
           if (_type === WebsocketType.EVENT) {
