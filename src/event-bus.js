@@ -123,6 +123,7 @@ class CQEventBus {
         let returned = await Promise.resolve(handler(...args))
 
         if (isResponsable && typeof returned === 'string') {
+          cqevent.cancel()
           cqevent.setMessage(returned)
         }
 

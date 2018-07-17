@@ -84,9 +84,9 @@ module.exports = class CQWebsocket extends $Callable {
       'params': params
     }
 
-    this._eventBus.emit('api.send.pre', WebsocketType.API, apiRequest)
+    this._eventBus.emit('api.send.pre', apiRequest)
     this._apiSock.send(JSON.stringify(apiRequest))
-    this._eventBus.emit('api.send.post', WebsocketType.API)
+    this._eventBus.emit('api.send.post')
 
     return this
   }
@@ -238,7 +238,7 @@ module.exports = class CQWebsocket extends $Callable {
           if (_type === WebsocketType.EVENT) {
             this._handle(JSON.parse(e.data))
           } else {
-            this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(e.data))
+            this._eventBus.emit('api.response', JSON.parse(e.data))
           }
         }
 

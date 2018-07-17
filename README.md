@@ -20,15 +20,24 @@
   - [node-cq-websocket #2](https://github.com/momocow/node-cq-websocket/pull/2)
   - [coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
 
+## TODO
+- [ ] API 請求與響應配對。
+
 ## 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
+### v1.5.0
+- 新增
+  - 支持在 browser 環境運行。(須使用 browserify 或 webpack 等工具先行打包, 可見 [/demo/webpack 示例](./demo/webpack)))
+- 變更
+  - [api 子事件](#api-子事件) 移除監聽器中原第一個參數 WebsocketType。
+
 ### v1.4.2
 - 新增
   - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
   - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
   - `socket.reconnecting`, `socket.reconnect`, `socket.reconnect_failed` 及 `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
   - CQWebsocket 建構時的選項增加 `baseUrl` 一項, 為某些如反向代理之網路環境提供較彈性的設定方式。
-- 修改
+- 變更
   - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
 - 修正
   - 事件名稱錯誤。(`closing` => `socket.closing`, `connecting` => `socket.connecting`)
@@ -40,7 +49,7 @@
   - [reconnect() 方法](#cqwebsocket-reconnectdelay-wstype)以重新建立連線。
   - [isSockConnected() 方法](#cqwebsocket-issockconnectedwstype)檢測 socket 是否正在連線。
   - `socket.connecting`, `socket.failed` 及 `socket.closing` 事件(參見 [socket 子事件](#socket-子事件))。
-- 修改
+- 變更
   - [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法增加參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 指涉全部連線。
   - [CQWebsocket 建構子](#new-cqwebsocketopt)增加額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
 - 修正
@@ -57,7 +66,7 @@
 - 棄用
   - 上報事件: `event` -> 請改用 `notice`事件。
 ### v1.2.6
-- 修改
+- 變更
   - 禁用 websocket fragment, 待 CoolQ HTTP API 修正問題時再次啟用。
   > 於此帖追蹤進度。[coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
 
@@ -280,9 +289,9 @@ bot.on('socket.connecting', function (wsType, attempts) {
 #### `api` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
 | - | - | - |
-| api.send.pre | `type` WebsocketType <br> `apiRequest` object | 傳送 API 請求之前。關於 `apiRequest` 可見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
-| api.send.post | `type` WebsocketType | 傳送 API 請求之後。  |
-| api.response | `type` WebsocketType <br> `result` object | 對於 API 請求的回應。詳細格式見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
+| api.send.pre | `apiRequest` object | 傳送 API 請求之前。關於 `apiRequest` 可見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
+| api.send.post |  | 傳送 API 請求之後。  |
+| api.response | `result` object | 對於 API 請求的回應。詳細格式見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
 
 > 註： `socket` 及 `api` 並未擁有基本事件，在這邊僅作 namespace 用途與其他常用事件作區別。  
 
