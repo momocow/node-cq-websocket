@@ -37,6 +37,7 @@ if (options.help) {
     .on('socket.connecting', (wsType) => console.log('[%s] 建立連線中, 請稍後...', wsType))
     .on('socket.connect', (wsType, sock, attempts) => console.log('[%s] 連線成功 ヽ(✿ﾟ▽ﾟ)ノ 蛆蛆%d個嘗試', wsType, attempts))
     .on('socket.failed', (wsType, attempts) => console.log('[%s] 連線失敗 。･ﾟ･(つд`ﾟ)･ﾟ･ [丑%d] 對噗起', wsType, attempts))
+    .on('ready', () => console.log('今天又是複讀複讀的一天 ｡:.ﾟヽ(*´∀`)ﾉﾟ.:｡'))
 
     // 聽取私人信息
     .on('message.private', (e, context) => {
