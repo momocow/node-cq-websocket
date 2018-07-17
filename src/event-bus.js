@@ -126,7 +126,7 @@ class CQEventBus {
     }
 
     if (queue && queue.length > 0) {
-      let cqevent = new CQEvent()
+      let cqevent = isResponsable ? new CQEvent() : undefined
       if (isResponsable && Array.isArray(args)) {
         args.unshift(cqevent)
       }
@@ -271,6 +271,7 @@ class CQEvent {
   constructor () {
     this._isCanceled = false
     this._message = ''
+    this._responseHandler = null
   }
 
   isCanceled () {
@@ -291,6 +292,10 @@ class CQEvent {
 
   setMessage (msgIn) {
     this._message = String(msgIn)
+  }
+
+  onResponse (handler) {
+    this._responseHandler = handler
   }
 }
 
