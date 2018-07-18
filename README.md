@@ -6,92 +6,37 @@
 [![npm](https://img.shields.io/npm/v/cq-websocket.svg)](https://www.npmjs.com/package/cq-websocket)
 [![CQHttp](https://img.shields.io/badge/dependency-CQHttp-green.svg)](https://github.com/richardchien/coolq-http-api#readme)  
 
-> 本 SDK 兼容 CoolQ HTTP API v3.X 及 v4.X 兩個版本。
+## 關於 Node CQWebSocket SDK
+依賴 CQHTTP API 插件的 websocket 接口, 為 NodeJs 開發者提供一個搭建 QQ 聊天機器人的框架。
 
-> **!!特別注意!!** 本 SDK 尚處於測試階段，使用上仍有機會碰到Bug，歡迎提交PR或issue回報。
+關於 CQHTTP API 插件，見 [richardchien/coolq-http-api](https://github.com/richardchien/coolq-http-api#readme)
+
+> 本 SDK 尚處於測試階段，使用上仍有機會碰到Bug，歡迎提交PR或issue回報。
+
 > 由於付費問題，本 SDK 目前僅針對酷Q Air做測試。
 
-本項目為酷Q的 CoolQ HTTP API 插件支持 websocket 部分之 Node SDK。  
-關於 CoolQ HTTP API 插件，見 [richardchien/coolq-http-api](https://github.com/richardchien/coolq-http-api#readme)
+### 功能特色
+- 輕鬆配置, 快速搭建 QQ 聊天機器人。
+- 自動維護底層連線, 開發者只需專注在聊天應用的開發。若斷線, 可依照配置重新連線。
+- 支持消息監聽器內, 快速響應。
+- 兼容 CQHTTP API 插件 `v3.x` 及 `v4.x` 兩個大版本。
 
-## Known Issues
-- CoolQ HTTP API 插件尚未支援收發 Fragmant, 暫時禁用
-  - 自`v1.2.6`
-  - [node-cq-websocket #2](https://github.com/momocow/node-cq-websocket/pull/2)
-  - [coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
-- 在 Node 10.x 下, Buffer 寫入時的 RangeError (發生在本 SDK 調用 CQHttp API 的方法時)。
-  - 這應該是 Node 的問題, 暫時用 Node 8.x 就沒問題。
-```
-RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be >= 0 and <= 4294967295. Received -805456141
-    at checkInt (internal/buffer.js:35:11)
-    at writeU_Int32BE (internal/buffer.js:625:3)
-    at Buffer.writeUInt32BE (internal/buffer.js:638:10)
-    at WebSocketFrame.toBuffer (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketFrame.js:257:24)
-    at WebSocketConnection.sendFrame (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:857:43)
-    at WebSocketConnection.fragmentAndSend (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:793:14)
-    at WebSocketConnection.sendUTF (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:733:10)
-    at W3CWebSocket.send (/***/node-cq-websocket/node_modules/websocket/lib/W3CWebSocket.js:116:26)
-```
-
-## TODO
-- [ ] API 請求與響應配對。
-
-## 開發日誌
-列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
-### v1.5.0
-- 新增
-  - 支持在 browser 環境運行。(須使用 browserify 或 webpack 等工具先行打包, 可見 [/demo/webpack 示例](./demo/webpack)))
-  - 本倉庫 dist/ 目錄下已經打包了一個 cq-websocket.min.js 可直接在 web 引用, 並透過 `window.CQWebSocket` 變數使用本 SDK。
-  - [`message` 事件快速響應](#事件傳播)的新機制: 為了追蹤快速響應的結果(成功或失敗), 監聽器一旦判定該訊息須由它來進行回應, 則須先調用 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權, 同監聽器內還可透過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 則會觸發 [`error` 事件](#基本事件)。
-
-- 變更
-  - [api 子事件](#api-子事件) 移除監聽器中原第一個參數 WebsocketType。
-  - 直接對 CQWebSocket 實例進行[方法調用](#方法調用)之返回值, 由 `this` 變更為 `Promise<ResObj>`, 用以追蹤方法調用的結果。
-
-- 棄用
-  - CQEvent `#cancel()` => [`#stopPropagation()`](#cqevent-stoppropagation))
-  - CQEvent `#isCanceled()` (禁用, 無替代)
-
-### v1.4.2
-- 新增
-  - 默認 `socket.error` 監聽器將會由 stderr 輸出警告訊息。[#4](https://github.com/momocow/node-cq-websocket/issues/4)
-  - 內部狀態控管, 加強連線管理。[#5](https://github.com/momocow/node-cq-websocket/issues/5)
-  - `socket.reconnecting`, `socket.reconnect`, `socket.reconnect_failed` 及 `socket.max_reconnect` 事件。(參見 [socket 子事件](#socket-子事件))
-  - CQWebSocket 建構時的選項增加 `baseUrl` 一項, 為某些如反向代理之網路環境提供較彈性的設定方式。
-- 變更
-  - `ready` 事件不再針對個別連線(`/api`, `/event`)進行上報, 改為在**所有已啟用**之連線準備就緒後, 一次性發布。若需要掌握個別連線, 請利用 `socket.connect` 事件。
-- 修正
-  - 事件名稱錯誤。(`closing` => `socket.closing`, `connecting` => `socket.connecting`)
-
-### v1.4.0
-增強對連線的管理與維護, 斷線後自動嘗試重新連線。
-- 新增
-  - [`off()` 方法](#cqwebsocket-offevent_type-listener)以移除指定監聽器。
-  - [reconnect() 方法](#cqwebsocket-reconnectdelay-wstype)以重新建立連線。
-  - [isSockConnected() 方法](#cqwebsocket-issockconnectedwstype)檢測 socket 是否正在連線。
-  - `socket.connecting`, `socket.failed` 及 `socket.closing` 事件(參見 [socket 子事件](#socket-子事件))。
-- 變更
-  - [`connect()`](#cqwebsocket-connectwstype), [`disconnect()`](#cqwebsocket-disconnectwstype), [`reconnect()`](#cqwebsocket-reconnectdelay-wstype) 三個方法增加參數 `wsType` 以指定目標連線, 若 `wsType` 為 undefined 指涉全部連線。
-  - [CQWebSocket 建構子](#new-cqwebsocketopt)增加額外3個設定, `reconnection`, `reconnectionAttempts` 及 `reconnectionDelay`, 提供連線失敗時自動重連之功能。
-- 修正
-  - [`once()` 方法](#cqwebsocket-onceevent_type-listener)執行後無法正確移除監聽器之問題。
-- 棄用
-  - `isConnected()` 方法
-  > 重新命名為 [`isReady()`](#cqwebsocket-isready)。
-
-### v1.3.0
-兼容 CoolQ HTTP API v3.x 及 v4.x 兩個主版本。
-- 新增
-  - 給予 CoolQ HTTP API v4.x 之上報事件 `notice` 實作更多[子事件](#notice-子事件)。(群文件上傳, 群管變動, 群成員增減, 好友添加)
-  - 給予上報事件 `request` 實作更多[子事件](#request-子事件)。(好友請求, 群請求/群邀請)
-- 棄用
-  - 上報事件: `event` -> 請改用 `notice`事件。
-### v1.2.6
-- 變更
-  - 禁用 websocket fragment, 待 CoolQ HTTP API 修正問題時再次啟用。
-  > 於此帖追蹤進度。[coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
+### 開發日誌
+[<點擊前往>](./docs/CHANGELOG.md)
 
 ## 使用方式
+### Browser
+1. 下載 `/dist` 目錄下之 `cq-websocket.min.js`。
+2. 放到你的網站路徑下。
+3. 使用 `<script src="<你的路徑>/cq-websocket.min.js">` 引入。
+4. 在你的 js 代碼中, 使用全局變數 `CQWebSocket` 獲取 SDK。
+```js
+  // 全局變數 CQWebSocket 存在於 window 對象下
+  // window.CQWebSocket
+  const bot = new CQWebSocket()
+```
+
+### Nodejs
 1. 通過 `npm install cq-websocket` 安裝 SDK
 2. 將 SDK 導入代碼   
 ```
@@ -100,7 +45,7 @@ const CQWebSocket = require('cq-websocket')
 > 該導入過程引用了一個類別進來，以下將以 `CQWebSocket` 作為該類別名稱進行說明，實際使用時請依自己的命名編寫。
 
 ## 關於 `CQWebSocket` 類別
-為此 SDK 的主要類別，底下封裝了兩個用於與 CoolQ HTTP API 連線之 socket，分別為 `/api` 和 `/event` (詳細功能描述可見 [coolq-http-api/websocket](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3))。
+SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket，分別為 `/api` 和 `/event` (詳細功能描述可見 [coolq-http-api/websocket](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3))。
 
 ## 創建實例
 ### new CQWebSocket(`opt`)
@@ -108,7 +53,7 @@ const CQWebSocket = require('cq-websocket')
 
 | 屬性 | 類型 | 默認值 |  說明
 | - | - | - | - |
-| `access_token` | string | `""` | API 訪問 token 。見 CoolQ HTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
+| `access_token` | string | `""` | API 訪問 token 。見 CQHTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
 |  `enableAPI` | boolean | `true` | 啟用 /api 連線 |
 |  `enableEvent` | boolean | `true` | 啟用 /event 連線 |
 |  `host` | string | `"127.0.0.1"` | 伺服器 IP |
@@ -118,15 +63,23 @@ const CQWebSocket = require('cq-websocket')
 |  `reconnection` | boolean | true | 是否連線錯誤時自動重連 |
 |  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
 |  `reconnectionDelay` | number | 1000 | 重複連線的延遲時間, 單位: ms |
+|  `fragmentOutgoingMessages` | boolean | false | 由於 CQHTTP API 插件的 websocket 服務器尚未支持 fragment, 故建議維持 `false` 禁用 fragment。 |
+|  `fragmentationThreshold` | number | 0x4000 | 每個 frame 的最大容量, 默認為 16 KiB, 單位: byte |
+|  `tlsOptions` | object | {} | 若需調用安全連線 [https.request](https://nodejs.org/api/https.html#https_https_request_options_callback) 時的選項 |
 
 - 返回值: 一個新配置的 `CQWebSocket` 類別實例
 
-設定 ws 伺服器位址時, 你可以從以下方式擇一配置。SDK會依下表順序檢查是否正確配置(越前面優先序越高), 若成立則使用該配置進行連線。
+設定 ws 伺服器位址時, 你可以從以下方式擇一配置。如果以下方式同時存在於配置中, 則採用其中編號最小的方式。
   1. 使用 `host` 項指定伺服器, `port` 項為可選。
   2. 使用 `baseUrl` 項指定伺服器 URL。
 
 ## 自動重新連線說明
 將 `reconnection` 設定為 true 啟用自動重連, 若發生網路錯誤, 例如無法連線到伺服器端, 連線建立失敗將會觸發重連, 若連續發生連線錯誤, 則重連次數不超過 `reconnectionAttempts`, 每次重連間隔 `reconnectionDelay` 毫秒。連續連線失敗將會在下一次連線成功時重新計數。
+
+### WebSocket 關閉之狀態碼
+若呼叫 `CQWebSocket #disconnect()` 會對服務器端發送夾帶 `1000` 狀態碼的關閉訊息, 表示正常關閉, 無需重連。
+
+若發生網路斷線、服務器重啟... 等意外斷線, 通常會獲得 `1006` 狀態碼, 此狀態表示 websocket 客戶端 (即機器人端) 觀察到服務器關閉。
 
 ## 建立連線
 ### CQWebSocket #connect(wsType)
@@ -206,16 +159,18 @@ bot.on('socket.connecting', function (wsType, attempts) {
 ### CQWebSocket(`method`, `params`, `options`)
 - `method` string
 - `params` object
-- `options` object
+- `options` object | number
   - `timeout` number (默認: `Infinity`)
 - 返回值： `Promise<ResObj>`
 
 `CQWebSocket` 的實例可直接作為方法調用，用於透過 `/api` 連線操作酷Q。  
-`method` 為欲調用的行為，透過 `params` 物件夾帶參數，詳細的規格請見 CoolQ HTTP API 之 [API 列表](https://cqhttp.cc/docs/4.2/#/API?id=api-%E5%88%97%E8%A1%A8)。
+`method` 為欲調用的行為，透過 `params` 物件夾帶參數，詳細的規格請見 CQHTTP API 之 [API 列表](https://cqhttp.cc/docs/4.2/#/API?id=api-%E5%88%97%E8%A1%A8)。
 
 返回值為一個 Promise 對象, 用作追蹤該次方法調用的結果。Promise 對象實現後第一個參數會拿到 `ResObj` 對象, 此為 CQHttp API 的[回應對象](https://cqhttp.cc/docs/4.3/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。
 
 若有配置 `timeout` 選項(原先默認為 `Infinity`, 不會對請求計時), 則發生超時之後, 將放棄收取本次調用的結果, 並拋出一個 `ApiTimeoutError`。
+
+`options` 除了是一個對象外, 也可以直接給一個數值, 該數值會被直接當作 `timeout` 使用。
 
 ## 事件處理
 事件處理應為機器人的運行過程中最主要的環節，情報收集主要是透過來自 `/event` 連線的事件上報，判讀事件文本並採取方法調用。
@@ -255,14 +210,14 @@ bot.on('socket.connecting', function (wsType, attempts) {
 3. 移除 `event_type` 下的 `listener` 監聽器(**參照 reference 須相同!**), 若 `listener` 不存在則無事。
 
 #### 基本事件
-前三個基本事件之說明，可以另外參考 CoolQ HTTP API 的[數據上報格式](https://cqhttp.cc/docs/4.2/#/Post?id=%E4%B8%8A%E6%8A%A5%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F)。
+前三個基本事件之說明，可以另外參考 CQHTTP API 的[數據上報格式](https://cqhttp.cc/docs/4.2/#/Post?id=%E4%B8%8A%E6%8A%A5%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F)。
 
 參數 `context` 可見[事件列表](https://cqhttp.cc/docs/4.2/#/Post?id=%E4%BA%8B%E4%BB%B6%E5%88%97%E8%A1%A8)。
 
 | 事件類型 | 監聽器參數 `...args` | 說明 |
 | - | - | - |
 | message | `event` [CQEvent](#cqevent-類別)<br> `context` object| 所有流入的訊息。 |
-| ~~event~~ | `context` object | **[棄用]** 群組人數變化...等QQ事件。(此事件不支援子事件, 若需要 notice 子事件, 請將 CoolQ HTTP API 升級至 v4.x) |
+| ~~event~~ | `context` object | **[棄用]** 群組人數變化...等QQ事件。(此事件不支援子事件, 若需要 notice 子事件, 請將 CQHTTP API 升級至 v4.x) |
 | notice  | `context` object | 群文件上傳, 群管變動, 群成員增減, 好友添加...等QQ事件。 |
 | request | `context` object | 好友請求, 群請求/群邀請...等QQ事件。 |
 | error | `err` Error | 應用層面的錯誤, 如 CQHttp API 消息格式錯誤, 響應超時... 等 |
@@ -318,7 +273,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | - | - | - |
 | api.send.pre | `apiRequest` object | 傳送 API 請求之前。關於 `apiRequest` 可見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
 | api.send.post |  | 傳送 API 請求之後。  |
-| api.response | `result` object | 對於 API 請求的回應。詳細格式見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。 |
+| api.response | `result` object | 對於 API 請求的響應。詳細格式見 [/api/接口說明](https://cqhttp.cc/docs/4.2/#/WebSocketAPI?id=api-%E6%8E%A5%E5%8F%A3)。<br>此為集中處理所有 API 請求的響應, 若需對個別請求追蹤結果, 請參考[方法調用](#方法調用)中返回的 Promise 對象。<br>若需追蹤消息快速響應的結果, 請參考 [響應結果追蹤](#響應結果追蹤)。 |
 
 > 註： `socket` 及 `api` 並未擁有基本事件，在這邊僅作 namespace 用途與其他常用事件作區別。  
 
@@ -327,7 +282,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 舉個例子，群消息有人at某機器人，該機器人則會首先上報 `message.group.@me` 事件，該事件之親事件由下而上依序為 `message.group` 、 `message` ，則這兩個事件也會依照這個順序上報。
 
-`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #stopPropagation()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息，也可以透過 `Promise` 對象 resolve 之文字訊息)作為響應，送回至 CoolQ HTTP API 。
+`message` 及其子事件的監聽器第一個參數： `CQEvent` 類別的實例，在這個機制中扮演重要的角色。透過 `CQEvent` 實例，所有監聽器皆可在自己的運行期間調用 `CQEvent #stopPropagation()` 方法聲明自己的處理權，以截獲事件並阻斷後續監聽器的調用，並立即以該事件返回之文字訊息(或透過調用 `CQEvent #setMessage(msg)` 設定之文字訊息，也可以透過 `Promise` 對象 resolve 之文字訊息)作為響應，送回至 CQHTTP API 。
 
 由於在一次事件傳播中的所有監聽器都會收到同一個 `CQEvent` 實例，因此對於響應的決定方式，除了 `CQEvent #stopPropagation()` 所提供的事件截獲機制之外，也可以採取協議式的方式，就是透過每個監聽器調用 `CQEvent #getMessage()` `CQEvent #setMessage(msg)` 協議出一個最終的響應訊息。
 
@@ -335,7 +290,7 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 > 目前僅 `message` 及其子事件支援 CQEvent 相關機制。
 
 #### 響應結果追蹤
-為了追蹤快速響應的結果(成功或失敗), 監聽器在調用上述之 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權之後, 同時還可通過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 則會觸發 [`error` 事件](#基本事件)。
+為了追蹤快速響應的結果(成功或失敗), 監聽器在調用上述之 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權之後, 同時還可通過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 發生響應錯誤時會觸發 [`error` 事件](#基本事件)。
 
 #### 事件樹
 ```
@@ -391,9 +346,14 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 
 為此而產生了 `socket.error` 事件之默認監聽器，當開發者沒有主動監聽 `socket.error` 事件，則會使用默認監聽器，發生錯誤時會將收到的錯誤實例拋出，而該錯誤實例下有一個 `which` 字段(內容為 `string` 類型且必為 `/api` `/event` 兩者任一)指出是哪一個連線出了問題。
 
-該錯誤可透過在 `process` 上監聽 `uncaughtException` 事件取得。如下所示：
+默認監聽器除了拋出錯誤外, 還會在 stderr 輸出以下警示訊息：
 ```
-process.on('uncaughtException', function(err){
+You should listen on "socket.error" yourself to avoid those unhandled promise warnings.
+```
+
+該錯誤可透過在 `process` 上監聽 `unhandledRejection` 事件取得。如下所示：
+```js
+process.on('unhandledRejection', function(err){
   switch(err.which){
     case CQWebSocket.WebsocketType.API:
       // 錯誤處理
@@ -419,7 +379,7 @@ process.on('uncaughtException', function(err){
 
 截獲事件並停止[事件傳播](#事件傳播)。
 
-> 棄用中 #cancel(), 更名為 #stopPropagation()
+> `#cancel()` 棄用中, 更名為 `#stopPropagation()`
 
 ### CQEvent #getMessage()
 - 返回值： `string`
@@ -432,13 +392,20 @@ process.on('uncaughtException', function(err){
 
 設置響應訊息。
 
+### CQEvent #appendMessage(`msg`)
+- `msg` string
+- 返回值： `void`
+
+串接響應訊息。
+
 ### CQEvent #hasMessage()
 - 返回值： `boolean`
 
 是否有響應訊息。
 
-### CQEvent #onResponse(handler)
+### CQEvent #onResponse(handler, options)
 - `handler` (res: object) => void
+- `options` object (同[方法調用](#方法調用)之 options)
 
 設置響應結果的處理器, 用以追蹤訊息是否傳送成功。
 
@@ -476,7 +443,7 @@ bot.on('message', (e, context) => {
 
   // 以下提供三種方式將原訊息以原路送回
 
-  // 1. 調用 CoolQ HTTP API 之 send_msg 方法
+  // 1. 調用 CQHTTP API 之 send_msg 方法
   //   (這就是一般的API方法調用, 直接在該方法的返回值之Promise追蹤結果)
   // bot('send_msg', context)
   //   .then(console.log)
@@ -495,17 +462,49 @@ bot.connect()
 
 ## SDK 開發環境
 ### 下載源碼
-`git clone https://github.com/momocow/node-cq-websocket.git`
+```
+git clone https://github.com/momocow/node-cq-websocket.git
+```
 
 ### 安裝依賴
-`npm install` 或 `yarn install`
+```
+npm install
+```
 
 ### 單元測試
-`npm test`
+```
+npm test
+```
 
-### 在酷Q環境進行測試
-1. 請先配置好CoolQ。
-2. 安裝 CoolQ HTTP API 插件，正確地配置 websocket 伺服器並啟用。可參考該插件之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration)。
-3. 測試用的配置文件位於 `./demo/config.json` ，該配置內容請符合 CoolQ HTTP API 插件內關於websocket的配置。
-4. `npm run demo`
-5. 本測試為複讀所有私聊訊息，避免打擾機器人所屬的群組，你可以私聊你的機器人進行測試。
+採用 [ava](https://github.com/avajs/ava) 框架執行測試。
+
+### 打包 CQWebSocket 至 browser 環境
+```
+npm run build
+```
+使用 webpack 將 SDK 及所有依賴打包, 並在 `/dist`目錄下產生一個 `cq-websocket.min.js`。
+
+### 建置 demo/webpack
+```
+npm run build-demo
+```
+打包 `/demo/webpack/app.js` 內容, 在 `/demo/webpack/www` 目錄下產生一個 `bundle.js`。
+
+## Known Issues
+- CQHTTP API 插件尚未支援收發 Fragmant, 暫時禁用
+  - 自`v1.2.6`
+  - [node-cq-websocket #2](https://github.com/momocow/node-cq-websocket/pull/2)
+  - [coolq-http-api #85](https://github.com/richardchien/coolq-http-api/issues/85)
+- 在 Node 10.x 下, Buffer 寫入時的 RangeError (發生在 SDK 調用 API 方法時)。
+  > 這是 Node 的問題, 暫時使用 Node 8.x 以下就沒問題。
+```
+RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be >= 0 and <= 4294967295. Received -805456141
+    at checkInt (internal/buffer.js:35:11)
+    at writeU_Int32BE (internal/buffer.js:625:3)
+    at Buffer.writeUInt32BE (internal/buffer.js:638:10)
+    at WebSocketFrame.toBuffer (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketFrame.js:257:24)
+    at WebSocketConnection.sendFrame (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:857:43)
+    at WebSocketConnection.fragmentAndSend (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:793:14)
+    at WebSocketConnection.sendUTF (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:733:10)
+    at W3CWebSocket.send (/***/node-cq-websocket/node_modules/websocket/lib/W3CWebSocket.js:116:26)
+```

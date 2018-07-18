@@ -84,7 +84,7 @@ module.exports = class CQWebsocket extends $Callable {
     }
 
     /**
-     * @type {Map<string, Function>}
+     * @type {Map<string, {onSuccess:Function,onFailure:Function}>}
      */
     this._responseHandlers = new Map()
 
@@ -106,8 +106,21 @@ module.exports = class CQWebsocket extends $Callable {
     return this
   }
 
-  __call__ (method, params, { timeout = Infinity }) {
+  __call__ (method, params, optionsIn) {
     if (!this._apiSock) return Promise.reject(new Error('API socket has not been initialized.'))
+
+    let options = {
+      timeout: Infinity
+    }
+
+    if (typeof optionsIn === 'number') {
+      options.timeout = optionsIn
+    } else if (typeof optionsIn === 'object') {
+      options = {
+        ...options,
+        ...optionsIn
+      }
+    }
 
     return new Promise((resolve, reject) => {
       let ticket
@@ -118,28 +131,36 @@ module.exports = class CQWebsocket extends $Callable {
   
       this._eventBus.emit('api.send.pre', apiRequest)
 
-      apiRequest.echo = {
-        reqid: shortid.generate()
-      }
-
-      this._responseHandlers.set(apiRequest.echo.reqid, (ctxt) => {
+      const onSuccess = (ctxt) => {
         if (ticket) {
           clearTimeout(ticket)
           ticket = undefined
         }
+        this._responseHandlers.delete(reqid)
+        delete ctxt.echo
         resolve(ctxt)
-      })
+      }
 
-      this._apiSock.send(JSON.stringify(apiRequest))
+      const onFailure = (err) => {
+        this._responseHandlers.delete(reqid)
+        reject(err)
+      }
+
+      const reqid = shortid.generate()
+
+      this._responseHandlers.set(reqid, { onFailure, onSuccess })
+      this._apiSock.send(JSON.stringify({
+        ...apiRequest,
+        echo: { reqid }
+      }))
 
       this._eventBus.emit('api.send.post')
 
-      if (timeout < Infinity) {
+      if (options.timeout < Infinity) {
         ticket = setTimeout(() => {
-          this._responseHandlers.delete(apiRequest.echo.reqid)
-          delete apiRequest.echo
-          reject(new ApiTimoutError(timeout, apiRequest))
-        }, timeout)
+          this._responseHandlers.delete(reqid)
+          onFailure(new ApiTimoutError(options.timeout, apiRequest))
+        }, options.timeout)
       }
     })
   }
@@ -166,7 +187,7 @@ module.exports = class CQWebsocket extends $Callable {
             }
             break
           default:
-            this._eventBus.emit('error', new Error('[Message event] the message contains invalid "message_type" field'))
+            this._eventBus.emit('error', new Error(`Unexpected "message_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       case 'event': // Deprecated, reason: CQHttp 3.X
@@ -186,7 +207,7 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_admin.unset', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_admin', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'group_decrease':
@@ -201,7 +222,7 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_decrease.kick_me', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_decrease', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'group_increase':
@@ -213,14 +234,14 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_increase.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_increase', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'friend_add':
             this._eventBus.emit('notice.friend_add', msgObj)
             break
           default:
-          this._eventBus.emit('error', new Error('[Notice event] the message contains invalid "notice_type" field'))
+            this._eventBus.emit('error', new Error(`Unexpected "notice_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       case 'request':
@@ -237,16 +258,15 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('request.group.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('request.group', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           default:
-            this._eventBus.emit('error', new Error('[Request event] the message contains invalid "request_type" field'))
+            this._eventBus.emit('error', new Error(`Unexpected "request_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       default:
-        this._eventBus.emit('error',
-          new Error(`The message received from CoolQ HTTP API plugin has invalid property 'post_type'.\n${JSON.stringify(msgObj)}`))
+        this._eventBus.emit('error', new Error(`Unexpected "post_type"\n${JSON.stringify(msgObj, null, 2)}`))
     }
   }
 
@@ -256,10 +276,6 @@ module.exports = class CQWebsocket extends $Callable {
    */
   _forEachSock (cb, types = [ WebsocketType.EVENT, WebsocketType.API ]) {
     if (!Array.isArray(types)) {
-      if (![ WebsocketType.EVENT, WebsocketType.API ].includes(types)) {
-        throw new InvalidWsTypeError(wsType)
-      }
-
       types = [ types ]
     }
 
@@ -311,7 +327,7 @@ module.exports = class CQWebsocket extends $Callable {
           let context
           try {
             context = JSON.parse(e.data)
-          } catch (e) {
+          } catch (err) {
             this._eventBus.emit('error', new InvalidContextError(_type, e.data))
             return
           }
@@ -320,13 +336,11 @@ module.exports = class CQWebsocket extends $Callable {
             this._handle(context)
           } else {
             const reqid = $get(context, 'echo.reqid', '')
-            let cb = this._responseHandlers.get(reqid)
 
-            this._responseHandlers.delete(reqid)
-            delete context.echo // only we know there was a request id
+            let { onSuccess } = this._responseHandlers.get(reqid) || {}
 
-            if (typeof cb === 'function') {
-              cb(context)
+            if (typeof onSuccess === 'function') {
+              onSuccess(context)
             }
 
             this._eventBus.emit('api.response', context)

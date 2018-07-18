@@ -32,7 +32,9 @@ class FakeWebSocket extends EventEmitter {
     return this.removeListener(event, listener)
   }
 
-  send () {}
+  send (data) {
+    
+  }
 
   close (code = 1000, reason = 'Normal connection closure') {
     setTimeout (() => {

@@ -4,6 +4,7 @@ const EMIT_DELAY = 100
 const { stub, spy } = require('sinon')
 
 const { CQWebsocket } = require('../fixture/connect-success')()
+const { ApiTimoutError } = require('../../src/errors')
 const { test } = require('ava')
 
 const MSG_OBJ = {
@@ -12,81 +13,155 @@ const MSG_OBJ = {
   raw_message: 'Test'
 }
 
-function emitMessage () {
+function emitMessage (t) {
   setTimeout(function () {
-    sock.onMessage(JSON.stringify(MSG_OBJ))
+    t.context.sock.onMessage(JSON.stringify(MSG_OBJ))
   }, EMIT_DELAY)
 }
 
-
-let sock
-let bot
-let callSpy
-
-test.before.cb(function (t) {
-  bot = new CQWebsocket()
+test.beforeEach.cb(function (t) {
+  t.context.bot = new CQWebsocket()
     .on('ready', function () {
-      sock = bot._eventSock
+      t.context.sock = t.context.bot._eventSock
       t.end()
     })
     .connect()
-  callSpy = spy(bot._eventBus, '_bot')
+  t.context.callSpy = spy(t.context.bot._eventBus, '_bot')
 })
 
-test.cb('CQEvent: return string in message handler', function (t) {
-  t.plan(1)
+test.cb('CQEvent: return string in message handler, should also gain the right to reply the message', function (t) {
+  t.plan(2)
 
-  bot
+  t.context.bot
     .on('message.private', function () {
-      return 'ok'
+      return 'ok!'
+    })
+    .on('message.private', function () {
+      return 'nothing...'
+    })
+    .on('message', function () {
+      return 'failed...'
     })
     .on('api.send.post', function () {
-      t.true(callSpy.calledWith('send_msg', {
-        ...MSG_OBJ,
-        message: 'ok'
-      }))
+      t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
+      t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
   
-  emitMessage()
+  emitMessage(t)
 })
 
-test.cb('CQEvent: call #setMessage() on the CQEvent', function (t) {
-  t.plan(1)
+test.cb('CQEvent: modify the response message on the CQEvent via multiple listeners', function (t) {
+  t.plan(2)
 
-  bot
+  t.context.bot
     .on('message.private', function (e) {
-      e.setMessage('ok')
+      e.setMessage('o')
+    })
+    .on('message.private', function (e) {
+      if (e.hasMessage()) {
+        e.setMessage(e.getMessage() + 'k')
+      }
+    })
+    .on('message', function (e) {
+      e.appendMessage('!')
     })
     .on('api.send.post', function () {
-      t.true(callSpy.calledWith('send_msg', {
-        ...MSG_OBJ,
-        message: 'ok'
-      }))
+      t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
+      t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
   
-  emitMessage()
+  emitMessage(t)
 })
 
-test.cb('CQEvent: gain the right of making a response via #cancel()', function (t) {
-  t.plan(1)
+test.cb('CQEvent: gain the right of making a response via #stopPropagation()', function (t) {
+  t.plan(2)
 
-  bot
+  t.context.bot
     .on('message.private', function (e) {
-      e.setMessage('ok')
-      e.cancel()
+      e.setMessage('ok!')
+      e.stopPropagation()
     })
     .on('message.private', function (e) {
-      e.setMessage('error')
+      e.setMessage('error!')
     })
     .on('api.send.post', function () {
-      t.true(callSpy.calledWith('send_msg', {
-        ...MSG_OBJ,
-        message: 'ok'
-      }))
+      t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
+      t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
   
-  emitMessage()
+  emitMessage(t)
+})
+
+test.cb('CQEvent: listen for response result on the CQEvent', function (t) {
+  t.plan(1)
+
+  const stubSend = stub(t.context.bot._apiSock, 'send')
+  stubSend.callsFake(function (data) {
+    const { echo } = JSON.parse(data)
+    this.onMessage(JSON.stringify({
+      retcode: 0,
+      echo
+    }))
+  })
+
+  t.context.bot
+    .on('message.private', function (e) {
+      e.onResponse(function (ctxt) {
+        t.is(ctxt.retcode, 0)
+        t.end()
+        stubSend.restore()
+      }, 5000) // timeout: 5 sec
+
+      return 'some messages'
+    })
+  emitMessage(t)
+})
+
+test.cb('CQEvent: listen for response error on the CQEvent', function (t) {
+  t.plan(2)
+
+  const errorSpy = spy()
+
+  t.context.bot
+    .on('error', errorSpy)
+    .on('message.private', function (e) {
+      e.onResponse({
+        timeout: 1000
+      })
+
+      e.onError(function (err) {
+        t.true(err instanceof ApiTimoutError)
+        t.true(errorSpy.notCalled)
+        t.end()
+      })
+
+      return 'some messages'
+    })
+  
+  emitMessage(t)
+})
+
+test.cb('CQEvent: response timeout without error handler', function (t) {
+  t.plan(2)
+
+  t.context.bot
+    .on('error', err => {
+      t.true(err instanceof ApiTimoutError)
+      t.end()
+    })
+    .on('message.private', function (e) {
+      e.onResponse({
+        timeout: 1000
+      })
+
+      // no e.onError() is called
+      t.falsy(e._errorHandler)
+
+      return 'some messages'
+    })
+  
+  emitMessage(t)
 })

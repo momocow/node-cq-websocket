@@ -1,6 +1,7 @@
 class InvalidWsTypeError extends Error {
   constructor (type) {
     super(`"${type}" is not a valid websocket type.`)
+    this.wsType = type
   }
 }
 
@@ -8,6 +9,8 @@ class InvalidContextError extends SyntaxError {
   constructor (type, data) {
     super(`[Websocket: ${type}] has received an invalid context.\nRaw data: ${data}`)
     this.name = 'InvalidContextError'
+    this.wsType = type
+    this.data = data
   }
 }
 

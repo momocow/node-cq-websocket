@@ -124,7 +124,7 @@ eventlist.forEach(function (event) {
   test.cb(`Event [${event}]`, macro, event)
 })
 
-test.cb(`Event [fake event]`, function (t) {
+function invalidEventMacro (t, msgObj) {
   t.plan(2)
 
   const _spy = spy()
@@ -136,61 +136,44 @@ test.cb(`Event [fake event]`, function (t) {
       t.end()
     })
 
-  emitEvent(t, {
-    post_type: 'fake'
-  })
+  emitEvent(t, msgObj)
+}
+
+test.cb(`Event [fake event]`, invalidEventMacro, {
+  post_type: 'fake'
 })
 
-test.cb(`Event [invalid message]`, function (t) {
-  t.plan(2)
-
-  const _spy = spy()
-  t.context.bot
-    .on('error', _spy)
-    .on('error', (err) => {
-      t.true(err instanceof Error)
-      t.true(_spy.calledOnce)
-      t.end()
-    })
-
-  emitEvent(t, {
-    post_type: 'message',
-    message_type: 'fake'
-  })
+test.cb(`Event [invalid message]`, invalidEventMacro, {
+  post_type: 'message',
+  message_type: 'fake'
 })
 
-test.cb(`Event [invalid notice]`, function (t) {
-  t.plan(2)
-
-  const _spy = spy()
-  t.context.bot
-    .on('error', _spy)
-    .on('error', (err) => {
-      t.true(err instanceof Error)
-      t.true(_spy.calledOnce)
-      t.end()
-    })
-
-  emitEvent(t, {
-    post_type: 'notice',
-    notice_type: 'fake'
-  })
+test.cb(`Event [invalid notice]`, invalidEventMacro, {
+  post_type: 'notice',
+  notice_type: 'fake'
 })
 
-test.cb(`Event [invalid request]`, function (t) {
-  t.plan(2)
+test.cb(`Event [invalid notice:group_admin]`, invalidEventMacro, {
+  post_type: 'notice',
+  notice_type: 'group_admin'
+})
 
-  const _spy = spy()
-  t.context.bot
-    .on('error', _spy)
-    .on('error', (err) => {
-      t.true(err instanceof Error)
-      t.true(_spy.calledOnce)
-      t.end()
-    })
+test.cb(`Event [invalid notice:group_increase]`, invalidEventMacro, {
+  post_type: 'notice',
+  notice_type: 'group_increase'
+})
 
-  emitEvent(t, {
-    post_type: 'request',
-    request_type: 'fake'
-  })
+test.cb(`Event [invalid notice:group_decrease]`, invalidEventMacro, {
+  post_type: 'notice',
+  notice_type: 'group_decrease'
+})
+
+test.cb(`Event [invalid request]`, invalidEventMacro, {
+  post_type: 'request',
+  request_type: 'fake'
+})
+
+test.cb(`Event [invalid request:group]`, invalidEventMacro, {
+  post_type: 'request',
+  request_type: 'group'
 })

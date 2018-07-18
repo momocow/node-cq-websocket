@@ -1,9 +1,20 @@
 const CQWebsocket = require('../..')
 const { SYM_ORI } = require('../../src/event-bus')
+const traverse = require('../../src/util/traverse')
 const { test } = require('ava')
 
 const NOOP1 = function () {}
 const NOOP2 = function () {}
+
+function countListeners (bot) {
+  let listenerCount = 0
+  traverse(bot._eventBus._EventMap, (v) => {
+    if (Array.isArray(v)) {
+      listenerCount += v.length
+    }
+  })
+  return listenerCount
+}
 
 test('#off(): remove all listeners', function (t) {
   t.plan(4)
@@ -160,4 +171,29 @@ test('#off(socket.error, listener): remove specified socket.error listener', fun
 
   bot.off('socket.error', console.error)
   t.is(bot._eventBus.count('socket.error'), 1) // default error handler
+})
+
+test('#off(invalidEvent)', function (t) {
+  t.plan(3)
+
+  const bot = new CQWebsocket()
+
+  t.is(countListeners(bot), 1) // default socket.error
+
+  t.is(bot.off('invalid.event'), bot)
+
+  t.is(countListeners(bot), 1) // default socket.error
+})
+
+test('#off(event, not_a_listener)', function (t) {
+  t.plan(3)
+
+  const bot = new CQWebsocket()
+    .on('message', NOOP1)
+
+  t.is(countListeners(bot), 2) // default socket.error + NOOP1
+
+  t.is(bot.off('message', NOOP2), bot)
+
+  t.is(countListeners(bot), 2) // default socket.error + NOOP1
 })
