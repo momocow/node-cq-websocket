@@ -318,6 +318,18 @@ module.exports = class CQWebsocket extends $Callable {
 
           if (this.isReady()) {
             this._eventBus.emit('ready', this)
+
+            // if /api is not disabled, it is ready now.
+            // if qq < 0, it is not configured manually by user
+            if (this._monitor.API.state !== WebsocketState.DISABLED && this._qq < 0) {
+              this('get_login_info')
+                .then((ctxt) => {
+                  this._qq = parseInt($get(ctxt, 'data.user_id', -1))
+                })
+                .catch(err => {
+                  this._eventBus.emit('error', err)
+                })
+            }
           }
         }, {
           once: true

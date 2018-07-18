@@ -11,7 +11,7 @@ test.cb('#__call__(method, params)', function (t) {
   const preSpy = spy()
   const postSpy = spy()
   const apiResponseSpy = spy()
-  const bot = new CQWebsocket()
+  const bot = new CQWebsocket({ qq: 123456789 })
     .on('api.send.pre', preSpy)
     .on('api.send.post', postSpy)
     .on('api.response', apiResponseSpy)
@@ -83,7 +83,7 @@ test('#__call__() while disconnected.', async function (t) {
 test.cb('#__call__(method, params, options) with timeout option', function (t) {
   t.plan(5)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebsocket({ qq: 123456789 })
     .on('ready', function () {
       t.is(bot._responseHandlers.size, 0)
 
