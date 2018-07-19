@@ -3,6 +3,8 @@ const shortid = require('shortid')
 const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
+const $CQAtTag = require('./cq-tags/CQAtTag')
+const $CQ = require('./cq-tags/cq-utils')
 const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebsocketType = {
@@ -45,6 +47,7 @@ module.exports = class CQWebsocket extends $Callable {
 
     this._token = String(accessToken)
     this._qq = parseInt(qq)
+    this._atme = new $CQAtTag(this._qq)
     this._baseUrl = host ? `${host}${port ? `:${port}` : '' }` : baseUrl
 
     this._reconnectOptions = {
@@ -168,20 +171,32 @@ module.exports = class CQWebsocket extends $Callable {
   _handle (msgObj) {
     switch (msgObj.post_type) {
       case 'message':
+        // parsing coolq tags
+        const tags = $CQ.parse(msgObj.raw_message)
+
         switch (msgObj.message_type) {
           case 'private':
             this._eventBus.emit('message.private', msgObj)
             break
           case 'discuss':
-            if (isBotAtted(msgObj.raw_message, this._qq)) {
-              this._eventBus.emit('message.discuss.@me', msgObj)
+            // someone is @-ed
+            const attags = tags.filter(t => t instanceof $CQAtTag)
+            if (attags.length > 0) {
+              if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                this._eventBus.emit('message.discuss.@me', msgObj)
+              }
+              this._eventBus.emit('message.discuss.@', msgObj, attags)
             } else {
               this._eventBus.emit('message.discuss', msgObj)
             }
             break
           case 'group':
-            if (isBotAtted(msgObj.raw_message, this._qq)) {
-              this._eventBus.emit('message.group.@me', msgObj)
+            const attags = tags.filter(t => t instanceof $CQAtTag)
+            if (attags.length > 0) {
+              if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                this._eventBus.emit('message.discuss.@me', msgObj)
+              }
+              this._eventBus.emit('message.discuss.@', msgObj, attags)
             } else {
               this._eventBus.emit('message.group', msgObj)
             }
@@ -325,6 +340,7 @@ module.exports = class CQWebsocket extends $Callable {
               this('get_login_info')
                 .then((ctxt) => {
                   this._qq = parseInt($get(ctxt, 'data.user_id', -1))
+                  this._atme = new $CQAtTag(this._qq)
                 })
                 .catch(err => {
                   this._eventBus.emit('error', err)
@@ -480,10 +496,6 @@ module.exports = class CQWebsocket extends $Callable {
     return this.isReady()
   }
 
-}
-
-function isBotAtted (msg, qq) {
-  return msg.includes(`[CQ:at,qq=${qq}]`)
 }
 
 module.exports.WebsocketType = WebsocketType

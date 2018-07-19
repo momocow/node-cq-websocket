@@ -237,8 +237,10 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | message.private | `event` CQEvent <br> `context` object | 私聊消息。 |
 | message.discuss | `event` CQEvent <br> `context` object | 討論組消息。 |
 | message.discuss.@me | `event` CQEvent <br> `context` object | 有人於討論組消息at機器人。 |
+| message.discuss.@ | `event` CQEvent <br> `context` object <br> `tags` CQAtTag[] | 有人於討論組消息中被at。 |
 | message.group | `event` CQEvent <br> `context` object | 群消息。 |
 | message.group.@me | `event` CQEvent <br> `context` object | 有人於群消息at機器人。 |
+| message.group.@ | `event` CQEvent <br> `context` object <br> `tags` CQAtTag[] | 有人於群消息中被at。 |
 
 #### `notice` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
@@ -432,6 +434,48 @@ process.on('unhandledRejection', function(err){
 ### `WebsocketType.EVENT`
 = `"/event"` string
 
+## CQTag 類別
+作為所有CQ碼的親類別。
+
+### new CQTag(`type`, `meta`)
+- `type` string
+- `meta` object
+
+舉個例子, `[CQ:at,qq=123]` 這個 tag 等同
+```js
+new CQTag('at', { qq: '123' })
+```
+
+### CQTag #equals(`another`))
+- `another` CQTag | string
+
+比較是否為同一個 Tag, 採用兩邊呼叫 toString() 後的結果比較。
+
+若 `another` 為一個 string, 則會先將之解析為 CQTag。
+
+```js
+new CQTag('at', { qq: '123' }).equals('[CQ:at,qq=123]') // true
+```
+
+### CQTag #toString()
+- 返回值: `string`
+
+```js
+new CQTag('at', { qq: '123' }).toString() // [CQ:at,qq=123]
+```
+
+### CQAtTag 類別
+繼承自 CQTag 類別。
+
+#### new CQAtTag(`qq`)
+- `qq` string|number
+
+#### CQAtTag #getQQ()
+- 返回值: `number`
+
+```js
+new CQAtTag('123').getQQ() // 123
+```
 
 ## 範例
 基本創建一個複讀機器人的代碼範例如下(可參見[demo/echo-bot.js](https://github.com/momocow/node-cq-websocket/blob/master/demo/echo-bot.js))：

@@ -1,8 +1,12 @@
-const CQTag = require('./cq-tag')
+const CQTag = require('./CQTag')
 
 class CQAtTag extends CQTag {
-  constructor (qq) {
-    super('at', { qq })
+  constructor (qq = -1) {
+    super('at', { qq: parseInt(qq) })
+  }
+
+  getQQ () {
+    return parseInt(this.meta.qq)
   }
 }
 

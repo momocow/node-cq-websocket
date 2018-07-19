@@ -7,6 +7,7 @@
   - [`message` 事件快速響應](../README.md#事件傳播)的新機制: 為了追蹤快速響應的結果(成功或失敗), 監聽器一旦判定該訊息須由它來進行回應, 則須先調用 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權, 同監聽器內還可透過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 則會觸發 [`error` 事件](../README.md#基本事件)。
   - CQEvent `#appendMessage()`
   - [自動獲取機器人QQ號](../README.md#自動獲取機器人qq號): 建立連線時, 若有啟用 API 連線且未配置QQ號, 則自動透過API連線獲取。
+  - `message.discuss.@`, `message.group.@` 兩個事件。可參考文件在 [message 子事件](../README.md#message-子事件) 及 [CQTag 類別](../README.md#cqtag-類別)的章節
 
 - 變更
   - [api 子事件](../README.md#api-子事件) 移除監聽器中原第一個參數 WebsocketType。
