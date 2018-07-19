@@ -22,7 +22,7 @@ const CQTag = require('./CQTag')
 /**
  * @param {string} str
  */
-function parse (str) {
+function parse (str = '') {
   const tags = str.match(/\[CQ.*\]/g) || []
   return tags.map(_tag => _tag.match(DESTRUCTOR))
     .filter(_tag => _tag && TYPES.includes(_tag[1]))

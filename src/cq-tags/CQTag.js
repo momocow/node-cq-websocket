@@ -1,5 +1,3 @@
-const CQ = require('./cq-utils')
-
 class CQTag {
   constructor (type, meta = {}) {
     this.type = type
@@ -8,7 +6,8 @@ class CQTag {
 
   equals (another) {
     if (typeof another === 'string') {
-      [ another ] = CQ.parse(another)
+      // to solve circular dependencies
+      [ another ] = require('./cq-utils').parse(another)
     }
 
     if (!(another instanceof CQTag)) return false

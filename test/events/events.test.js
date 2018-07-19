@@ -14,14 +14,18 @@ function emitEvent (t, msgObj = {}) {
 }
 
 function macro (t, event) {
-  const atMe = event.endsWith('.@me')
+  // @deprecated
+  const atMe = event.endsWith('.@me') || event.endsWith('.@.me')
+  let postfix = ''
   if (atMe) {
-    event = event.substr(0, event.length - 4)
+    const matched = event.match(/^(message\.(discuss|group))(\.@\.?me)$/)
+    event = matched[1]
+    postfix = matched[3]
   }
 
   const arrEvent = event.split('.')
   const [ majorType, minorType, subType ] = arrEvent
-  
+
   if (!minorType) {
     t.fail('Invalid minor type')
     t.end()
@@ -67,24 +71,36 @@ function macro (t, event) {
   }
 
   if (atMe) {
-    const _spy = spy()
-    spies.push(_spy)
-    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
+    if (postfix === '.@.me') {
+      const _spy1 = spy()
+      const _spy2 = spy()
+      spies.push(_spy1)
+      spies.push(_spy2)
+      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@', _spy1)
+      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@.me', _spy2)
+    } else {
+      const _spy = spy()
+      spies.push(_spy)
+      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
+    }
   }
-  
+
   t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
 
   // Assertion after root event has been emitted
   t.context.bot.on(arrEvent[0], function () {
-  
+
     // 相關母子事件均被觸發過
-    spies.forEach(_spy => {
+    spies.forEach((_spy, i) => {
       t.true(_spy.calledOnce)
     })
 
     // 觸發參數
     if (majorType === 'message') {
-      spies.forEach(_spy => {
+      spies.forEach((_spy, i) => {
+        if (_spy.firstCall === null) {
+          // console.log(i)
+        }
         t.true(_spy.firstCall.args[0] instanceof CQEvent)
         t.deepEqual(_spy.firstCall.args[1], msgObj)
       })

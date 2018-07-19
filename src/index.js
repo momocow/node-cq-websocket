@@ -179,28 +179,32 @@ module.exports = class CQWebsocket extends $Callable {
             this._eventBus.emit('message.private', msgObj)
             break
           case 'discuss':
-            // someone is @-ed
-            const attags = tags.filter(t => t instanceof $CQAtTag)
-            if (attags.length > 0) {
-              if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                this._eventBus.emit('message.discuss.@.me', msgObj)
+            {
+              // someone is @-ed
+              const attags = tags.filter(t => t instanceof $CQAtTag)
+              if (attags.length > 0) {
+                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                  this._eventBus.emit('message.discuss.@.me', msgObj)
+                } else {
+                  this._eventBus.emit('message.discuss.@', msgObj, attags)
+                }
               } else {
-                this._eventBus.emit('message.discuss.@', msgObj, attags)
+                this._eventBus.emit('message.discuss', msgObj)
               }
-            } else {
-              this._eventBus.emit('message.discuss', msgObj)
             }
             break
           case 'group':
-            const attags = tags.filter(t => t instanceof $CQAtTag)
-            if (attags.length > 0) {
-              if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                this._eventBus.emit('message.discuss.@.me', msgObj)
+            {
+              const attags = tags.filter(t => t instanceof $CQAtTag)
+              if (attags.length > 0) {
+                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                  this._eventBus.emit('message.group.@.me', msgObj)
+                } else {
+                  this._eventBus.emit('message.group.@', msgObj, attags)
+                }
               } else {
-                this._eventBus.emit('message.discuss.@', msgObj, attags)
+                this._eventBus.emit('message.group', msgObj)
               }
-            } else {
-              this._eventBus.emit('message.group', msgObj)
             }
             break
           default:

@@ -1,5 +1,4 @@
 const CQWebsocket = require('../..')
-const { SYM_ORI } = require('../../src/event-bus')
 const traverse = require('../../src/util/traverse')
 const { test } = require('ava')
 
@@ -27,7 +26,7 @@ test('#off(): remove all listeners', function (t) {
     .on('request.group.invite', NOOP1)
   
   const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
@@ -36,7 +35,7 @@ test('#off(): remove all listeners', function (t) {
   bot.off()
 
   const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
   
   t.is(total2, 0)
@@ -54,7 +53,7 @@ test('#off(event): remove all listeners of the specified event', function (t) {
     .on('request.group.invite', NOOP1)
   
   const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
@@ -62,7 +61,7 @@ test('#off(event): remove all listeners of the specified event', function (t) {
   bot.off('socket.connect')
 
   const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
   
   t.is(total2, 2)
@@ -79,7 +78,7 @@ test('#off(event, listener): remove a specific listener', function (t) {
     .on('request.group.invite', NOOP1)
   
   const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
@@ -87,7 +86,7 @@ test('#off(event, listener): remove a specific listener', function (t) {
   bot.off('socket.connect', NOOP1)
 
   const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@me')
+    + bot._eventBus.count('message.group.@.me')
     + bot._eventBus.count('request.group.invite')
   
   t.is(total2, 3)
@@ -163,7 +162,7 @@ test('#off(socket.error, listener): remove specified socket.error listener', fun
 
   const queue = bot._eventBus._getHandlerQueue('socket.error')
   t.not(queue[0], queue[1]) // not the same since queue[0] is a once listener which wraps console.error
-  t.is(queue[0][SYM_ORI], console.error)
+  t.is(queue[0], bot._eventBus._onceListeners.get(console.error))
 
   bot.off('socket.error', console.error) // the once listener is removed since it is registered earlier
   t.is(bot._eventBus.count('socket.error'), 1)
