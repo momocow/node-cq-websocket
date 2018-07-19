@@ -2,8 +2,6 @@ const $get = require('lodash.get')
 
 const $traverse = require('./util/traverse')
 
-const SYM_ORI = Symbol('_ORIGINAL_LISTENER_')
-
 class CQEventBus {
   constructor (cqbot) {
     // eventType-to-handlers mapping
@@ -14,11 +12,17 @@ class CQEventBus {
         private: [],
         group: {
           '': [],
-          '@me': []
+          '@': {
+            '': [],
+            'me': []
+          }
         },
         discuss: {
           '': [],
-          '@me': []
+          '@': {
+            '': [],
+            'me': []
+          }
         }
       },
       event: [],
@@ -83,7 +87,7 @@ class CQEventBus {
      *     and is the listener that is actually registered via #on(event, listener) 
      * @type {Map<Function, Function>}
      */
-    this._onceListeners = new Map()
+    this._onceListeners = new WeakMap()
 
     this._isSocketErrorHandled = false
     this._bot = cqbot
@@ -181,14 +185,13 @@ class CQEventBus {
       this.off(eventType, onceWrapper)
       return returned
     }
-    onceWrapper[SYM_ORI] = handler
     this._onceListeners.set(handler, onceWrapper)
     return this.on(eventType, onceWrapper)
   }
 
   off (eventType, handler) {
     if (typeof eventType !== 'string') {
-      this._onceListeners.clear()
+      this._onceListeners = new WeakMap()
       $traverse(this._EventMap, (value) => {
         // clean all handler queues
         if (Array.isArray(value)) {
@@ -206,12 +209,6 @@ class CQEventBus {
     }
 
     if (typeof handler !== 'function') {
-      // remove all once listeners associated with the specified event queue
-      queue.forEach(_listener => {
-        if (_listener[SYM_ORI]) {
-          this._onceListeners.delete(_listener[SYM_ORI])
-        }
-      })
       // clean all handlers of the event queue specified by eventType
       queue.splice(0, queue.length)
       if (eventType === 'socket.error') {
@@ -262,7 +259,17 @@ class CQEventBus {
     }
   }
 
+  /**
+   * @param {string} eventType
+   * @param {function} handler
+   */
   on (eventType, handler) {
+    // @deprecated
+    // keep the compatibility for versions lower than v1.5.0
+    if (eventType.endsWith('@me')) {
+      eventType = eventType.replace(/\.@me$/, '.@.me')
+    }
+
     if (!this.has(eventType)) {
       return this
     }
@@ -343,5 +350,5 @@ class CQEvent {
 }
 
 module.exports = {
-  CQEventBus, CQEvent, SYM_ORI
+  CQEventBus, CQEvent
 }
