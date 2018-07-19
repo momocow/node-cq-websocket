@@ -236,11 +236,13 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | - | - | - |
 | message.private | `event` CQEvent <br> `context` object | 私聊消息。 |
 | message.discuss | `event` CQEvent <br> `context` object | 討論組消息。 |
-| message.discuss.@me | `event` CQEvent <br> `context` object | 有人於討論組消息at機器人。 |
 | message.discuss.@ | `event` CQEvent <br> `context` object <br> `tags` CQAtTag[] | 有人於討論組消息中被at。 |
+| message.discuss.@.me | `event` CQEvent <br> `context` object | 有人於討論組消息at機器人。 |
 | message.group | `event` CQEvent <br> `context` object | 群消息。 |
-| message.group.@me | `event` CQEvent <br> `context` object | 有人於群消息at機器人。 |
 | message.group.@ | `event` CQEvent <br> `context` object <br> `tags` CQAtTag[] | 有人於群消息中被at。 |
+| message.group.@.me | `event` CQEvent <br> `context` object | 有人於群消息at機器人。 |
+
+※ `message.discuss.@me`
 
 #### `notice` 子事件
 | 事件類型 | 監聽器參數 | 說明 |

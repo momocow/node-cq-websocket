@@ -183,9 +183,10 @@ module.exports = class CQWebsocket extends $Callable {
             const attags = tags.filter(t => t instanceof $CQAtTag)
             if (attags.length > 0) {
               if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                this._eventBus.emit('message.discuss.@me', msgObj)
+                this._eventBus.emit('message.discuss.@.me', msgObj)
+              } else {
+                this._eventBus.emit('message.discuss.@', msgObj, attags)
               }
-              this._eventBus.emit('message.discuss.@', msgObj, attags)
             } else {
               this._eventBus.emit('message.discuss', msgObj)
             }
@@ -194,9 +195,10 @@ module.exports = class CQWebsocket extends $Callable {
             const attags = tags.filter(t => t instanceof $CQAtTag)
             if (attags.length > 0) {
               if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                this._eventBus.emit('message.discuss.@me', msgObj)
+                this._eventBus.emit('message.discuss.@.me', msgObj)
+              } else {
+                this._eventBus.emit('message.discuss.@', msgObj, attags)
               }
-              this._eventBus.emit('message.discuss.@', msgObj, attags)
             } else {
               this._eventBus.emit('message.group', msgObj)
             }

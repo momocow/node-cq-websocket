@@ -16,6 +16,7 @@
 - 棄用
   - CQEvent `#cancel()` => [`#stopPropagation()`](#cqevent-stoppropagation))
   - CQEvent `#isCanceled()` (禁用, 無替代)
+  - ~~`message.discuss.@me`~~ 和 ~~`message.group.@me`~~ 事件, 將更名為 `message.<discuss|group>.@.me`事件。請見 [message 子事件](../README.md#message-子事件)文件。
 
 ## v1.4.2
 - 新增
