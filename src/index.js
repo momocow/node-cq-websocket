@@ -34,6 +34,9 @@ module.exports = class CQWebsocket extends $Callable {
     reconnectionAttempts = Infinity,
     reconnectionDelay = 1000,
 
+    // API request options
+    requestOptions = {},
+
     // underlying websocket configs, only meaningful in Nodejs environment
     fragmentOutgoingMessages = false,
     fragmentationThreshold,
@@ -55,6 +58,8 @@ module.exports = class CQWebsocket extends $Callable {
       reconnectionAttempts,
       reconnectionDelay
     }
+
+    this._requestOptions = typeof requestOptions !== 'object' ? {} : requestOptions
 
     this._wsOptions = { }
 
@@ -113,7 +118,8 @@ module.exports = class CQWebsocket extends $Callable {
     if (!this._apiSock) return Promise.reject(new Error('API socket has not been initialized.'))
 
     let options = {
-      timeout: Infinity
+      timeout: Infinity,
+      ...this._requestOptions
     }
 
     if (typeof optionsIn === 'number') {

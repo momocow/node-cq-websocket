@@ -8,6 +8,7 @@
   - CQEvent `#appendMessage()`
   - [自動獲取機器人QQ號](../README.md#自動獲取機器人qq號): 建立連線時, 若有啟用 API 連線且未配置QQ號, 則自動透過API連線獲取。
   - `message.discuss.@`, `message.group.@` 兩個事件。可參考文件在 [message 子事件](../README.md#message-子事件) 及 [CQTag 類別](../README.md#cqtag-類別)的章節
+  - `CQWebSocket` 建構子新增 [`requestOptions` 選項](../README.md#new-cqwebsocketopt), 該選項下目前只有一個 `timeout` 字段, 調用 API 方法時作為全局默認 timeout 選項。
 
 - 變更
   - [api 子事件](../README.md#api-子事件) 移除監聽器中原第一個參數 WebsocketType。

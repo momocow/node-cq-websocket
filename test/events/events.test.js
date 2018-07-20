@@ -13,7 +13,7 @@ function emitEvent (t, msgObj = {}) {
   }, EMIT_DELAY)
 }
 
-function macro (t, event) {
+function macro (t, event, { raw_message } = {}) {
   // @deprecated
   const atMe = event.endsWith('.@me') || event.endsWith('.@.me')
   let postfix = ''
@@ -43,7 +43,7 @@ function macro (t, event) {
   switch (majorType) {
     case 'message':
       msgObj.message_type = minorType
-      msgObj.raw_message = `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
+      msgObj.raw_message = raw_message || `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
       break
     case 'notice':
       msgObj.notice_type = minorType
@@ -138,6 +138,11 @@ test.beforeEach.cb(function (t) {
 const eventlist = require('./events')
 eventlist.forEach(function (event) {
   test.cb(`Event [${event}]`, macro, event)
+})
+
+const extraMsgEvents = [ 'message.discuss.@', 'message.group.@' ]
+extraMsgEvents.forEach(function (event) {
+  test.cb(`Event [${event}]: someone @-ed but not bot`, macro, event, { raw_message: '[CQ:at,qq=987654321]' })
 })
 
 function invalidEventMacro (t, msgObj) {

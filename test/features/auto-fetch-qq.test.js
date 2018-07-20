@@ -1,5 +1,5 @@
 const { CQWebsocket } = require('../fixture/connect-success')()
-
+const { ApiTimoutError } = require('../../src/errors')
 const { stub } = require('sinon')
 const { test } = require('ava')
 
@@ -33,6 +33,20 @@ test.cb('Auto-fetch if no QQ account provided.', function (t) {
         t.is(bot._qq, 123456789)
         t.end()
       })
+    })
+    .connect()
+})
+
+test.cb('Auto-fetch failure due to gloabal request timeout', function (t) {
+  t.plan(2)
+
+  const bot = new CQWebsocket({ requestOptions: { timeout: 2000 } })
+
+  bot
+    .on('error', err => {
+      t.true(err instanceof ApiTimoutError)
+      t.is(err.req.action, 'get_login_info')
+      t.end()
     })
     .connect()
 })

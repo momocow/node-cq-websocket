@@ -67,6 +67,7 @@ SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket
 |  `fragmentOutgoingMessages` | boolean | false | 由於 CQHTTP API 插件的 websocket 服務器尚未支持 fragment, 故建議維持 `false` 禁用 fragment。 |
 |  `fragmentationThreshold` | number | 0x4000 | 每個 frame 的最大容量, 默認為 16 KiB, 單位: byte |
 |  `tlsOptions` | object | {} | 若需調用安全連線 [https.request](https://nodejs.org/api/https.html#https_https_request_options_callback) 時的選項 |
+|  `requestOptions` | { `timeout`: number } | {} | 調用 API 方法時的全局默認選項。 |
 
 - 返回值: 一個新配置的 `CQWebSocket` 類別實例
 
