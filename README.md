@@ -19,7 +19,7 @@
 - 輕鬆配置, 快速搭建 QQ 聊天機器人。
 - 自動維護底層連線, 開發者只需專注在聊天應用的開發。若斷線, 可依照配置[重新連線](#自動重新連線說明)。
 - 支持消息監聽器內, [快速響應](#快速響應)。
-- 連線建立時, [自動獲取機器人QQ號](#自動獲取機器人qq號)。
+- 連線建立時, 可[自動獲取機器人QQ號](#自動獲取機器人qq號)。
 - 兼容 CQHTTP API 插件 `v3.x` 及 `v4.x` 兩個大版本。
 
 ### 開發日誌
@@ -67,7 +67,7 @@ SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket
 |  `fragmentOutgoingMessages` | boolean | false | 由於 CQHTTP API 插件的 websocket 服務器尚未支持 fragment, 故建議維持 `false` 禁用 fragment。 |
 |  `fragmentationThreshold` | number | 0x4000 | 每個 frame 的最大容量, 默認為 16 KiB, 單位: byte |
 |  `tlsOptions` | object | {} | 若需調用安全連線 [https.request](https://nodejs.org/api/https.html#https_https_request_options_callback) 時的選項 |
-|  `requestOptions` | { `timeout`: number } | {} | 調用 API 方法時的全局默認選項。 |
+|  `requestOptions` | { <br>`timeout`: number <br>} | {} | 調用 API 方法時的全局默認選項。 |
 
 - 返回值: 一個新配置的 `CQWebSocket` 類別實例
 
@@ -243,7 +243,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
 | message.group.@ | `event` CQEvent <br> `context` object <br> `tags` CQAtTag[] | 有人於群消息中被at。 |
 | message.group.@.me | `event` CQEvent <br> `context` object | 有人於群消息at機器人。 |
 
-※ `message.discuss.@me`
+※ `message.discuss.@me`, `message.group.@me` 已棄用。
 
 #### `notice` 子事件
 | 事件類型 | 監聽器參數 | 說明 |
