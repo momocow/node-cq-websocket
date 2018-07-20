@@ -1,7 +1,12 @@
-const CQWebsocket = require('../..')
-const { spy, stub } = require('sinon')
+const { spy } = require('sinon')
+
+
+const connectSuccess = require('./connect-success')
 
 module.exports = function (options) {
+  const { wsStub, CQWebsocket } = connectSuccess()
+  const { WebsocketType } = CQWebsocket
+
   const bot = new CQWebsocket(options)
   const spies = {
     connecting: spy(),
@@ -13,10 +18,6 @@ module.exports = function (options) {
     closing: spy(),
     close: spy(),
     error: spy()
-  }
-  const stubs = {
-    EVENT: stub(bot._eventClient, 'connect'),
-    API: stub(bot._apiClient, 'connect')
   }
 
   bot
@@ -33,14 +34,24 @@ module.exports = function (options) {
   return {
     bot,
     spies,
-    stubs,
+    wsStub,
 
-    /**
-     * 
-     * @param {(stubEvent: sinon.SinonStub, stubApi: sinon.SinonStub)=>void} cb 
-     */
-    stubRemote (cb) {
-      cb(stubs.EVENT, stubs.API)
+    onMessage (wsType, data) {
+      if (!wsType || wsType === WebsocketType.EVENT) {
+        bot._eventSock.onMessage(data)
+      }
+      if (!wsType || wsType === WebsocketType.API) {
+        bot._apiSock.onMessage(data)
+      }
+    },
+
+    onError (wsType) {
+      if (!wsType || wsType === WebsocketType.EVENT) {
+        bot._eventSock.onError()
+      }
+      if (!wsType || wsType === WebsocketType.API) {
+        bot._apiSock.onError()
+      }
     },
 
     planCount () {
@@ -73,8 +84,7 @@ module.exports = function (options) {
     },
 
     done () {
-      stubs.EVENT.restore()
-      stubs.API.restore()
+      wsStub.reset()
     }
   }
 }

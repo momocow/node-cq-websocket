@@ -1,32 +1,13 @@
 // configs
-const CONNECT_DELAY = 500
 const FAILURE_COUNT = 5
 
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
+const FakeWebSocket = require('../fixture/FakeWebSocket')
+// since there should be 5 failed /event socks and 5 failed /api socks
+const fws = FakeWebSocket.getSeries(FAILURE_COUNT * 2)
 
-const { bot, planCount, assertSpies, stubRemote, done } = setup()
-
-function connectSucceed () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
-}
-
-function connectFail () {
-  setTimeout(() => {
-    this.emit('connectFailed', 'connection failed')
-  }, CONNECT_DELAY)
-}
-
-stubRemote((stubEvent, stubApi) => {
-  [ stubEvent, stubApi ].forEach(stub => {
-    for (let i = 0; i < FAILURE_COUNT; i++) {
-      stub.onCall(i).callsFake(connectFail)
-    }
-    stub.onCall(FAILURE_COUNT).callsFake(connectSucceed)
-  })
-})
+const { wsStub, bot, planCount, assertSpies, done } = setup()
+wsStub.callsFake(fws)
 
 module.exports = function (t) {
   t.plan(planCount())

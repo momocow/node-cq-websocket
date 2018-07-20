@@ -1,24 +1,9 @@
-// configs
-const CONNECT_DELAY = 500
-
 const setup = require('../fixture/setup')
-const FakeConnection = require('../fixture/FakeConnection')
 
-const { bot, planCount, stubs, assertSpies, stubRemote, done } = setup()
-
-function connectSucceed () {
-  setTimeout(() => {
-    this.emit('connect', new FakeConnection())
-  }, CONNECT_DELAY)
-}
-
-stubRemote((stubEvent, stubApi) => {
-  stubEvent.callsFake(connectSucceed)
-  stubApi.callsFake(connectSucceed)
-})
+const { bot, planCount, wsStub, assertSpies, done } = setup()
 
 module.exports = function (t) {
-  t.plan(planCount() + 2)
+  t.plan(planCount() + 1)
 
   bot
     .connect()
@@ -34,14 +19,13 @@ module.exports = function (t) {
     .connect()
     .connect()
     .connect()
-  }, CONNECT_DELAY - 100)
+  }, 400) // CONNECT_DELAY (500) - 100 (tolerance)
 
   setTimeout(function () {
     // Assertion
     assertSpies(t, { connectCount: 2, connectingCount: 2 })
-    t.true(stubs.EVENT.calledOnce)
-    t.true(stubs.API.calledOnce)
+    t.true(wsStub.calledTwice)
     t.end()
     done()
-  }, CONNECT_DELAY + 500)
+  }, 1000) // CONNECT_DELAY (500) + 500 (tolerance
 }

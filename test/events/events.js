@@ -1,9 +1,11 @@
 module.exports = [
   'message.private',
   'message.discuss',
-  'message.discuss.@me',
+  'message.discuss.@.me',
+  'message.discuss.@me', // @deprecated
   'message.group',
-  'message.group.@me',
+  'message.group.@.me',
+  'message.group.@me', // @deprecated
 
   'notice.group_upload',
   'notice.group_admin.set',

@@ -1,14 +1,17 @@
 {
   "name": "cq-websocket",
-  "version": "1.4.2",
-  "description": "A Node websocket SDK for CoolQ HTTP API plugin.",
+  "version": "1.5.0",
+  "description": "A Node SDK for developing QQ chatbots based on WebSocket, which is depending on CoolQ and CQHTTP API plugin. ",
   "engines": {
     "node": ">=7.6.0"
   },
   "main": "./src/index.js",
   "scripts": {
     "test": "nyc ava test/*/*.test.js",
-    "demo": "node ./demo/echo-bot.js",
+    "build": "webpack --config ./webpack.config.js",
+    "build-demo": "webpack --config demo/webpack/webpack.config.js",
+    "demo-browser": "http-server demo/webpack/www",
+    "demo-echobot": "node ./demo/echobot.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
@@ -27,13 +30,19 @@
   "homepage": "https://github.com/momocow/node-cq-websocket#readme",
   "dependencies": {
     "lodash.get": "^4.4.2",
+    "shortid": "^2.2.12",
     "websocket": "^1.0.25"
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.6",
     "coveralls": "^3.0.1",
+    "http-server": "^0.11.1",
+    "mri": "^1.1.1",
     "nyc": "^11.9.0",
-    "sinon": "^4.5.0"
+    "proxyquire": "^2.0.1",
+    "sinon": "^4.5.0",
+    "webpack": "^4.16.1",
+    "webpack-cli": "^3.0.8"
   },
   "nyc": {
     "include": [
@@ -43,5 +52,6 @@
   "ava": {
     "babel": false,
     "compileEnhancements": false
-  }
+  },
+  "browser": "./src/index.js"
 }

@@ -1,0 +1,1 @@
+window.CQWebSocket = require('.')

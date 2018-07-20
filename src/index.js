@@ -1,8 +1,11 @@
-const $WebsocketClient = require('websocket').client
-
+const $WebSocket = require('websocket').w3cwebsocket
+const shortid = require('shortid')
+const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
-const { wrapSockError: $wrapSockError, InvalidWsTypeError } = require('./errors')
+const $CQAtTag = require('./cq-tags/CQAtTag')
+const $CQ = require('./cq-tags/cq-utils')
+const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebsocketType = {
   API: '/api',
@@ -15,16 +18,29 @@ const WebsocketState = {
 
 module.exports = class CQWebsocket extends $Callable {
   constructor ({
-    access_token: accessToken = '',
-    enableAPI = true,
-    enableEvent = true,
+    // connectivity configs
     host,
     port,
+    access_token: accessToken = '',
     baseUrl = '127.0.0.1:6700',
+
+    // application aware configs
+    enableAPI = true,
+    enableEvent = true,
     qq = -1,
+
+    // reconnection configs
     reconnection = true,
     reconnectionAttempts = Infinity,
-    reconnectionDelay = 1000
+    reconnectionDelay = 1000,
+
+    // API request options
+    requestOptions = {},
+
+    // underlying websocket configs, only meaningful in Nodejs environment
+    fragmentOutgoingMessages = false,
+    fragmentationThreshold,
+    tlsOptions
   } = {}) {
     super('__call__')
 
@@ -33,9 +49,8 @@ module.exports = class CQWebsocket extends $Callable {
     ///*****************/
 
     this._token = String(accessToken)
-    this._event = Boolean(enableEvent)
-    this._api = Boolean(enableAPI)
     this._qq = parseInt(qq)
+    this._atme = new $CQAtTag(this._qq)
     this._baseUrl = host ? `${host}${port ? `:${port}` : '' }` : baseUrl
 
     this._reconnectOptions = {
@@ -44,6 +59,21 @@ module.exports = class CQWebsocket extends $Callable {
       reconnectionDelay
     }
 
+    this._requestOptions = typeof requestOptions !== 'object' ? {} : requestOptions
+
+    this._wsOptions = { }
+
+    Object
+      .entries({
+        fragmentOutgoingMessages,
+        fragmentationThreshold,
+        tlsOptions
+      })
+      .filter(([ k, v ]) => v !== undefined)
+      .forEach(([ k, v ]) => {
+        this._wsOptions[k] = v
+      })
+
     ///*****************/
     //     states
     ///*****************/
@@ -51,128 +81,22 @@ module.exports = class CQWebsocket extends $Callable {
     this._monitor = {
       EVENT: {
         attempts: 0,
-        state: this._event ? WebsocketState.INIT : WebsocketState.DISABLED,
+        state: enableEvent ? WebsocketState.INIT : WebsocketState.DISABLED,
         reconnecting: false
       },
       API: {
         attempts: 0,
-        state: this._api ? WebsocketState.INIT : WebsocketState.DISABLED,
+        state: enableAPI ? WebsocketState.INIT : WebsocketState.DISABLED,
         reconnecting: false
       }
     }
 
+    /**
+     * @type {Map<string, {onSuccess:Function,onFailure:Function}>}
+     */
+    this._responseHandlers = new Map()
+
     this._eventBus = new $CQEventBus(this)
-    this._eventClient = this._event ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
-    this._apiClient = this._api ? new $WebsocketClient({ fragmentOutgoingMessages: false }) : null
-
-    if (this._eventClient) {
-      this._eventClient
-        .on('connect', conn => {
-          this._eventSock = conn
-          this._monitor.EVENT.state = WebsocketState.CONNECTED
-          this._eventBus.emit('socket.connect', WebsocketType.EVENT, this._eventSock, this._monitor.EVENT.attempts)
-          if (this._monitor.EVENT.reconnecting) {
-            this._eventBus.emit('socket.reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-          this._monitor.EVENT.attempts = 0
-          this._monitor.EVENT.reconnecting = false
-
-          this._eventSock
-            .on('message', (msg) => {
-              if (msg.type === 'utf8') {
-                this._handle(JSON.parse(msg.utf8Data))
-              }
-            })
-            .on('close', (code, desc) => {
-              this._eventSock = conn = null
-              this._monitor.EVENT.state = WebsocketState.CLOSED
-              this._eventBus.emit('socket.close', WebsocketType.EVENT, code, desc)
-              // code === 1000 : normal disconnection
-              if (code !== 1000 && this._reconnectOptions.reconnection) {
-                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-              }
-            })
-            .on('error', err => {
-              this._monitor.EVENT.state = WebsocketState.CLOSING
-              this._eventBus.emit('socket.closing', WebsocketType.EVENT)
-              this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-            })
-            if (this.isReady()) {
-              this._eventBus.emit('ready', this)
-            }
-        })
-        .on('connectFailed', err => {
-          this._monitor.EVENT.state = WebsocketState.CLOSED
-          this._eventBus.emit('socket.failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          this._eventBus.emit('socket.error', WebsocketType.EVENT, $wrapSockError(err))
-          if (this._monitor.EVENT.reconnecting) {
-            this._eventBus.emit('socket.reconnect_failed', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-          this._monitor.EVENT.reconnecting = false
-          if (this._reconnectOptions.reconnection &&
-            this._monitor.EVENT.attempts <= this._reconnectOptions.reconnectionAttempts
-          ) {
-            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.EVENT)
-          } else {
-            this._eventBus.emit('socket.max_reconnect', WebsocketType.EVENT, this._monitor.EVENT.attempts)
-          }
-        })
-    }
-
-    if (this._apiClient) {
-      this._apiClient
-        .on('connect', conn => {
-          this._apiSock = conn
-          this._monitor.API.state = WebsocketState.CONNECTED
-          this._eventBus.emit('socket.connect', WebsocketType.API, this._apiSock, this._monitor.API.attempts)
-          if (this._monitor.API.reconnecting) {
-            this._eventBus.emit('socket.reconnect', WebsocketType.API, this._monitor.API.attempts)
-          }
-          this._monitor.API.attempts = 0
-          this._monitor.API.reconnecting = false
-
-          this._apiSock
-            .on('message', msg => {
-              if (msg.type === 'utf8') {
-                this._eventBus.emit('api.response', WebsocketType.API, JSON.parse(msg.utf8Data))
-              }
-            })
-            .on('close', (code, desc) => {
-              this._apiSock = conn = null
-              this._monitor.API.state = WebsocketState.CLOSED
-              this._eventBus.emit('socket.close', WebsocketType.API, code, desc)
-              // code === 1000 : normal disconnection
-              if (code !== 1000 && this._reconnectOptions.reconnection) {
-                this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-              }
-            })
-            .on('error', err => {
-              this._monitor.API.state = WebsocketState.CLOSING
-              this._eventBus.emit('socket.closing', WebsocketType.API)
-              this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-            })
-
-          if (this.isReady()) {
-            this._eventBus.emit('ready', this)
-          }
-        })
-        .on('connectFailed', err => {
-          this._monitor.API.state = WebsocketState.CLOSED
-          this._eventBus.emit('socket.failed', WebsocketType.API, this._monitor.API.attempts)
-          this._eventBus.emit('socket.error', WebsocketType.API, $wrapSockError(err))
-          if (this._monitor.API.reconnecting) {
-            this._eventBus.emit('socket.reconnect_failed', WebsocketType.API, this._monitor.API.attempts)
-          }
-          this._monitor.API.reconnecting = false
-          if (this._reconnectOptions.reconnection &&
-            this._monitor.API.attempts <= this._reconnectOptions.reconnectionAttempts
-          ) {
-            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType.API)
-          } else {
-            this._eventBus.emit('socket.max_reconnect', WebsocketType.API, this._monitor.API.attempts)
-          }
-        })
-    }
   }
 
   off (eventType, handler) {
@@ -190,44 +114,107 @@ module.exports = class CQWebsocket extends $Callable {
     return this
   }
 
-  __call__ (method, params) {
-    if (!this._apiSock) return
+  __call__ (method, params, optionsIn) {
+    if (!this._apiSock) return Promise.reject(new Error('API socket has not been initialized.'))
 
-    let apiRequest = {
-      'action': method,
-      'params': params
+    let options = {
+      timeout: Infinity,
+      ...this._requestOptions
     }
 
-    this._eventBus.emit('api.send.pre', WebsocketType.API, apiRequest)
-    this._apiSock.sendUTF(JSON.stringify(apiRequest))
-    this._eventBus.emit('api.send.post', WebsocketType.API)
+    if (typeof optionsIn === 'number') {
+      options.timeout = optionsIn
+    } else if (typeof optionsIn === 'object') {
+      options = {
+        ...options,
+        ...optionsIn
+      }
+    }
 
-    return this
+    return new Promise((resolve, reject) => {
+      let ticket
+      const apiRequest = {
+        action: method,
+        params: params
+      }
+  
+      this._eventBus.emit('api.send.pre', apiRequest)
+
+      const onSuccess = (ctxt) => {
+        if (ticket) {
+          clearTimeout(ticket)
+          ticket = undefined
+        }
+        this._responseHandlers.delete(reqid)
+        delete ctxt.echo
+        resolve(ctxt)
+      }
+
+      const onFailure = (err) => {
+        this._responseHandlers.delete(reqid)
+        reject(err)
+      }
+
+      const reqid = shortid.generate()
+
+      this._responseHandlers.set(reqid, { onFailure, onSuccess })
+      this._apiSock.send(JSON.stringify({
+        ...apiRequest,
+        echo: { reqid }
+      }))
+
+      this._eventBus.emit('api.send.post')
+
+      if (options.timeout < Infinity) {
+        ticket = setTimeout(() => {
+          this._responseHandlers.delete(reqid)
+          onFailure(new ApiTimoutError(options.timeout, apiRequest))
+        }, options.timeout)
+      }
+    })
   }
 
   _handle (msgObj) {
     switch (msgObj.post_type) {
       case 'message':
+        // parsing coolq tags
+        const tags = $CQ.parse(msgObj.raw_message)
+
         switch (msgObj.message_type) {
           case 'private':
             this._eventBus.emit('message.private', msgObj)
             break
           case 'discuss':
-            if (isBotAtted(msgObj.raw_message, this._qq)) {
-              this._eventBus.emit('message.discuss.@me', msgObj)
-            } else {
-              this._eventBus.emit('message.discuss', msgObj)
+            {
+              // someone is @-ed
+              const attags = tags.filter(t => t instanceof $CQAtTag)
+              if (attags.length > 0) {
+                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                  this._eventBus.emit('message.discuss.@.me', msgObj)
+                } else {
+                  this._eventBus.emit('message.discuss.@', msgObj, attags)
+                }
+              } else {
+                this._eventBus.emit('message.discuss', msgObj)
+              }
             }
             break
           case 'group':
-            if (isBotAtted(msgObj.raw_message, this._qq)) {
-              this._eventBus.emit('message.group.@me', msgObj)
-            } else {
-              this._eventBus.emit('message.group', msgObj)
+            {
+              const attags = tags.filter(t => t instanceof $CQAtTag)
+              if (attags.length > 0) {
+                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                  this._eventBus.emit('message.group.@.me', msgObj)
+                } else {
+                  this._eventBus.emit('message.group.@', msgObj, attags)
+                }
+              } else {
+                this._eventBus.emit('message.group', msgObj)
+              }
             }
             break
           default:
-            this._eventBus.emit('message', msgObj)
+            this._eventBus.emit('error', new Error(`Unexpected "message_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       case 'event': // Deprecated, reason: CQHttp 3.X
@@ -247,7 +234,7 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_admin.unset', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_admin', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'group_decrease':
@@ -262,7 +249,7 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_decrease.kick_me', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_decrease', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'group_increase':
@@ -274,14 +261,14 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('notice.group_increase.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('notice.group_increase', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           case 'friend_add':
             this._eventBus.emit('notice.friend_add', msgObj)
             break
           default:
-            this._eventBus.emit('notice', msgObj)
+            this._eventBus.emit('error', new Error(`Unexpected "notice_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       case 'request':
@@ -298,29 +285,24 @@ module.exports = class CQWebsocket extends $Callable {
                 this._eventBus.emit('request.group.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('request.group', msgObj)
+                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
             }
             break
           default:
-            this._eventBus.emit('request', msgObj)
+            this._eventBus.emit('error', new Error(`Unexpected "request_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
       default:
-        this._eventBus.emit('error',
-          new Error(`The message received from CoolQ HTTP API plugin has invalid property 'post_type'.\n${JSON.stringify(msgObj)}`))
+        this._eventBus.emit('error', new Error(`Unexpected "post_type"\n${JSON.stringify(msgObj, null, 2)}`))
     }
   }
 
   /**
-   * @param {(wsType: "/api"|"/event", label: "EVENT"|"API", client: $WebsocketClient) => void} cb
+   * @param {(wsType: "/api"|"/event", label: "EVENT"|"API", client: $WebSocket) => void} cb
    * @param {"/api"|"/event"} [types]
    */
   _forEachSock (cb, types = [ WebsocketType.EVENT, WebsocketType.API ]) {
     if (!Array.isArray(types)) {
-      if (![ WebsocketType.EVENT, WebsocketType.API ].includes(types)) {
-        throw new InvalidWsTypeError(wsType)
-      }
-
       types = [ types ]
     }
 
@@ -342,12 +324,126 @@ module.exports = class CQWebsocket extends $Callable {
   connect (wsType) {
     this._forEachSock((_type, _label) => {
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
-        const _client = _type === WebsocketType.EVENT ? this._eventClient : this._apiClient
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
+
+        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
+
+        if (_type === WebsocketType.EVENT) {
+          this._eventSock = _sock
+        } else {
+          this._apiSock = _sock
+        }
+
+        _sock.addEventListener('open', () => {
+          this._monitor[_label].state = WebsocketState.CONNECTED
+          this._eventBus.emit('socket.connect', WebsocketType[_label], _sock, this._monitor[_label].attempts)
+          if (this._monitor[_label].reconnecting) {
+            this._eventBus.emit('socket.reconnect', WebsocketType[_label], this._monitor[_label].attempts)
+          }
+          this._monitor[_label].attempts = 0
+          this._monitor[_label].reconnecting = false
+
+          if (this.isReady()) {
+            this._eventBus.emit('ready', this)
+
+            // if /api is not disabled, it is ready now.
+            // if qq < 0, it is not configured manually by user
+            if (this._monitor.API.state !== WebsocketState.DISABLED && this._qq < 0) {
+              this('get_login_info')
+                .then((ctxt) => {
+                  this._qq = parseInt($get(ctxt, 'data.user_id', -1))
+                  this._atme = new $CQAtTag(this._qq)
+                })
+                .catch(err => {
+                  this._eventBus.emit('error', err)
+                })
+            }
+          }
+        }, {
+          once: true
+        })
+
+        const _onMessage = (e) => {
+          let context
+          try {
+            context = JSON.parse(e.data)
+          } catch (err) {
+            this._eventBus.emit('error', new InvalidContextError(_type, e.data))
+            return
+          }
+
+          if (_type === WebsocketType.EVENT) {
+            this._handle(context)
+          } else {
+            const reqid = $get(context, 'echo.reqid', '')
+
+            let { onSuccess } = this._responseHandlers.get(reqid) || {}
+
+            if (typeof onSuccess === 'function') {
+              onSuccess(context)
+            }
+
+            this._eventBus.emit('api.response', context)
+          }
+        }
+        _sock.addEventListener('message', _onMessage)
+
+        _sock.addEventListener('close', (e) => {
+          this._monitor[_label].state = WebsocketState.CLOSED
+          this._eventBus.emit('socket.close', WebsocketType[_label], e.code, e.reason)
+          // code === 1000 : normal disconnection
+          if (e.code !== 1000 && this._reconnectOptions.reconnection) {
+            this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType[_label])
+          }
+
+          // clean up events
+          _sock.removeEventListener('message', _onMessage)
+
+          // clean up refs
+          _sock = null
+          if (_type === WebsocketType.EVENT) {
+            this._eventSock = null
+          } else {
+            this._apiSock = null
+          }
+        }, {
+          once: true
+        })
+
+        _sock.addEventListener('error', () => {
+          const errMsg = this._monitor[_label].state === WebsocketState.CONNECTING
+            ? 'Failed to establish the websocket connection.'
+            : this._monitor[_label].state === WebsocketState.CONNECTED
+              ? 'The websocket connection has been hung up unexpectedly.'
+              : `Unknown error occured. Conection state: ${this._monitor[_label].state}`
+          this._eventBus.emit('socket.error', WebsocketType[_label], new SocketError(errMsg))
+
+          if (this._monitor[_label].state === WebsocketState.CONNECTED) {
+            // error occurs after the websocket is connected
+            this._monitor[_label].state = WebsocketState.CLOSING
+            this._eventBus.emit('socket.closing', WebsocketType[_label])
+          } else if (this._monitor[_label].state === WebsocketState.CONNECTING) {
+            // error occurs while trying to establish the connection
+            this._monitor[_label].state = WebsocketState.CLOSED
+            this._eventBus.emit('socket.failed', WebsocketType[_label], this._monitor[_label].attempts)
+            if (this._monitor[_label].reconnecting) {
+              this._eventBus.emit('socket.reconnect_failed', WebsocketType[_label], this._monitor[_label].attempts)
+            }
+            this._monitor[_label].reconnecting = false
+            if (this._reconnectOptions.reconnection &&
+              this._monitor[_label].attempts <= this._reconnectOptions.reconnectionAttempts
+            ) {
+              this.reconnect(this._reconnectOptions.reconnectionDelay, WebsocketType[_label])
+            } else {
+              this._eventBus.emit('socket.max_reconnect', WebsocketType[_label], this._monitor[_label].attempts)
+            }
+          }
+        }, {
+          once: true
+        })
 
         this._monitor[_label].state = WebsocketState.CONNECTING
         this._monitor[_label].attempts++
-        _client.connect(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`)
         this._eventBus.emit('socket.connecting', _type, this._monitor[_label].attempts)
       }
     }, wsType)
@@ -360,7 +456,8 @@ module.exports = class CQWebsocket extends $Callable {
         const _sock = _type === WebsocketType.EVENT ? this._eventSock : this._apiSock
 
         this._monitor[_label].state = WebsocketState.CLOSING
-        _sock.close()
+        // explicitly provide status code to support both browsers and Node environment
+        _sock.close(1000, 'Normal connection closure')
         this._eventBus.emit('socket.closing', _type)
       }
     }, wsType)
@@ -411,10 +508,6 @@ module.exports = class CQWebsocket extends $Callable {
     return this.isReady()
   }
 
-}
-
-function isBotAtted (msg, qq) {
-  return msg.includes(`[CQ:at,qq=${qq}]`)
 }
 
 module.exports.WebsocketType = WebsocketType
