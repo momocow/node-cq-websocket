@@ -564,3 +564,8 @@ RangeError [ERR_OUT_OF_RANGE]: The value of "value" is out of range. It must be 
     at WebSocketConnection.sendUTF (/***/node-cq-websocket/node_modules/websocket/lib/WebSocketConnection.js:733:10)
     at W3CWebSocket.send (/***/node-cq-websocket/node_modules/websocket/lib/W3CWebSocket.js:116:26)
 ```
+
+## 歡迎餵食 ☕
+請勿拍打 🤜 無限期掙飯中 🍙
+
+<a href="https://www.buymeacoffee.com/momocow" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
