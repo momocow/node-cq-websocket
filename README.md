@@ -26,23 +26,34 @@
 [<點擊前往>](./docs/CHANGELOG.md)
 
 ## 使用方式
-### Browser
-1. 下載 `/dist` 目錄下之 `cq-websocket.min.js`。
-2. 放到你的網站路徑下。
-3. 使用 `<script src="<你的路徑>/cq-websocket.min.js">` 引入。
-4. 在你的 js 代碼中, 使用全局變數 `CQWebSocket` 獲取 SDK。
-```js
-  // 全局變數 CQWebSocket 存在於 window 對象下
-  // window.CQWebSocket
-  const bot = new CQWebSocket()
+### CDN
+
+如果你在網頁前端上使用，可以通過 CDN 引入。
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/cq-websocket/dist/cq-websocket.min.js"></script>
 ```
 
-### Nodejs
-1. 通過 `npm install cq-websocket` 安裝 SDK
-2. 將 SDK 導入代碼   
+在你的 js 代碼中, 使用全局變數 `CQWebSocket` 獲取 SDK。
+
+```js
+// 全局變數 CQWebSocket 存在於 window 對象下
+const bot = new window.CQWebSocket()
 ```
+
+### NPM
+
+如果你使用打包工具或 NodeJS，可以通過 NPM 安裝。
+
+```bash
+npm install cq-websocket
+```
+
+將 SDK 導入代碼
+```js
 const CQWebSocket = require('cq-websocket')
 ```
+
 > 該導入過程引用了一個類別進來，以下將以 `CQWebSocket` 作為該類別名稱進行說明，實際使用時請依自己的命名編寫。
 
 ## 關於 `CQWebSocket` 類別
