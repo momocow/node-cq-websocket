@@ -16,7 +16,7 @@ const WebsocketState = {
   DISABLED: -1, INIT: 0, CONNECTING: 1, CONNECTED: 2, CLOSING: 3, CLOSED: 4
 }
 
-module.exports = class CQWebsocket extends $Callable {
+class CQWebsocket extends $Callable {
   constructor ({
     // connectivity configs
     host,
@@ -509,6 +509,13 @@ module.exports = class CQWebsocket extends $Callable {
   }
 
 }
+
+module.exports = CQWebsocket
+
+// [WARN] Circular reference!
+// Workaround for https://github.com/momocow/node-cq-websocket/issues/21
+// Will be fixed in v2.0.0
+module.exports.default = CQWebsocket
 
 module.exports.WebsocketType = WebsocketType
 module.exports.WebsocketState = WebsocketState
