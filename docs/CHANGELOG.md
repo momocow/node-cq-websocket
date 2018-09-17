@@ -1,5 +1,11 @@
 # 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
+
+## v1.6.0
+- 新增
+  - 類型聲明, 支持 Typescript。[#18](https://github.com/momocow/node-cq-websocket/issues/18) [#20](https://github.com/momocow/node-cq-websocket/issues/20)
+  - 默認 API 導出 (default export)。[#21](https://github.com/momocow/node-cq-websocket/issues/21)
+
 ## v1.5.0
 - 新增
   - 支持在 browser 環境運行。(須使用 browserify 或 webpack 等工具先行打包, 可見 [/demo/webpack 示例](../demo/webpack)))
