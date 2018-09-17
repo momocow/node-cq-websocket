@@ -6,6 +6,7 @@
     "node": ">=7.6.0"
   },
   "main": "./src/index.js",
+  "types": "./cq-websocket.d.ts",
   "scripts": {
     "test": "nyc ava test/*/*.test.js",
     "build": "webpack --config ./webpack.config.js",

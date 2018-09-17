@@ -119,10 +119,10 @@ declare module 'cq-websocket' {
   }
 
   export interface CQWebSocket {
-    <T>(method: string, params: Record<string, any>, options: number | CQRequestOptions): Promise<T>
+    <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
     connect (wsType?: WebsocketType): CQWebSocket
-    disconnect (wsType: WebsocketType): CQWebSocket
-    reconnect (delay: number, wsType: WebsocketType): CQWebSocket
+    disconnect (wsType?: WebsocketType): CQWebSocket
+    reconnect (delay: number, wsType?: WebsocketType): CQWebSocket
     isSockConnected (wsType: WebsocketType): CQWebSocket
     isReady (): boolean
 
@@ -156,7 +156,7 @@ declare module 'cq-websocket' {
 
     off (event_type: Events, listener: Function): CQWebSocket
   }
-  type CQWebSocketFactory<T = any> = { new (opt: Partial<CQWebSocketOption>): CQWebSocket }
+  type CQWebSocketFactory<T = any> = { new (opt?: Partial<CQWebSocketOption>): CQWebSocket }
   const CQWebSocketFactory: CQWebSocketFactory
   export default CQWebSocketFactory
 }
