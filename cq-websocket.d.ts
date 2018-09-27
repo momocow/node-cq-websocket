@@ -39,8 +39,10 @@ type MessageAtEvents = 'message.discuss.@' | 'message.group.@'
 type MessageEvents = 'message.private'
                     | 'message.discuss'
                     | 'message.discuss.@'
+                    | 'message.discuss.@.me'
                     | 'message.group'
                     | 'message.group.@'
+                    | 'message.group.@.me'
 
 type NoticeEvents = 'notice.group_upload'
                     | 'notice.group_admin.set'
@@ -77,10 +79,11 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
-type MessageEventListener = (event: CQEvent, context: Record<string, any>) => string | void
-type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => string | void
-type ContextEventListener = (context: Record<string, any>) => string | void
-type SocketEventListener = (type: WebsocketType, attempts: number) => void
+type ListenerReturn = string | Promise<string> | void | Promise<void>
+type MessageEventListener = (event: CQEvent, context: Record<string, any>) => ListenerReturn
+type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => ListenerReturn
+type ContextEventListener = (context: Record<string, any>) => ListenerReturn
+type SocketEventListener = (type: WebsocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
 export interface ApiTimeoutError extends Error {
@@ -118,6 +121,8 @@ export interface APIResponse {
 }
 
 export interface CQWebSocket {
+  new (opt?: Partial<CQWebSocketOption>): CQWebSocket
+
   <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
   connect (wsType?: WebsocketType): CQWebSocket
   disconnect (wsType?: WebsocketType): CQWebSocket
@@ -155,6 +160,6 @@ export interface CQWebSocket {
 
   off (event_type: Events, listener: Function): CQWebSocket
 }
-type CQWebSocketFactory<T = any> = { new (opt?: Partial<CQWebSocketOption>): CQWebSocket }
-declare const CQWebSocketFactory: CQWebSocketFactory
+
+declare const CQWebSocketFactory: CQWebSocket
 export default CQWebSocketFactory
