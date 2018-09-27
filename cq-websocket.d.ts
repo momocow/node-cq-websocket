@@ -120,10 +120,9 @@ export interface APIResponse {
   data: any
 }
 
-export interface CQWebSocket {
-  new (opt?: Partial<CQWebSocketOption>): CQWebSocket
+export class CQWebSocket {
+  constructor (opt?: Partial<CQWebSocketOption>)
 
-  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
   connect (wsType?: WebsocketType): CQWebSocket
   disconnect (wsType?: WebsocketType): CQWebSocket
   reconnect (delay: number, wsType?: WebsocketType): CQWebSocket
@@ -160,6 +159,8 @@ export interface CQWebSocket {
 
   off (event_type: Events, listener: Function): CQWebSocket
 }
+export interface CQWebSocket {
+  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
+}
 
-declare const CQWebSocketFactory: CQWebSocket
-export default CQWebSocketFactory
+export default CQWebSocket
