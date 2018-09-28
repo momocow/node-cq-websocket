@@ -39,8 +39,10 @@ type MessageAtEvents = 'message.discuss.@' | 'message.group.@'
 type MessageEvents = 'message.private'
                     | 'message.discuss'
                     | 'message.discuss.@'
+                    | 'message.discuss.@.me'
                     | 'message.group'
                     | 'message.group.@'
+                    | 'message.group.@.me'
 
 type NoticeEvents = 'notice.group_upload'
                     | 'notice.group_admin.set'
@@ -77,10 +79,12 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
-type MessageEventListener = (event: CQEvent, context: Record<string, any>) => string | void
-type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => string | void
-type ContextEventListener = (context: Record<string, any>) => string | void
-type SocketEventListener = (type: WebsocketType, attempts: number) => void
+type ListenerReturn = void | Promise<void>
+type MessageListenerReturn = ListenerReturn | string | Promise<string>
+type MessageEventListener = (event: CQEvent, context: Record<string, any>) => MessageListenerReturn
+type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => MessageListenerReturn
+type ContextEventListener = (context: Record<string, any>) => ListenerReturn
+type SocketEventListener = (type: WebsocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
 export interface ApiTimeoutError extends Error {
@@ -111,14 +115,15 @@ export interface APIRequest {
   action: string,
   params?: any
 }
-export interface APIResponse {
+export interface APIResponse<T> {
   status: string,
   retcode: number,
-  data: any
+  data: T
 }
 
-export interface CQWebSocket {
-  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
+export class CQWebSocket {
+  constructor (opt?: Partial<CQWebSocketOption>)
+
   connect (wsType?: WebsocketType): CQWebSocket
   disconnect (wsType?: WebsocketType): CQWebSocket
   reconnect (delay: number, wsType?: WebsocketType): CQWebSocket
@@ -135,7 +140,7 @@ export interface CQWebSocket {
   on (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
   on (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   on (event_type: 'api.send.post', listener: () => void): CQWebSocket
-  on (event_type: 'api.response', listener: (result: APIResponse) => void): CQWebSocket
+  on (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
   on (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
@@ -149,12 +154,14 @@ export interface CQWebSocket {
   once (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
   once (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   once (event_type: 'api.send.post', listener: () => void): CQWebSocket
-  once (event_type: 'api.response', listener: (result: APIResponse) => void): CQWebSocket
+  once (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
   once (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   once (event_type: 'ready', listener: () => void): CQWebSocket
 
   off (event_type: Events, listener: Function): CQWebSocket
 }
-type CQWebSocketFactory<T = any> = { new (opt?: Partial<CQWebSocketOption>): CQWebSocket }
-declare const CQWebSocketFactory: CQWebSocketFactory
-export default CQWebSocketFactory
+export interface CQWebSocket {
+  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<APIResponse<T>>
+}
+
+export default CQWebSocket
