@@ -1,6 +1,11 @@
 # 開發日誌
 列為`棄用`表示**仍然支援**, 但請盡速修正為最新版本的實作。
 
+## v1.6.1
+- 修正
+  - `message` 事件監聽器返回值的類型聲明。[#25](https://github.com/momocow/node-cq-websocket/issues/25) [#26](https://github.com/momocow/node-cq-websocket/issues/26) [#27](https://github.com/momocow/node-cq-websocket/issues/27)
+  - API 響應文本的類型聲明，包含 `api.response` 事件的第一個參數及 callable 的返回值。 [#27](https://github.com/momocow/node-cq-websocket/issues/27)
+
 ## v1.6.0
 - 新增
   - 類型聲明, 支持 Typescript。[#18](https://github.com/momocow/node-cq-websocket/issues/18) [#20](https://github.com/momocow/node-cq-websocket/issues/20)
