@@ -79,9 +79,10 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
-type ListenerReturn = string | Promise<string> | void | Promise<void>
-type MessageEventListener = (event: CQEvent, context: Record<string, any>) => ListenerReturn
-type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => ListenerReturn
+type ListenerReturn = void | Promise<void>
+type MessageListenerReturn = ListenerReturn | string | Promise<string>
+type MessageEventListener = (event: CQEvent, context: Record<string, any>) => MessageListenerReturn
+type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
 type SocketEventListener = (type: WebsocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
