@@ -115,10 +115,10 @@ export interface APIRequest {
   action: string,
   params?: any
 }
-export interface APIResponse {
+export interface APIResponse<T> {
   status: string,
   retcode: number,
-  data: any
+  data: T
 }
 
 export class CQWebSocket {
@@ -140,7 +140,7 @@ export class CQWebSocket {
   on (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
   on (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   on (event_type: 'api.send.post', listener: () => void): CQWebSocket
-  on (event_type: 'api.response', listener: (result: APIResponse) => void): CQWebSocket
+  on (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
   on (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
@@ -154,14 +154,14 @@ export class CQWebSocket {
   once (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
   once (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   once (event_type: 'api.send.post', listener: () => void): CQWebSocket
-  once (event_type: 'api.response', listener: (result: APIResponse) => void): CQWebSocket
+  once (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
   once (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   once (event_type: 'ready', listener: () => void): CQWebSocket
 
   off (event_type: Events, listener: Function): CQWebSocket
 }
 export interface CQWebSocket {
-  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<T>
+  <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<APIResponse<T>>
 }
 
 export default CQWebSocket
