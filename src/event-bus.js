@@ -301,13 +301,6 @@ class CQEvent {
     this._errorHandler = null
   }
 
-  /**
-   * @deprecated
-   */
-  cancel () {
-    return this.stopPropagation()
-  }
-
   stopPropagation () {
     this._isCanceled = true
   }
