@@ -217,9 +217,6 @@ class CQWebsocket extends $Callable {
             this._eventBus.emit('error', new Error(`Unexpected "message_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
-      case 'event': // Deprecated, reason: CQHttp 3.X
-        this._eventBus.emit('event', msgObj)
-        break
       case 'notice': // Added, reason: CQHttp 4.X
         switch (msgObj.notice_type) {
           case 'group_upload':
