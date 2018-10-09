@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "docs/CHANGELOG.md",
+        "changelogTitle": "CQWeoSocket"
+      }
+    ],
+    "@semantic-release/npm",
+    "@semantic-release/github"
+  ],
+  "dryRun": true
+}

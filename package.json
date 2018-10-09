@@ -13,7 +13,9 @@
     "build-demo": "webpack --config demo/webpack/webpack.config.js",
     "demo-browser": "http-server demo/webpack/www",
     "demo-echobot": "node ./demo/echobot.js",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "commit": "git-cz",
+    "release": "semantic-release"
   },
   "repository": {
     "type": "git",
@@ -29,18 +31,27 @@
     "url": "https://github.com/momocow/node-cq-websocket/issues"
   },
   "homepage": "https://github.com/momocow/node-cq-websocket#readme",
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
   "dependencies": {
     "lodash.get": "^4.4.2",
     "shortid": "^2.2.12",
     "websocket": "^1.0.25"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^3.0.0",
     "ava": "^1.0.0-beta.6",
+    "commitizen": "^3.0.2",
     "coveralls": "^3.0.1",
+    "cz-conventional-changelog": "^2.1.0",
     "http-server": "^0.11.1",
     "mri": "^1.1.1",
     "nyc": "^11.9.0",
     "proxyquire": "^2.0.1",
+    "semantic-release": "^15.9.17",
     "sinon": "^4.5.0",
     "webpack": "^4.16.1",
     "webpack-cli": "^3.0.8"
