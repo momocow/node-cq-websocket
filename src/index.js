@@ -497,14 +497,6 @@ class CQWebsocket extends $Callable {
     let isAPIReady = this._monitor.API.state === WebsocketState.DISABLED || this._monitor.API.state === WebsocketState.CONNECTED
     return isEventReady && isAPIReady
   }
-
-  /**
-   * @deprecated
-   */
-  isConnected () {
-    return this.isReady()
-  }
-
 }
 
 module.exports = CQWebsocket
