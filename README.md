@@ -324,7 +324,7 @@ CQEvent 的方法描述，見 [CQEvent](#cqevent-類別)。
 > 目前僅 `message` 及其子事件支援 CQEvent 相關機制。
 
 #### 響應結果追蹤
-為了追蹤快速響應的結果(成功或失敗), 監聽器在調用上述之 CQEvent `#stopPropagation()` (原 `#cancel()`) 獲取響應的處理權之後, 同時還可通過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 發生響應錯誤時會觸發 [`error` 事件](#基本事件)。
+為了追蹤快速響應的結果(成功或失敗), 監聽器在調用上述之 CQEvent `#stopPropagation()` 獲取響應的處理權之後, 同時還可通過 CQEvent `#onResponse()` 設置結果監聽器, 並透過 CQEvent `#onError()` 處理響應的錯誤。若沒有 CQEvent `#onError()` 進行錯誤處理, 發生響應錯誤時會觸發 [`error` 事件](#基本事件)。
 
 #### 事件樹
 ```
@@ -402,18 +402,10 @@ process.on('unhandledRejection', function(err){
 ```
 
 ## `CQEvent` 類別
-### ~~CQEvent #isCanceled()~~
-- 返回值： `boolean`
-
-> 棄用中, 無替代
-
-### ~~CQEvent #cancel()~~
 ### CQEvent #stopPropagation()
 - 返回值： `void`
 
 截獲事件並停止[事件傳播](#事件傳播)。
-
-> `#cancel()` 棄用中, 更名為 `#stopPropagation()`
 
 ### CQEvent #getMessage()
 - 返回值： `string`
