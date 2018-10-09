@@ -13,5 +13,6 @@
     "@semantic-release/github"
   ],
   "dryRun": true,
-  "branch": "v2"
+  "branch": "v2",
+  "debug": true
 }
