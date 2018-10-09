@@ -12,5 +12,6 @@
     "@semantic-release/npm",
     "@semantic-release/github"
   ],
-  "dryRun": true
+  "dryRun": true,
+  "branch": "v2"
 }
