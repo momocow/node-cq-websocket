@@ -499,13 +499,8 @@ class CQWebsocket extends $Callable {
   }
 }
 
-module.exports = CQWebsocket
-
-// [WARN] Circular reference!
-// Workaround for https://github.com/momocow/node-cq-websocket/issues/21
-// Will be fixed in v2.0.0
 module.exports.default = CQWebsocket
-
+module.exports.CQWebsocket = CQWebsocket
 module.exports.WebsocketType = WebsocketType
 module.exports.WebsocketState = WebsocketState
 module.exports.CQEvent = require('./event-bus.js').CQEvent
