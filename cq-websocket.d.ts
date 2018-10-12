@@ -1,8 +1,8 @@
-export enum WebsocketType {
+export enum WebSocketType {
   API = '/api',
   EVENT = '/event'
 }
-export enum WebsocketState {
+export enum WebSocketState {
   DISABLED = -1,
   INIT = 0,
   CONNECTING = 1,
