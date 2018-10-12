@@ -2,8 +2,7 @@
 const { spy } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
-const { WebsocketType } = CQWebsocket
+const { CQWebSocketAPI: { CQWebsocket, WebsocketType } } = require('../fixture/connect-success')()
 
 test.cb('#isSockConnected(wsType=/event)', function (t) {
   t.plan(2)

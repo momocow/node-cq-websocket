@@ -4,8 +4,7 @@ const { client } = require('websocket')
 const fakeConnect = stub(client.prototype, 'connect')
 
 const { test } = require('ava')
-const CQWebsocket = require('../..')
-const { WebsocketType, WebsocketState } = CQWebsocket
+const { CQWebsocket, WebsocketType, WebsocketState } = require('../..')
 
 test.after.always(function () {
   fakeConnect.restore()

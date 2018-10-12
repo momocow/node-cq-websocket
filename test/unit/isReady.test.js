@@ -2,8 +2,7 @@
 const { stub } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
-const { WebsocketType } = CQWebsocket
+const { CQWebSocketAPI: { WebsocketType, CQWebsocket } } = require('../fixture/connect-success')()
 
 test.cb('#isReady(): event-enabled, api-enabled, event-connected, api-connected', function (t) {
   t.plan(3)

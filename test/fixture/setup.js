@@ -4,8 +4,7 @@ const { spy } = require('sinon')
 const connectSuccess = require('./connect-success')
 
 module.exports = function (options) {
-  const { wsStub, CQWebsocket } = connectSuccess()
-  const { WebsocketType } = CQWebsocket
+  const { wsStub, CQWebSocketAPI: { CQWebsocket, WebsocketType } } = connectSuccess()
 
   const bot = new CQWebsocket(options)
   const spies = {

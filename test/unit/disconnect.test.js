@@ -2,8 +2,8 @@
 const { stub, spy } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
-const { WebsocketType, WebsocketState } = CQWebsocket
+const { CQWebSocketAPI } = require('../fixture/connect-success')()
+const { WebsocketType, WebsocketState, CQWebsocket } = CQWebSocketAPI
 
 test.cb('#disconnect() returns the bot itself', function (t) {
   t.plan(1)

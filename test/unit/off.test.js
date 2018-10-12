@@ -1,4 +1,4 @@
-const CQWebsocket = require('../..')
+const { CQWebsocket } = require('../..')
 const traverse = require('../../src/util/traverse')
 const { test } = require('ava')
 

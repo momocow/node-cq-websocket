@@ -2,7 +2,7 @@
 const { spy } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
 
 test.cb('#reconnect() returns the bot itself', function (t) {
   t.plan(1)

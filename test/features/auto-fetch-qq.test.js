@@ -1,4 +1,4 @@
-const { CQWebsocket } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { stub } = require('sinon')
 const { test } = require('ava')

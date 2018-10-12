@@ -1,5 +1,4 @@
-const CQWebSocket = require('../..')
-const { WebsocketState } = CQWebSocket
+const { CQWebSocket, WebsocketState } = require('../..')
 
 const { test } = require('ava')
 

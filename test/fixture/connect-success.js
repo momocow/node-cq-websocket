@@ -8,7 +8,7 @@ module.exports = function () {
   const wsStub = stub()
   wsStub.callsFake(fws)
 
-  const CQWebsocket = proxyquire('../..', {
+  const CQWebSocketAPI = proxyquire('../..', {
     websocket: {
       w3cwebsocket: wsStub
     }
@@ -16,6 +16,6 @@ module.exports = function () {
 
   return {
     wsStub,
-    CQWebsocket
+    CQWebSocketAPI
   }
 }

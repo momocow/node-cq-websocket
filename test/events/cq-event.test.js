@@ -3,7 +3,7 @@ const EMIT_DELAY = 100
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { CQWebsocket } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { test } = require('ava')
 

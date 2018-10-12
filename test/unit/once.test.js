@@ -1,4 +1,4 @@
-const CQWebsocket = require('../..')
+const { CQWebsocket } = require('../..')
 const { test } = require('ava')
 const { stub } = require('sinon')
 
