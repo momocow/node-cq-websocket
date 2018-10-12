@@ -1,4 +1,4 @@
-const { CQWebsocket } = require('../..')
+const { CQWebSocket } = require('../..')
 const { test } = require('ava')
 const { stub } = require('sinon')
 
@@ -8,7 +8,7 @@ test('#once(): handler not returning false', async function (t) {
   const _stub = stub()
   _stub.returns(undefined)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot.once('message.private', _stub)
 
   const queue = bot._eventBus._getHandlerQueue('message.private')
@@ -26,7 +26,7 @@ test('#once(): handler returning false', async function (t) {
   _stub.onCall(0).returns(false)
   _stub.onCall(1).returns(undefined)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot.once('message.private', _stub)
 
   const queue = bot._eventBus._getHandlerQueue('message.private')

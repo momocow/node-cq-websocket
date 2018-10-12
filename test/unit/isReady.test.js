@@ -2,7 +2,7 @@
 const { stub } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebSocketAPI: { WebsocketType, CQWebsocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { WebSocketType, CQWebSocket } } = require('../fixture/connect-success')()
 
 test.cb('#isReady(): event-enabled, api-enabled, event-connected, api-connected', function (t) {
   t.plan(3)
@@ -16,7 +16,7 @@ test.cb('#isReady(): event-enabled, api-enabled, event-connected, api-connected'
     t.end()
   })
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('socket.connect', _stub)
     .connect()
 
@@ -32,9 +32,9 @@ test.cb('#isReady(): event-enabled, api-enabled, api-connected', function (t) {
     t.end()
   })
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('socket.connect', _stub)
-    .connect(WebsocketType.API)
+    .connect(WebSocketType.API)
 
   t.false(bot.isReady())
 })
@@ -42,7 +42,7 @@ test.cb('#isReady(): event-enabled, api-enabled, api-connected', function (t) {
 test('#isReady(): event-disabled, api-disabled', function (t) {
   t.plan(1)
 
-  const bot = new CQWebsocket({ enableEvent: false, enableAPI: false })
+  const bot = new CQWebSocket({ enableEvent: false, enableAPI: false })
 
   t.true(bot.isReady())
 })
@@ -50,7 +50,7 @@ test('#isReady(): event-disabled, api-disabled', function (t) {
 test.cb('#isReady(): event-enabled, api-disabled, event-connected', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket({ enableAPI: false })
+  const bot = new CQWebSocket({ enableAPI: false })
     .on('socket.connect', function () {
       t.true(bot.isReady())
       t.end()

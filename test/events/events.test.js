@@ -124,7 +124,7 @@ function macro (t, event, { raw_message } = {}) {
 }
 
 test.beforeEach.cb(function (t) {
-  t.context.bot = new CQWebSocketAPI.CQWebsocket()
+  t.context.bot = new CQWebSocketAPI.CQWebSocket()
     .on('ready', function () {
       t.context.sock = t.context.bot._eventSock
       t.end()

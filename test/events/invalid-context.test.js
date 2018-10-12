@@ -1,12 +1,12 @@
 const { stub } = require('sinon')
 const { test } = require('ava')
-const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 const { InvalidContextError } = require('../../src/errors')
 
 test.cb('InvalidContextError', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('ready', function () {
       const stubSend = stub(bot._apiSock, 'send')
       stubSend.callsFake(function () {

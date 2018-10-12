@@ -3,7 +3,7 @@ const EMIT_DELAY = 100
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { test } = require('ava')
 
@@ -20,7 +20,7 @@ function emitMessage (t) {
 }
 
 test.beforeEach.cb(function (t) {
-  t.context.bot = new CQWebsocket()
+  t.context.bot = new CQWebSocket()
     .on('ready', function () {
       t.context.sock = t.context.bot._eventSock
       t.end()

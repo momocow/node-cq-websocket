@@ -1,4 +1,4 @@
-const { CQWebsocket } = require('../..')
+const { CQWebSocket } = require('../..')
 const traverse = require('../../src/util/traverse')
 const { test } = require('ava')
 
@@ -18,7 +18,7 @@ function countListeners (bot) {
 test('#off(): remove all listeners', function (t) {
   t.plan(4)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP2)
@@ -45,7 +45,7 @@ test('#off(): remove all listeners', function (t) {
 test('#off(event): remove all listeners of the specified event', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP2)
@@ -70,7 +70,7 @@ test('#off(event): remove all listeners of the specified event', function (t) {
 test('#off(event, listener): remove a specific listener', function (t) {
   t.plan(3)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP2)
@@ -96,7 +96,7 @@ test('#off(event, listener): remove a specific listener', function (t) {
 test('#off(event, listener): if a listener is registered via multiple #on()\'s, it should also be removed via multiple #off()\'s.', function (t) {
   t.plan(5)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP1)
@@ -121,7 +121,7 @@ test('#off(event, listener): if a listener is registered via multiple #on()\'s, 
 test('#off(event, onceListener): should be able to remove once listeners', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .once('message', console.log)
   t.is(bot._eventBus.count('message'), 1)
 
@@ -134,7 +134,7 @@ test('#off(socket.error): remove all socket.error listeners', function (t) {
 
   const func1 = function () {}
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .once('socket.error', console.error)
     .on('socket.error', func1)
     .on('socket.error', console.error)
@@ -150,7 +150,7 @@ test('#off(socket.error, listener): remove specified socket.error listener', fun
 
   const func1 = function () {}
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .once('socket.error', console.error)
     .on('socket.error', func1)
     .on('socket.error', console.error)
@@ -175,7 +175,7 @@ test('#off(socket.error, listener): remove specified socket.error listener', fun
 test('#off(invalidEvent)', function (t) {
   t.plan(3)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
 
   t.is(countListeners(bot), 1) // default socket.error
 
@@ -187,7 +187,7 @@ test('#off(invalidEvent)', function (t) {
 test('#off(event, not_a_listener)', function (t) {
   t.plan(3)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('message', NOOP1)
 
   t.is(countListeners(bot), 2) // default socket.error + NOOP1

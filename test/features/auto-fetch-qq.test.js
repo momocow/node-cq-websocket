@@ -1,4 +1,4 @@
-const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { stub } = require('sinon')
 const { test } = require('ava')
@@ -6,7 +6,7 @@ const { test } = require('ava')
 test.cb('Auto-fetch if no QQ account provided.', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   t.is(bot._qq, -1)
 
   let stubSend
@@ -40,7 +40,7 @@ test.cb('Auto-fetch if no QQ account provided.', function (t) {
 test.cb('Auto-fetch failure due to gloabal request timeout', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket({ requestOptions: { timeout: 2000 } })
+  const bot = new CQWebSocket({ requestOptions: { timeout: 2000 } })
 
   bot
     .on('error', err => {

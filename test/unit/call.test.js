@@ -2,7 +2,7 @@
 const { stub, spy } = require('sinon')
 
 const { test } = require('ava')
-const { CQWebSocketAPI: { CQWebsocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 
 test.cb('#__call__(method, params)', function (t) {
@@ -12,7 +12,7 @@ test.cb('#__call__(method, params)', function (t) {
   const postSpy = spy()
   const apiResponseSpy = spy()
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789 })
+  const bot = new CQWebSocket({ qq: 123456789 })
     .on('api.send.pre', preSpy)
     .on('api.send.post', postSpy)
     .on('api.response', apiResponseSpy)
@@ -67,7 +67,7 @@ test.cb('#__call__(method, params)', function (t) {
 test('#__call__() while disconnected.', async function (t) {
   t.plan(1)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
 
   let thrown = false
   try {
@@ -85,7 +85,7 @@ test.cb('#__call__(method, params, options) with timeout option', function (t) {
   t.plan(5)
 
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789 })
+  const bot = new CQWebSocket({ qq: 123456789 })
     .on('ready', function () {
       t.is(bot._responseHandlers.size, 0)
 
@@ -117,7 +117,7 @@ test.cb('#__call__(method) use global request options if options is omitted', fu
   t.plan(2)
 
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789, requestOptions: { timeout: 2000 } })
+  const bot = new CQWebSocket({ qq: 123456789, requestOptions: { timeout: 2000 } })
 
   let start
   bot
