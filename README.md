@@ -74,13 +74,13 @@ SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket
 
 | 屬性 | 類型 | 默認值 |  說明
 | - | - | - | - |
-| `access_token` | string | `""` | API 訪問 token 。見 CQHTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
+| `accessToken` | string | `""` | API 訪問 token 。見 CQHTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
 |  `enableAPI` | boolean | `true` | 啟用 /api 連線 |
 |  `enableEvent` | boolean | `true` | 啟用 /event 連線 |
 |  `protocol` | string | `"ws:"` | 協議名 |
 |  `host` | string | `"127.0.0.1"` | 酷Q伺服器 IP |
 |  `port` | number | 6700 | 酷Q伺服器端口 |
-|  `baseUrl` | string | 6700 | 酷Q伺服器位址 (SDK在建立連線時會依照此設定加上前綴項 `ws://` 及後綴項 `/<api|event>[?access_token={token}]`) |
+|  `baseUrl` | string | 6700 | 酷Q伺服器位址 (SDK在建立連線時會依照此設定加上前綴項 `ws://` 及後綴項 `/<api|event>[?accessToken={token}]`) |
 |  `qq` | number &#124; string | -1 | 觸發 `@me` 事件用的QQ帳號，通常同登入酷Q之帳號，用在討論組消息及群消息中辨認是否有人at此帳號 |
 |  `reconnection` | boolean | true | 是否連線錯誤時自動重連 |
 |  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
