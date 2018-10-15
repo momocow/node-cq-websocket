@@ -86,7 +86,7 @@ type MessageListenerReturn = ListenerReturn | string | Promise<string>
 type MessageEventListener = (event: CQEvent, context: Record<string, any>) => MessageListenerReturn
 type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
-type SocketEventListener = (type: WebsocketType, attempts: number) => ListenerReturn
+type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
 export interface ApiTimeoutError extends Error {
@@ -126,20 +126,20 @@ export interface APIResponse<T> {
 export class CQWebSocket {
   constructor (opt?: Partial<CQWebSocketOption>)
 
-  connect (wsType?: WebsocketType): CQWebSocket
-  disconnect (wsType?: WebsocketType): CQWebSocket
-  reconnect (delay: number, wsType?: WebsocketType): CQWebSocket
-  isSockConnected (wsType: WebsocketType): CQWebSocket
+  connect (wsType?: WebSocketType): CQWebSocket
+  disconnect (wsType?: WebSocketType): CQWebSocket
+  reconnect (delay: number, wsType?: WebSocketType): CQWebSocket
+  isSockConnected (wsType: WebSocketType): CQWebSocket
   isReady (): boolean
 
   on (event_type: Exclude<MessageEvents, MessageAtEvents> | 'message', listener: MessageEventListener): CQWebSocket
   on (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
   on (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   on (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
-  on (event_type: 'socket.connect', listener: (type: WebsocketType, socket: any, attempts: number) => void): CQWebSocket
-  on (event_type: 'socket.closing', listener: (type: WebsocketType) => void): CQWebSocket
-  on (event_type: 'socket.close', listener: (type: WebsocketType, code: number, desc: string) => void): CQWebSocket
-  on (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
+  on (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
+  on (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
+  on (event_type: 'socket.close', listener: (type: WebSocketType, code: number, desc: string) => void): CQWebSocket
+  on (event_type: 'socket.error', listener: (type: WebSocketType, err: Error) => void): CQWebSocket
   on (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   on (event_type: 'api.send.post', listener: () => void): CQWebSocket
   on (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
@@ -150,10 +150,10 @@ export class CQWebSocket {
   once (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
   once (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   once (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
-  once (event_type: 'socket.connect', listener: (type: WebsocketType, socket: any, attempts: number) => void): CQWebSocket
-  once (event_type: 'socket.closing', listener: (type: WebsocketType) => void): CQWebSocket
-  once (event_type: 'socket.close', listener: (type: WebsocketType, code: number, desc: string) => void): CQWebSocket
-  once (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
+  once (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
+  once (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
+  once (event_type: 'socket.close', listener: (type: WebSocketType, code: number, desc: string) => void): CQWebSocket
+  once (event_type: 'socket.error', listener: (type: WebSocketType, err: Error) => void): CQWebSocket
   once (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   once (event_type: 'api.send.post', listener: () => void): CQWebSocket
   once (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
