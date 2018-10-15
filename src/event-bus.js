@@ -85,7 +85,7 @@ class CQEventBus {
      *   to the once listener wrapper function
      *     which wraps the original listener
      *     and is the listener that is actually registered via #on(event, listener) 
-     * @type {Map<Function, Function>}
+     * @type {WeakMap<Function, Function>}
      */
     this._onceListeners = new WeakMap()
 
