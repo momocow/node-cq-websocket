@@ -29,7 +29,7 @@ class CQWebSocket extends $Callable {
     protocol = 'ws:',
     host = '127.0.0.1',
     port = 6700,
-    access_token: accessToken = '',
+    accessToken = '',
     baseUrl,
 
     // application aware configs

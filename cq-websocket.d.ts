@@ -15,7 +15,7 @@ export interface CQRequestOptions {
 }
 type WebSocketProtocol = "http:" | "https:" | "ws:" | "wss:"
 export interface CQWebSocketOption {
-  access_token: string
+  accessToken: string
   enableAPI: boolean
   enableEvent: boolean
   protocol: WebSocketProtocol
