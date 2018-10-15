@@ -16,13 +16,21 @@ const WebsocketState = {
   DISABLED: -1, INIT: 0, CONNECTING: 1, CONNECTED: 2, CLOSING: 3, CLOSED: 4
 }
 
+const WebSocketProtocols = [
+  'https:',
+  'http:',
+  'ws:',
+  'wss:'
+]
+
 class CQWebsocket extends $Callable {
   constructor ({
     // connectivity configs
-    host,
-    port,
+    protocol = 'ws:',
+    host = '127.0.0.1',
+    port = 6700,
     access_token: accessToken = '',
-    baseUrl = '127.0.0.1:6700',
+    baseUrl,
 
     // application aware configs
     enableAPI = true,
@@ -45,13 +53,26 @@ class CQWebsocket extends $Callable {
     super('__call__')
 
     ///*****************/
+    //     poka-yoke 😇
+    ///*****************/
+    protocol = protocol.toLowerCase()
+    if (protocol && !protocol.endsWith(':')) protocol += ':'
+    if (
+      baseUrl &&
+      WebSocketProtocols.filter(proto => baseUrl.startsWith(proto + '//')).length === 0
+    ) {
+      baseUrl = `${protocol}//${baseUrl}`
+    }
+
+
+    ///*****************/
     //     options
     ///*****************/
 
     this._token = String(accessToken)
     this._qq = parseInt(qq)
     this._atme = new $CQAtTag(this._qq)
-    this._baseUrl = host ? `${host}${port ? `:${port}` : '' }` : baseUrl
+    this._baseUrl = baseUrl || `${protocol}//${host}:${port}`
 
     this._reconnectOptions = {
       reconnection,
@@ -326,7 +347,7 @@ class CQWebsocket extends $Callable {
       if ([ WebsocketState.INIT, WebsocketState.CLOSED ].includes(this._monitor[_label].state)) {
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
-        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
+        let _sock = new $WebSocket(`${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
 
         if (_type === WebsocketType.EVENT) {
           this._eventSock = _sock
