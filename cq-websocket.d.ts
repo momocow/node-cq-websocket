@@ -13,10 +13,12 @@ export enum WebSocketState {
 export interface CQRequestOptions {
   timeout: number
 }
+type WebSocketProtocol = "http:" | "https:" | "ws:" | "wss:"
 export interface CQWebSocketOption {
   access_token: string
   enableAPI: boolean
   enableEvent: boolean
+  protocol: WebSocketProtocol
   host: string
   port: number
   baseUrl: string
