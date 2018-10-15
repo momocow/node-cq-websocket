@@ -31,7 +31,7 @@ test('new CQWebSocket() with custom options', function (t) {
     enableEvent: true,
     baseUrl: '8.8.8.8:8888/ws',
     qq: 123456789,
-    access_token: 'qwerasdf',
+    accessToken: 'qwerasdf',
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 5000,
