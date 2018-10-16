@@ -6,7 +6,7 @@
       "@semantic-release/changelog",
       {
         "changelogFile": "docs/CHANGELOG.md",
-        "changelogTitle": "CQWeoSocket"
+        "changelogTitle": "CQWebSocket"
       }
     ],
     "@semantic-release/npm",

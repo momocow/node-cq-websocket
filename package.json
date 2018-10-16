@@ -59,7 +59,7 @@
     "mri": "^1.1.1",
     "nyc": "^11.9.0",
     "proxyquire": "^2.0.1",
-    "semantic-release": "^15.9.17",
+    "semantic-release": "^15.10.2",
     "sinon": "^4.5.0",
     "webpack": "^4.16.1",
     "webpack-cli": "^3.0.8"
