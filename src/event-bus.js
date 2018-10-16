@@ -84,7 +84,7 @@ class CQEventBus {
      *   from the original listener received via #once(event, listener)
      *   to the once listener wrapper function
      *     which wraps the original listener
-     *     and is the listener that is actually registered via #on(event, listener) 
+     *     and is the listener that is actually registered via #on(event, listener)
      * @type {WeakMap<Function, Function>}
      */
     this._onceListeners = new WeakMap()
@@ -220,7 +220,7 @@ class CQEventBus {
     const idx = queue.indexOf(handler)
     const wrapperIdx = this._onceListeners.has(handler)
       ? queue.indexOf(this._onceListeners.get(handler)) : -1
-    
+
     // no matter the listener is a once listener wrapper or not,
     // the first occurence of the "handler" (2nd arg passed in) or its wrapper will be removed from the queue
     const victimIdx = idx >= 0 && wrapperIdx >= 0

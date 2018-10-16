@@ -52,9 +52,9 @@ class CQWebsocket extends $Callable {
   } = {}) {
     super('__call__')
 
-    ///*****************/
+    /// *****************/
     //     poka-yoke 😇
-    ///*****************/
+    /// *****************/
     protocol = protocol.toLowerCase()
     if (protocol && !protocol.endsWith(':')) protocol += ':'
     if (
@@ -64,10 +64,9 @@ class CQWebsocket extends $Callable {
       baseUrl = `${protocol}//${baseUrl}`
     }
 
-
-    ///*****************/
+    /// *****************/
     //     options
-    ///*****************/
+    /// *****************/
 
     this._token = String(accessToken)
     this._qq = parseInt(qq)
@@ -95,9 +94,9 @@ class CQWebsocket extends $Callable {
         this._wsOptions[k] = v
       })
 
-    ///*****************/
+    /// *****************/
     //     states
-    ///*****************/
+    /// *****************/
 
     this._monitor = {
       EVENT: {
@@ -158,7 +157,7 @@ class CQWebsocket extends $Callable {
         action: method,
         params: params
       }
-  
+
       this._eventBus.emit('api.send.pre', apiRequest)
 
       const onSuccess = (ctxt) => {
