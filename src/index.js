@@ -312,6 +312,18 @@ class CQWebsocket extends $Callable {
             this._eventBus.emit('error', new Error(`Unexpected "request_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
+      case 'meta_event':
+        switch (msgObj.meta_event_type) {
+          case 'lifecycle':
+            this._eventBus.emit('meta_event.lifecycle', msgObj)
+            break
+          case 'heartbeat':
+            this._eventBus.emit('meta_event.heartbeat', msgObj)
+            break
+          default:
+            this._eventBus.emit('error', new Error(`Unexpected "meta_event_type"\n${JSON.stringify(msgObj, null, 2)}`))
+        }
+        break
       default:
         this._eventBus.emit('error', new Error(`Unexpected "post_type"\n${JSON.stringify(msgObj, null, 2)}`))
     }
