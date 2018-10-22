@@ -13,7 +13,7 @@ function emitEvent (t, msgObj = {}) {
   }, EMIT_DELAY)
 }
 
-function macro (t, event, { raw_message } = {}) {
+function macro (t, event, { rawMessage } = {}) {
   // @deprecated
   const atMe = event.endsWith('.@me') || event.endsWith('.@.me')
   let postfix = ''
@@ -33,7 +33,7 @@ function macro (t, event, { raw_message } = {}) {
   }
 
   const msgObj = {
-    post_type: majorType,
+    post_type: majorType
   }
 
   if (subType) {
@@ -43,13 +43,16 @@ function macro (t, event, { raw_message } = {}) {
   switch (majorType) {
     case 'message':
       msgObj.message_type = minorType
-      msgObj.raw_message = raw_message || `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
+      msgObj.raw_message = rawMessage || `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
       break
     case 'notice':
       msgObj.notice_type = minorType
       break
     case 'request':
       msgObj.request_type = minorType
+      break
+    case 'meta_event':
+      msgObj.meta_event_type = minorType
       break
     default:
       t.fail('Invalid major type')
@@ -64,7 +67,7 @@ function macro (t, event, { raw_message } = {}) {
   for (let i = 0; i < arrEvent.length; i++) {
     const _spy = spy()
     spies.push(_spy)
-  
+
     const prefix = i > 0 ? arrEvent[i - 1] + '.' : ''
     arrEvent[i] = prefix + arrEvent[i]
     t.context.bot.on(arrEvent[i], _spy)
@@ -89,7 +92,6 @@ function macro (t, event, { raw_message } = {}) {
 
   // Assertion after root event has been emitted
   t.context.bot.on(arrEvent[0], function () {
-
     // 相關母子事件均被觸發過
     spies.forEach((_spy, i) => {
       t.true(_spy.calledOnce)
@@ -142,7 +144,7 @@ eventlist.forEach(function (event) {
 
 const extraMsgEvents = [ 'message.discuss.@', 'message.group.@' ]
 extraMsgEvents.forEach(function (event) {
-  test.cb(`Event [${event}]: someone @-ed but not bot`, macro, event, { raw_message: '[CQ:at,qq=987654321]' })
+  test.cb(`Event [${event}]: someone @-ed but not bot`, macro, event, { rawMessage: '[CQ:at,qq=987654321]' })
 })
 
 function invalidEventMacro (t, msgObj) {
