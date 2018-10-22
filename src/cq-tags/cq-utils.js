@@ -46,7 +46,6 @@ function parse (str = '') {
     })
 }
 
-
 module.exports = {
   TYPES, parse
 }
