@@ -527,7 +527,6 @@ class CQWebsocket extends $Callable {
   isConnected () {
     return this.isReady()
   }
-
 }
 
 module.exports = CQWebsocket
