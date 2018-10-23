@@ -200,3 +200,8 @@ test.cb(`Event [invalid request:group]`, invalidEventMacro, {
   post_type: 'request',
   request_type: 'group'
 })
+
+test.cb(`Event [invalid meta_event]`, invalidEventMacro, {
+  post_type: 'meta_event',
+  meta_event_type: 'fake'
+})
