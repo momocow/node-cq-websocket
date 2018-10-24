@@ -79,7 +79,7 @@ class CQWebsocket extends $Callable {
       reconnectionDelay
     }
 
-    this._requestOptions = typeof requestOptions !== 'object' ? {} : requestOptions
+    this._requestOptions = requestOptions
 
     this._wsOptions = { }
 
