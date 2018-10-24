@@ -76,6 +76,11 @@ class CQEventBus {
           pre: [],
           post: []
         }
+      },
+      meta_event: {
+        '': [],
+        lifecycle: [],
+        heartbeat: []
       }
     }
 

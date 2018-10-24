@@ -17,5 +17,8 @@ module.exports = [
 
   'request.friend',
   'request.group.add',
-  'request.group.invite'
+  'request.group.invite',
+
+  'meta_event.lifecycle',
+  'meta_event.heartbeat'
 ]
