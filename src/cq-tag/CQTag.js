@@ -33,9 +33,7 @@ module.exports = class CQTag {
   equals (another) {
     if (!(another instanceof CQTag)) return false
     if (this._type !== another._type) return false
-    return deepEqual(this.data, another.data, {
-      strict: true
-    })
+    return deepEqual(this.data, another.data)
   }
 
   toJSON () {

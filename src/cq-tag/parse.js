@@ -30,7 +30,7 @@ function parseData (dataStr = '') {
 }
 
 function castCQTag (cqtag) {
-  switch (cqtag.type) {
+  switch (cqtag._type) {
     case 'anonymous':
       return Object.setPrototypeOf(cqtag, CQAnonymousTag.prototype)
     case 'at':
