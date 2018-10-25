@@ -10,7 +10,7 @@ const { test } = require('ava')
 const MSG_OBJ = {
   post_type: 'message',
   message_type: 'private',
-  raw_message: 'Test'
+  message: 'Test'
 }
 
 function emitMessage (t) {
@@ -47,7 +47,7 @@ test.cb('CQEvent: return string in message handler, should also gain the right t
       t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
-  
+
   emitMessage(t)
 })
 
@@ -71,7 +71,7 @@ test.cb('CQEvent: modify the response message on the CQEvent via multiple listen
       t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
-  
+
   emitMessage(t)
 })
 
@@ -91,7 +91,7 @@ test.cb('CQEvent: gain the right of making a response via #stopPropagation()', f
       t.is(t.context.callSpy.firstCall.args[1].message, 'ok!')
       t.end()
     })
-  
+
   emitMessage(t)
 })
 
@@ -140,7 +140,7 @@ test.cb('CQEvent: listen for response error on the CQEvent', function (t) {
 
       return 'some messages'
     })
-  
+
   emitMessage(t)
 })
 
@@ -162,6 +162,6 @@ test.cb('CQEvent: response timeout without error handler', function (t) {
 
       return 'some messages'
     })
-  
+
   emitMessage(t)
 })

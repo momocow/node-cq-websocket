@@ -14,11 +14,9 @@ function emitEvent (t, msgObj = {}) {
 }
 
 function macro (t, event, { rawMessage } = {}) {
-  // @deprecated
-  const atMe = event.endsWith('.@me') || event.endsWith('.@.me')
   let postfix = ''
-  if (atMe) {
-    const matched = event.match(/^(message\.(discuss|group))(\.@\.?me)$/)
+  const matched = event.match(/^(message\.(discuss|group))(\.@\.me)$/)
+  if (matched) {
     event = matched[1]
     postfix = matched[3]
   }
@@ -43,7 +41,7 @@ function macro (t, event, { rawMessage } = {}) {
   switch (majorType) {
     case 'message':
       msgObj.message_type = minorType
-      msgObj.raw_message = rawMessage || `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
+      msgObj.message = rawMessage || `${postfix === '.@.me' ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
       break
     case 'notice':
       msgObj.notice_type = minorType
@@ -73,19 +71,13 @@ function macro (t, event, { rawMessage } = {}) {
     t.context.bot.on(arrEvent[i], _spy)
   }
 
-  if (atMe) {
-    if (postfix === '.@.me') {
-      const _spy1 = spy()
-      const _spy2 = spy()
-      spies.push(_spy1)
-      spies.push(_spy2)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@', _spy1)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@.me', _spy2)
-    } else {
-      const _spy = spy()
-      spies.push(_spy)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
-    }
+  if (postfix === '.@.me') {
+    const _spy1 = spy()
+    const _spy2 = spy()
+    spies.push(_spy1)
+    spies.push(_spy2)
+    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@', _spy1)
+    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@.me', _spy2)
   }
 
   t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
