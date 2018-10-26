@@ -4,7 +4,7 @@ const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
 const message = require('./message')
-const { CQAtTag, parse: parseCQTags } = message
+const { parse: parseCQTags } = message
 const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebSocketType = {
@@ -70,7 +70,6 @@ class CQWebSocket extends $Callable {
 
     this._token = String(accessToken)
     this._qq = parseInt(qq)
-    this._atme = new CQAtTag(this._qq)
     this._baseUrl = baseUrl || `${protocol}//${host}:${port}`
 
     this._reconnectOptions = {
@@ -207,9 +206,9 @@ class CQWebSocket extends $Callable {
           case 'discuss':
             {
               // someone is @-ed
-              const attags = tags.filter(t => t instanceof CQAtTag)
+              const attags = tags.filter(t => t.tagName === 'at')
               if (attags.length > 0) {
-                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                if (attags.filter(t => t.qq === this._qq).length > 0) {
                   this._eventBus.emit('message.discuss.@.me', msgObj, tags)
                 } else {
                   this._eventBus.emit('message.discuss.@', msgObj, tags)
@@ -221,9 +220,9 @@ class CQWebSocket extends $Callable {
             break
           case 'group':
             {
-              const attags = tags.filter(t => t instanceof CQAtTag)
+              const attags = tags.filter(t => t.tagName === 'at')
               if (attags.length > 0) {
-                if (attags.filter(t => t.equals(this._atme)).length > 0) {
+                if (attags.filter(t => t.qq === this._qq).length > 0) {
                   this._eventBus.emit('message.group.@.me', msgObj, tags)
                 } else {
                   this._eventBus.emit('message.group.@', msgObj, tags)
@@ -381,7 +380,6 @@ class CQWebSocket extends $Callable {
               this('get_login_info')
                 .then((ctxt) => {
                   this._qq = parseInt($get(ctxt, 'data.user_id', -1))
-                  this._atme = new CQAtTag(this._qq)
                 })
                 .catch(err => {
                   this._eventBus.emit('error', err)
