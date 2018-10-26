@@ -3,7 +3,7 @@ const EMIT_DELAY = 100
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket, CQAtTag } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { test } = require('ava')
 
@@ -29,7 +29,7 @@ test.beforeEach.cb(function (t) {
   t.context.callSpy = spy(t.context.bot._eventBus, '_bot')
 })
 
-test.cb('CQEvent: return string in message handler, should also gain the right to reply the message', function (t) {
+test.cb('CQEvent: return string in message event listener', function (t) {
   t.plan(2)
 
   t.context.bot
@@ -51,7 +51,66 @@ test.cb('CQEvent: return string in message handler, should also gain the right t
   emitMessage(t)
 })
 
-test.cb('CQEvent: modify the response message on the CQEvent via multiple listeners', function (t) {
+test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event listener', function (t) {
+  t.plan(2)
+
+  t.context.bot
+    .on('message.private', function () {
+      return [
+        {
+          type: 'text',
+          data: {
+            text: 'ok!'
+          }
+        },
+        new CQAtTag(123456789)
+      ]
+    })
+    .on('message.private', function () {
+      return [
+        {
+          type: 'text',
+          data: {
+            text: 'nothing...'
+          }
+        },
+        new CQAtTag(-1)
+      ]
+    })
+    .on('message', function () {
+      return [
+        {
+          type: 'text',
+          data: {
+            text: 'failed...'
+          }
+        },
+        new CQAtTag(-2)
+      ]
+    })
+    .on('api.send.post', function () {
+      t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
+      t.deepEqual(t.context.callSpy.firstCall.args[1].message, [
+        {
+          type: 'text',
+          data: {
+            text: 'ok!'
+          }
+        },
+        {
+          type: 'at',
+          data: {
+            qq: 123456789
+          }
+        }
+      ])
+      t.end()
+    })
+
+  emitMessage(t)
+})
+
+test.cb('CQEvent: modify the response message on the CQEvent across multiple listeners', function (t) {
   t.plan(2)
 
   t.context.bot

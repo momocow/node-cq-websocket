@@ -4,7 +4,7 @@ const EMIT_DELAY = 100
 const { spy } = require('sinon')
 
 const { CQWebSocketAPI } = require('../fixture/connect-success')()
-const CQEvent = CQWebSocketAPI.CQEvent
+const { CQEvent } = require('../../src/event-bus')
 const { test } = require('ava')
 
 function emitEvent (t, msgObj = {}) {
