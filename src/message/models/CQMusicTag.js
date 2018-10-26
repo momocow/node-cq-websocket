@@ -12,4 +12,10 @@ module.exports = class CQMusicTag extends CQTag {
   get id () {
     return this.data.id
   }
+
+  coerce () {
+    this.data.type = String(this.data.type)
+    this.data.id = Number(this.data.id)
+    return this
+  }
 }

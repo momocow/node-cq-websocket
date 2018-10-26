@@ -3,9 +3,8 @@ const shortid = require('shortid')
 const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
-const $CQ = require('./cq-tag')
-const { models } = $CQ
-const { CQAtTag } = models
+const message = require('./message')
+const { CQAtTag, parse: parseCQTags } = message
 const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebSocketType = {
@@ -199,7 +198,7 @@ class CQWebSocket extends $Callable {
     switch (msgObj.post_type) {
       case 'message':
         // parsing coolq tags
-        const tags = $CQ.parse(msgObj.message)
+        const tags = parseCQTags(msgObj.message)
 
         switch (msgObj.message_type) {
           case 'private':
@@ -534,9 +533,10 @@ class CQWebSocket extends $Callable {
   }
 }
 
-module.exports.default = CQWebSocket
-module.exports.CQWebSocket = CQWebSocket
-module.exports.WebSocketType = WebSocketType
-module.exports.WebSocketState = WebSocketState
-module.exports.CQEvent = require('./event-bus.js').CQEvent
-module.exports.tag = models
+module.exports = {
+  default: CQWebSocket,
+  CQWebSocket,
+  WebSocketType,
+  WebSocketState,
+  ...message
+}

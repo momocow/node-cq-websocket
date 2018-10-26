@@ -30,40 +30,53 @@ function parseData (dataStr = '') {
 }
 
 function castCQTag (cqtag) {
+  let proto
   switch (cqtag._type) {
     case 'anonymous':
-      return Object.setPrototypeOf(cqtag, CQAnonymousTag.prototype)
+      proto = CQAnonymousTag.prototype
+      break
     case 'at':
-      return Object.setPrototypeOf(cqtag, CQAtTag.prototype)
+      proto = CQAtTag.prototype
+      break
     case 'bface':
-      return Object.setPrototypeOf(cqtag, CQBFaceTag.prototype)
+      proto = CQBFaceTag.prototype
+      break
     case 'music':
-      if (cqtag.data.type === 'custom') {
-        return Object.setPrototypeOf(cqtag, CQCustomMusicTag.prototype)
-      } else {
-        return Object.setPrototypeOf(cqtag, CQMusicTag.prototype)
-      }
+      proto = cqtag.data.type === 'custom'
+        ? CQCustomMusicTag.prototype : CQMusicTag.prototype
+      break
     case 'dice':
-      return Object.setPrototypeOf(cqtag, CQDiceTag.prototype)
+      proto = CQDiceTag.prototype
+      break
     case 'emoji':
-      return Object.setPrototypeOf(cqtag, CQEmojiTag.prototype)
+      proto = CQEmojiTag.prototype
+      break
     case 'face':
-      return Object.setPrototypeOf(cqtag, CQFaceTag.prototype)
+      proto = CQFaceTag.prototype
+      break
     case 'image':
-      return Object.setPrototypeOf(cqtag, CQImageTag.prototype)
+      proto = CQImageTag.prototype
+      break
     case 'record':
-      return Object.setPrototypeOf(cqtag, CQRecordTag.prototype)
+      proto = CQRecordTag.prototype
+      break
     case 'rps':
-      return Object.setPrototypeOf(cqtag, CQRPSTag.prototype)
+      proto = CQRPSTag.prototype
+      break
     case 'sface':
-      return Object.setPrototypeOf(cqtag, CQSFaceTag.prototype)
+      proto = CQSFaceTag.prototype
+      break
     case 'shake':
-      return Object.setPrototypeOf(cqtag, CQShakeTag.prototype)
+      proto = CQShakeTag.prototype
+      break
     case 'share':
-      return Object.setPrototypeOf(cqtag, CQShareTag.prototype)
+      proto = CQShareTag.prototype
+      break
     default:
       return cqtag
   }
+
+  return Object.setPrototypeOf(cqtag, proto).coerce()
 }
 
 /**

@@ -11,6 +11,10 @@ module.exports = class CQTag {
     this._modifier = null
   }
 
+  get tagName () {
+    return this._type
+  }
+
   get modifier () {
     return this._modifier || new Proxy({}, {
       set: (t, prop, value) => {
@@ -33,15 +37,16 @@ module.exports = class CQTag {
   equals (another) {
     if (!(another instanceof CQTag)) return false
     if (this._type !== another._type) return false
-    return deepEqual(this.data, another.data)
+    return deepEqual(this.data, another.data, {
+      strict: true
+    })
   }
 
   toJSON () {
-    return {
-      type: this._type,
-      data: this.data,
-      modifier: this._modifier
-    }
+    const data = (this.data && Object.keys(this.data).length > 0) ||
+      (this._modifier && Object.keys(this._modifier).length > 0)
+      ? Object.assign({}, this.data, this._modifier) : null
+    return { type: this._type, data }
   }
 
   valueOf () {
@@ -65,5 +70,13 @@ module.exports = class CQTag {
 
     ret += ']'
     return ret
+  }
+
+  /**
+   * @abstract
+   * Force data to cast into proper types
+   */
+  coerce () {
+    return this
   }
 }

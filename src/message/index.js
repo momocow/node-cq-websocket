@@ -5,5 +5,5 @@ const models = require('./models')
 module.exports = {
   parse,
   isSupportedTag,
-  models
+  ...models
 }

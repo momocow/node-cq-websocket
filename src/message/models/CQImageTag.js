@@ -1,8 +1,9 @@
 const CQTag = require('../CQTag')
 
 module.exports = class CQImageTag extends CQTag {
-  constructor (file) {
+  constructor (file, ignoreCache) {
     super('image', { file })
+    this.modifier.cache = ignoreCache ? 0 : undefined
   }
 
   get file () {
@@ -13,7 +14,9 @@ module.exports = class CQImageTag extends CQTag {
     return this.data.url
   }
 
-  ignoreCache () {
-    this.modifier.cache = 0
+  coerce () {
+    this.data.file = String(this.data.file)
+    this.data.url = String(this.data.url)
+    return this
   }
 }
