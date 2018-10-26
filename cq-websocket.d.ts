@@ -37,7 +37,6 @@ type BaseEvents = 'message'
                     | 'request'
                     | 'error'
                     | 'ready'
-type MessageAtEvents = 'message.discuss.@' | 'message.group.@'
 type MessageEvents = 'message.private'
                     | 'message.discuss'
                     | 'message.discuss.@'
@@ -83,8 +82,7 @@ type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | Socket
 
 type ListenerReturn = void | Promise<void>
 type MessageListenerReturn = ListenerReturn | string | Promise<string>
-type MessageEventListener = (event: CQEvent, context: Record<string, any>) => MessageListenerReturn
-type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => MessageListenerReturn
+type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
 type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
@@ -93,7 +91,7 @@ export interface ApiTimeoutError extends Error {
 
 }
 
-export class CQEvent {
+declare class CQEvent {
   stopPropagation (): void
   getMessage (): string
   setMessage (msg: string): void
@@ -103,16 +101,6 @@ export class CQEvent {
   onError (handler: (err: ApiTimeoutError) => void): void
 }
 
-export interface CQTag {
-  constructor (type: string, meta: Record<string, any>): CQTag
-  equals (equals: string | CQTag): boolean
-  toString (): string
-}
-
-export interface CQAtTag extends CQTag {
-  constructor (qq: number | string): CQAtTag
-  getQQ (): number
-}
 export interface APIRequest {
   action: string,
   params?: any
@@ -132,8 +120,7 @@ export class CQWebSocket {
   isSockConnected (wsType: WebSocketType): CQWebSocket
   isReady (): boolean
 
-  on (event_type: Exclude<MessageEvents, MessageAtEvents> | 'message', listener: MessageEventListener): CQWebSocket
-  on (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
+  on (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
   on (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   on (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
   on (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
@@ -146,8 +133,7 @@ export class CQWebSocket {
   on (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
-  once (event_type: Exclude<MessageEvents, MessageAtEvents> | 'message', listener: MessageEventListener): CQWebSocket
-  once (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
+  once (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
   once (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   once (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
   once (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
@@ -167,3 +153,110 @@ export interface CQWebSocket {
 }
 
 export default CQWebSocket
+
+/******************************************/
+
+type Serializable = string | number | boolean
+
+interface CQHTTPMessage {
+  type: string
+  data: Record<string, string> | null
+}
+
+declare class CQTag {
+  readonly tagName: string
+  readonly data: Readonly<Record<string, Serializable>>
+  modifier: Record<string, Serializable>
+
+  equals(another: CQTag): boolean
+  coerce(): this
+  toJSON(): CQHTTPMessage
+  valueOf(): string
+  toString(): string
+}
+
+export class CQAtTag extends CQTag {
+  readonly qq: number
+  constructor(qq: number)
+}
+
+export class CQAnonymousTag extends CQTag {
+  constructor(shouldIgnoreIfFailed?: boolean)
+  shouldIgnoreIfFailed(): boolean
+}
+
+export class CQBFaceTag extends CQTag {
+  readonly id: number
+
+  /**
+   * To send a bface, not only `id` but also `p`,
+   * which is the name of child directory of `data/bface`,
+   * is required.
+   * @see https://github.com/richardchien/coolq-http-api/wiki/CQ-%E7%A0%81%E7%9A%84%E5%9D%91
+   */
+  constructor (id: number, p: string)
+}
+
+export class CQCustomMusicTag extends CQTag {
+  readonly url: string
+  readonly audio: string
+  readonly title: string
+  readonly content: string
+  readonly image: string
+  constructor(url: string, audio: string, title: string, content?: string, image?: string)
+}
+
+export class CQDiceTag extends CQTag {
+  readonly type: number
+  constructor()
+}
+
+export class CQEmojiTag extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQFaceTag extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQImageTag extends CQTag {
+  readonly file: string
+  readonly url: string
+  constructor(file: string, ignoreCache?: boolean)
+}
+
+export class CQMusicTag extends CQTag {
+  readonly type: string
+  readonly id: number
+  constructor(type: string, id: number)
+}
+
+export class CQRecordTag extends CQTag {
+  readonly file: string
+  constructor(file: string, magic?: boolean)
+  hasMagic(): boolean
+}
+
+export class CQRPSTag extends CQTag {
+  readonly type: number
+  constructor()
+}
+
+export class CQSFaceTag extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQShakeTag extends CQTag {
+  constructor()
+}
+
+export class CQShareTag extends CQTag {
+  readonly url: string
+  readonly title: string
+  readonly content: string
+  readonly image: string
+  constructor(url: string, title: string, content?: string, image?: string)
+}
