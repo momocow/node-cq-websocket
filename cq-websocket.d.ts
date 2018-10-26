@@ -81,7 +81,8 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
 type ListenerReturn = void | Promise<void>
-type MessageListenerReturn = ListenerReturn | string | Promise<string>
+type ArrayMessage = (CQTag|CQHTTPMessage)[]
+type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage>
 type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
 type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
@@ -92,10 +93,11 @@ export interface ApiTimeoutError extends Error {
 }
 
 declare class CQEvent {
+  readonly messageFormat: "string" | "array"
   stopPropagation (): void
-  getMessage (): string
-  setMessage (msg: string): void
-  appendMessage (msg: string): void
+  getMessage (): string | ArrayMessage
+  setMessage (msg: string | ArrayMessage): void
+  appendMessage (msg: string | CQTag | CQHTTPMessage): void
   hasMessage (): boolean
   onResponse (handler: (res: object) => void, options: number | CQRequestOptions): void
   onError (handler: (err: ApiTimeoutError) => void): void
@@ -259,4 +261,9 @@ export class CQShareTag extends CQTag {
   readonly content: string
   readonly image: string
   constructor(url: string, title: string, content?: string, image?: string)
+}
+
+export class CQTextTag extends CQTag {
+  readonly text: string
+  constructor(text: string)
 }

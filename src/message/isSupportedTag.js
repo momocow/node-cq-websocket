@@ -11,7 +11,8 @@ const CQTAG_TYPES = [
   'shake',
   'anonymous',
   'music',
-  'share'
+  'share',
+  'text'
 ]
 
 module.exports = function isSupportedTag (tagName) {

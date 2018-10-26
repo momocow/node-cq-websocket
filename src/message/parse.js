@@ -14,19 +14,22 @@ const {
   CQRPSTag,
   CQSFaceTag,
   CQShakeTag,
-  CQShareTag
+  CQShareTag,
+  CQTextTag
 } = require('./models')
 
 const CQTAGS_EXTRACTOR = /\[CQ[^\]]*\]/g
-const CQTAG_ANALYSOR = /\[CQ:([a-z]+?),((,?[a-zA-Z0-9-_.]+=[^,[\]]*)*)\]/
+const CQTAG_ANALYSOR = /\[CQ:([a-z]+?)(?:,((,?[a-zA-Z0-9-_.]+=[^,[\]]*)*))?\]/
 
 function parseData (dataStr = '') {
-  return dataStr.split(',')
-    .map(opt => opt.split('='))
-    .reduce((data, [ k, v ]) => {
-      data[k] = v
-      return data
-    }, {})
+  return dataStr
+    ? dataStr.split(',')
+      .map(opt => opt.split('='))
+      .reduce((data, [ k, v ]) => {
+        data[k] = v
+        return data
+      }, {})
+    : null
 }
 
 function castCQTag (cqtag) {
@@ -72,6 +75,9 @@ function castCQTag (cqtag) {
     case 'share':
       proto = CQShareTag.prototype
       break
+    case 'text':
+      proto = CQTextTag.prototype
+      break
     default:
       return cqtag
   }
@@ -84,11 +90,30 @@ function castCQTag (cqtag) {
  */
 module.exports = function parse (message) {
   if (typeof message === 'string') {
-    return (message.match(CQTAGS_EXTRACTOR) || [])
+    let textTagScanner = 0
+    const nonTextTags = (message.match(CQTAGS_EXTRACTOR) || [])
       .map(_tag => _tag.match(CQTAG_ANALYSOR))
       .filter(_tag => _tag && isSupportedTag(_tag[1]))
       .map(_tag => new CQTag(_tag[1], parseData(_tag[2])))
       .map(castCQTag)
+
+    // insert text tags into appropriate position
+    return nonTextTags.reduce((tags, cqtag, index) => {
+      const cqtagStr = cqtag.toString()
+      const cqtagIndex = message.indexOf(cqtagStr)
+      if (cqtagIndex !== textTagScanner) {
+        const text = message.substring(textTagScanner, cqtagIndex)
+        tags.push(new CQTextTag(text))
+      }
+      tags.push(cqtag)
+      textTagScanner = cqtagIndex + cqtagStr.length
+      if (nonTextTags.length - 1 === index && textTagScanner < message.length) {
+        // last tag but there is still text
+        const text = message.substring(textTagScanner)
+        tags.push(new CQTextTag(text))
+      }
+      return tags
+    }, [])
   }
 
   if (Array.isArray(message)) {

@@ -12,6 +12,7 @@ const CQRPSTag = require('./CQRPSTag')
 const CQSFaceTag = require('./CQSFaceTag')
 const CQShakeTag = require('./CQShakeTag')
 const CQShareTag = require('./CQShareTag')
+const CQTextTag = require('./CQTextTag')
 
 module.exports = {
   CQAnonymousTag,
@@ -27,5 +28,6 @@ module.exports = {
   CQRPSTag,
   CQSFaceTag,
   CQShakeTag,
-  CQShareTag
+  CQShareTag,
+  CQTextTag
 }
