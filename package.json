@@ -3,12 +3,13 @@
   "version": "1.8.0",
   "description": "A Node SDK for developing QQ chatbots based on WebSocket, which is depending on CoolQ and CQHTTP API plugin. ",
   "engines": {
-    "node": ">=7.6.0"
+    "cqhttp": "^4.5.0",
+    "node": ">=8"
   },
   "main": "./src/index.js",
   "types": "./cq-websocket.d.ts",
   "scripts": {
-    "test": "nyc ava test/*/*.test.js",
+    "test": "nyc ava test/**/*.test.js",
     "build": "webpack --config ./webpack.config.js",
     "build-demo": "webpack --config demo/webpack/webpack.config.js",
     "demo-browser": "http-server demo/webpack/www",
@@ -68,8 +69,8 @@
   },
   "nyc": {
     "include": [
-      "src/*.js",
-      "src/cq-tag/**/*.js"
+      "src/**/*.js",
+      "!src/util/**/*"
     ]
   },
   "ava": {
