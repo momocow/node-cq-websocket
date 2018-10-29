@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQBFaceTag extends CQTag {
+module.exports = class CQBFace extends CQTag {
   /**
    * @param {number} id
    * @param {string} p

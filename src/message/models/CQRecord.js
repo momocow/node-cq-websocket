@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQRecordTag extends CQTag {
+module.exports = class CQRecord extends CQTag {
   constructor (file, magic) {
     super('record', { file })
     this.modifier.magic = magic ? true : undefined

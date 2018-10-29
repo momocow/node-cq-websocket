@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQEmojiTag extends CQTag {
+module.exports = class CQEmoji extends CQTag {
   constructor (id) {
     super('emoji', { id })
   }

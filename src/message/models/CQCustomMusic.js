@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQCustomMusicTag extends CQTag {
+module.exports = class CQCustomMusic extends CQTag {
   constructor (url, audio, title, content, image) {
     super('music', { type: 'custom', url, audio, title, content, image })
   }

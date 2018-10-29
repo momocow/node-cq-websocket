@@ -177,17 +177,17 @@ declare class CQTag {
   toString(): string
 }
 
-export class CQAtTag extends CQTag {
+export class CQAt extends CQTag {
   readonly qq: number
   constructor(qq: number)
 }
 
-export class CQAnonymousTag extends CQTag {
+export class CQAnonymous extends CQTag {
   constructor(shouldIgnoreIfFailed?: boolean)
   shouldIgnoreIfFailed(): boolean
 }
 
-export class CQBFaceTag extends CQTag {
+export class CQBFace extends CQTag {
   readonly id: number
 
   /**
@@ -199,7 +199,7 @@ export class CQBFaceTag extends CQTag {
   constructor (id: number, p: string)
 }
 
-export class CQCustomMusicTag extends CQTag {
+export class CQCustomMusic extends CQTag {
   readonly url: string
   readonly audio: string
   readonly title: string
@@ -208,54 +208,54 @@ export class CQCustomMusicTag extends CQTag {
   constructor(url: string, audio: string, title: string, content?: string, image?: string)
 }
 
-export class CQDiceTag extends CQTag {
+export class CQDice extends CQTag {
   readonly type: number
   constructor()
 }
 
-export class CQEmojiTag extends CQTag {
+export class CQEmoji extends CQTag {
   readonly id: number
   constructor(id: number)
 }
 
-export class CQFaceTag extends CQTag {
+export class CQFace extends CQTag {
   readonly id: number
   constructor(id: number)
 }
 
-export class CQImageTag extends CQTag {
+export class CQImage extends CQTag {
   readonly file: string
   readonly url: string
   constructor(file: string, ignoreCache?: boolean)
 }
 
-export class CQMusicTag extends CQTag {
+export class CQMusic extends CQTag {
   readonly type: string
   readonly id: number
   constructor(type: string, id: number)
 }
 
-export class CQRecordTag extends CQTag {
+export class CQRecord extends CQTag {
   readonly file: string
   constructor(file: string, magic?: boolean)
   hasMagic(): boolean
 }
 
-export class CQRPSTag extends CQTag {
+export class CQRPS extends CQTag {
   readonly type: number
   constructor()
 }
 
-export class CQSFaceTag extends CQTag {
+export class CQSFace extends CQTag {
   readonly id: number
   constructor(id: number)
 }
 
-export class CQShakeTag extends CQTag {
+export class CQShake extends CQTag {
   constructor()
 }
 
-export class CQShareTag extends CQTag {
+export class CQShare extends CQTag {
   readonly url: string
   readonly title: string
   readonly content: string
@@ -263,7 +263,7 @@ export class CQShareTag extends CQTag {
   constructor(url: string, title: string, content?: string, image?: string)
 }
 
-export class CQTextTag extends CQTag {
+export class CQText extends CQTag {
   readonly text: string
   constructor(text: string)
 }

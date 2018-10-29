@@ -3,7 +3,7 @@ const EMIT_DELAY = 100
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { CQWebSocketAPI: { CQWebSocket, CQAtTag } } = require('../fixture/connect-success')()
+const { CQWebSocketAPI: { CQWebSocket, CQAt } } = require('../fixture/connect-success')()
 const { ApiTimoutError } = require('../../src/errors')
 const { test } = require('ava')
 
@@ -63,7 +63,7 @@ test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event 
             text: 'ok!'
           }
         },
-        new CQAtTag(123456789)
+        new CQAt(123456789)
       ]
     })
     .on('message.private', function () {
@@ -74,7 +74,7 @@ test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event 
             text: 'nothing...'
           }
         },
-        new CQAtTag(-1)
+        new CQAt(-1)
       ]
     })
     .on('message', function () {
@@ -85,7 +85,7 @@ test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event 
             text: 'failed...'
           }
         },
-        new CQAtTag(-2)
+        new CQAt(-2)
       ]
     })
     .on('api.send.post', function () {

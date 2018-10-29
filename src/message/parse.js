@@ -1,21 +1,21 @@
 const isSupportedTag = require('./isSupportedTag')
 const CQTag = require('./CQTag')
 const {
-  CQAtTag,
-  CQAnonymousTag,
-  CQBFaceTag,
-  CQCustomMusicTag,
-  CQDiceTag,
-  CQEmojiTag,
-  CQFaceTag,
-  CQImageTag,
-  CQMusicTag,
-  CQRecordTag,
-  CQRPSTag,
-  CQSFaceTag,
-  CQShakeTag,
-  CQShareTag,
-  CQTextTag
+  CQAt,
+  CQAnonymous,
+  CQBFace,
+  CQCustomMusic,
+  CQDice,
+  CQEmoji,
+  CQFace,
+  CQImage,
+  CQMusic,
+  CQRecord,
+  CQRPS,
+  CQSFace,
+  CQShake,
+  CQShare,
+  CQText
 } = require('./models')
 
 const CQTAGS_EXTRACTOR = /\[CQ[^\]]*\]/g
@@ -36,47 +36,47 @@ function castCQTag (cqtag) {
   let proto
   switch (cqtag._type) {
     case 'anonymous':
-      proto = CQAnonymousTag.prototype
+      proto = CQAnonymous.prototype
       break
     case 'at':
-      proto = CQAtTag.prototype
+      proto = CQAt.prototype
       break
     case 'bface':
-      proto = CQBFaceTag.prototype
+      proto = CQBFace.prototype
       break
     case 'music':
       proto = cqtag.data.type === 'custom'
-        ? CQCustomMusicTag.prototype : CQMusicTag.prototype
+        ? CQCustomMusic.prototype : CQMusic.prototype
       break
     case 'dice':
-      proto = CQDiceTag.prototype
+      proto = CQDice.prototype
       break
     case 'emoji':
-      proto = CQEmojiTag.prototype
+      proto = CQEmoji.prototype
       break
     case 'face':
-      proto = CQFaceTag.prototype
+      proto = CQFace.prototype
       break
     case 'image':
-      proto = CQImageTag.prototype
+      proto = CQImage.prototype
       break
     case 'record':
-      proto = CQRecordTag.prototype
+      proto = CQRecord.prototype
       break
     case 'rps':
-      proto = CQRPSTag.prototype
+      proto = CQRPS.prototype
       break
     case 'sface':
-      proto = CQSFaceTag.prototype
+      proto = CQSFace.prototype
       break
     case 'shake':
-      proto = CQShakeTag.prototype
+      proto = CQShake.prototype
       break
     case 'share':
-      proto = CQShareTag.prototype
+      proto = CQShare.prototype
       break
     case 'text':
-      proto = CQTextTag.prototype
+      proto = CQText.prototype
       break
     default:
       return cqtag
@@ -103,14 +103,14 @@ module.exports = function parse (message) {
       const cqtagIndex = message.indexOf(cqtagStr)
       if (cqtagIndex !== textTagScanner) {
         const text = message.substring(textTagScanner, cqtagIndex)
-        tags.push(new CQTextTag(text))
+        tags.push(new CQText(text))
       }
       tags.push(cqtag)
       textTagScanner = cqtagIndex + cqtagStr.length
       if (nonTextTags.length - 1 === index && textTagScanner < message.length) {
         // last tag but there is still text
         const text = message.substring(textTagScanner)
-        tags.push(new CQTextTag(text))
+        tags.push(new CQText(text))
       }
       return tags
     }, [])

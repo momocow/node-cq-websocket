@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQAtTag extends CQTag {
+module.exports = class CQAt extends CQTag {
   constructor (qq) {
     super('at', { qq })
   }

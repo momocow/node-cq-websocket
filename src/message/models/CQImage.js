@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQImageTag extends CQTag {
+module.exports = class CQImage extends CQTag {
   constructor (file, ignoreCache) {
     super('image', { file })
     this.modifier.cache = ignoreCache ? 0 : undefined

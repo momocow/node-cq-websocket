@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQTextTag extends CQTag {
+module.exports = class CQText extends CQTag {
   constructor (text) {
     super('text', { text })
   }

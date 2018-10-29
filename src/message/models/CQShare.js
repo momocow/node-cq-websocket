@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQShareTag extends CQTag {
+module.exports = class CQShare extends CQTag {
   constructor (url, title, content, image) {
     super('share', { url, title, content, image })
   }

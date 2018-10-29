@@ -1,9 +1,9 @@
 const { test } = require('ava')
-const { CQAtTag } = require('../..')
+const { CQAt } = require('../..')
 
-test.skip('CQAtTag #qq', t => {
+test.skip('CQAt #qq', t => {
   t.plan(1)
 
-  const tag = new CQAtTag(123456789)
+  const tag = new CQAt(123456789)
   t.is(tag.qq, 123456789)
 })

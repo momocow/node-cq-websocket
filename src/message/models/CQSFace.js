@@ -1,6 +1,6 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQSFaceTag extends CQTag {
+module.exports = class CQSFace extends CQTag {
   constructor (id) {
     super('sface', { id })
   }

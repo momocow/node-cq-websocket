@@ -1,8 +1,8 @@
 const CQTag = require('../CQTag')
 
-module.exports = class CQDiceTag extends CQTag {
+module.exports = class CQRPS extends CQTag {
   constructor () {
-    super('dice')
+    super('rps')
   }
 
   get type () {
