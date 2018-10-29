@@ -16,5 +16,6 @@ module.exports = class CQRecord extends CQTag {
 
   coerce () {
     this.data.file = String(this.data.file)
+    return this
   }
 }

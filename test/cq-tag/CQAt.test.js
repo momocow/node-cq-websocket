@@ -1,7 +1,7 @@
 const { test } = require('ava')
-const { CQAt } = require('../..')
+const { CQAt } = require('../../cq-websocket')
 
-test.skip('CQAt #qq', t => {
+test('CQAt #qq', t => {
   t.plan(1)
 
   const tag = new CQAt(123456789)
