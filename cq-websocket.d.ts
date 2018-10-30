@@ -203,8 +203,8 @@ export class CQCustomMusic extends CQTag {
   readonly url: string
   readonly audio: string
   readonly title: string
-  readonly content: string
-  readonly image: string
+  readonly content?: string
+  readonly image?: string
   constructor(url: string, audio: string, title: string, content?: string, image?: string)
 }
 
@@ -225,7 +225,7 @@ export class CQFace extends CQTag {
 
 export class CQImage extends CQTag {
   readonly file: string
-  readonly url: string
+  readonly url?: string
   constructor(file: string, ignoreCache?: boolean)
 }
 
@@ -258,8 +258,8 @@ export class CQShake extends CQTag {
 export class CQShare extends CQTag {
   readonly url: string
   readonly title: string
-  readonly content: string
-  readonly image: string
+  readonly content?: string
+  readonly image?: string
   constructor(url: string, title: string, content?: string, image?: string)
 }
 

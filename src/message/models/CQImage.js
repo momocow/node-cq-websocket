@@ -1,4 +1,5 @@
 const CQTag = require('../CQTag')
+const optional = require('../../util/optional')
 
 module.exports = class CQImage extends CQTag {
   constructor (file, ignoreCache) {
@@ -16,7 +17,7 @@ module.exports = class CQImage extends CQTag {
 
   coerce () {
     this.data.file = String(this.data.file)
-    this.data.url = String(this.data.url)
+    this.data.url = optional(this.data.url, String)
     return this
   }
 }

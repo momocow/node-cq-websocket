@@ -43,10 +43,24 @@ module.exports = class CQTag {
   }
 
   toJSON () {
-    const data = (this.data && Object.keys(this.data).length > 0) ||
-      (this._modifier && Object.keys(this._modifier).length > 0)
-      ? Object.assign({}, this.data, this._modifier) : null
-    return { type: this._type, data }
+    const data = {}
+
+    for (let k of Object.keys(this.data || {})) {
+      if (this.data[k] !== undefined) {
+        data[k] = String(this.data[k])
+      }
+    }
+
+    for (let k of Object.keys(this._modifier || {})) {
+      if (this._modifier[k] !== undefined) {
+        data[k] = String(this._modifier[k])
+      }
+    }
+
+    return {
+      type: this._type,
+      data: Object.keys(data).length > 0 ? data : null
+    }
   }
 
   valueOf () {
