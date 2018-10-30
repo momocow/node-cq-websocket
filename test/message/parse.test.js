@@ -1,4 +1,5 @@
 const { test } = require('ava')
+const { spy } = require('sinon')
 
 const {
   CQAnonymous,
@@ -30,6 +31,8 @@ test('parse(string_msg)', t => {
     new CQEmoji(128251),
     new CQText('] test [[CQ:invalid,any=prop]]')
   ])
+
+  // Array.prototype.join() call #toString() on each item internally
   t.is(tags.join(''), msg)
 })
 
@@ -80,7 +83,7 @@ const TAGS = [
   { text: '[CQ:dice,type=4]', prototype: CQDice },
   { text: '[CQ:emoji,id=128251]', prototype: CQEmoji },
   { text: '[CQ:face,id=1]', prototype: CQFace },
-  { text: '[CQ:image,file=file]', prototype: CQImage },
+  { text: '[CQ:image,file=file,url=url]', prototype: CQImage },
   { text: '[CQ:music,type=qq,id=1]', prototype: CQMusic },
   { text: '[CQ:record,file=file]', prototype: CQRecord },
   { text: '[CQ:rps,type=1]', prototype: CQRPS },
@@ -90,13 +93,21 @@ const TAGS = [
 ]
 
 TAGS.forEach(TAG => {
-  test.skip(TAG.text, macro, TAG.text, TAG.prototype)
+  test(TAG.text, macro, TAG.text, TAG.prototype)
 })
 
-function macro (t, text, proto) {
-  t.plan(2)
+function macro (t, text, clazz) {
+  t.plan(3)
+
+  const coerce = spy(clazz.prototype, 'coerce')
+
   const tags = parse(text)
 
   t.is(tags.length, 1)
-  t.true(tags[0] instanceof proto)
+  t.true(tags[0] instanceof clazz)
+
+  // ensure that the #coerce() of each CQTag successor class has been called when a tag is parsed
+  // then we can test against that
+  // the #coerce() of each CQTag successor class coerces the data to the correct types
+  t.true(coerce.calledOnce)
 }
