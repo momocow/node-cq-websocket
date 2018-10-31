@@ -1,4 +1,5 @@
-const { CQBFace, CQFace } = require('../../..')
+const { CQBFace } = require('../../..')
+const CQFakeTag = require('../../fixture/CQFakeTag')
 
 module.exports = {
   name: 'CQBFace',
@@ -9,7 +10,7 @@ module.exports = {
     ],
     inequal: [
       new CQBFace(2, 'p'),
-      new CQFace(1)
+      new CQFakeTag()
     ]
   },
   toString: [{

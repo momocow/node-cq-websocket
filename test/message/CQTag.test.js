@@ -19,7 +19,7 @@ test('CQTag #toString(): fields with undefined values will not be serialized.', 
 })
 
 test('CQTag #toJSON(): fields with undefined values will not include into JSON.', t => {
-  t.plan(1)
+  t.plan(2)
 
   const tag = new CQTag('at', { qq: 123456789, none: undefined })
 
@@ -37,4 +37,26 @@ test('CQTag #toJSON(): fields with undefined values will not include into JSON.'
       qq: '123456789'
     }
   }))
+})
+
+test('does not equal to any non CQTag instances', t => {
+  t.plan(1)
+  const tag = new CQTag('record')
+  t.false(tag.equals({
+    type: 'record',
+    data: null
+  }))
+})
+
+test('custom modifiers', t => {
+  t.plan(2)
+
+  const tag = new CQTag('record')
+  t.is(tag.toString(), '[CQ:record]')
+
+  tag.modifier = {
+    magic: true
+  }
+
+  t.is(tag.toString(), '[CQ:record,magic=true]')
 })

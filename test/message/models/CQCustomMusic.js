@@ -1,4 +1,5 @@
-const { CQCustomMusic, CQFace } = require('../../..')
+const { CQCustomMusic } = require('../../..')
+const CQFakeTag = require('../../fixture/CQFakeTag')
 
 module.exports = {
   name: 'CQCustomMusic',
@@ -9,7 +10,7 @@ module.exports = {
     ],
     inequal: [
       new CQCustomMusic('another_url', 'audio', 'title', 'content', 'image'),
-      new CQFace(1)
+      new CQFakeTag()
     ]
   },
   toString: [{
@@ -17,18 +18,28 @@ module.exports = {
     string: '[CQ:music,type=custom,url=url,audio=audio,title=title,content=content,image=image]'
   }],
   toJSON: [{
-    target: new CQCustomMusic(123456789),
+    target: new CQCustomMusic('url', 'audio', 'title', 'content', 'image'),
     json: {
-      type: 'at',
+      type: 'music',
       data: {
-        qq: '123456789'
+        type: 'custom',
+        url: 'url',
+        audio: 'audio',
+        title: 'title',
+        content: 'content',
+        image: 'image'
       }
     }
   }],
   coerce: [{
-    target: '[CQ:at,qq=123456789]',
+    target: '[CQ:music,type=custom,url=url,audio=audio,title=title,content=content,image=image]',
     spec: {
-      qq: 123456789
+      type: 'custom',
+      url: 'url',
+      audio: 'audio',
+      title: 'title',
+      content: 'content',
+      image: 'image'
     }
   }]
 }

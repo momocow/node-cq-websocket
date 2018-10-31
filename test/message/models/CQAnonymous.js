@@ -1,4 +1,5 @@
-const { CQAnonymous, CQFace } = require('../../..')
+const { CQAnonymous } = require('../../..')
+const CQFakeTag = require('../../fixture/CQFakeTag')
 
 module.exports = {
   name: 'CQAnonymous',
@@ -9,7 +10,7 @@ module.exports = {
       new CQAnonymous(true)
     ],
     inequal: [
-      new CQFace(1)
+      new CQFakeTag()
     ]
   },
   toString: [{
@@ -27,10 +28,12 @@ module.exports = {
   }],
   extra: [
     function (test) {
-      test('CQAnonymous #shouldIgnoreIfFailed()', t => {
+      test('CQAnonymous #ignore', t => {
         t.plan(2)
-        t.false(new CQAnonymous().shouldIgnoreIfFailed())
-        t.true(new CQAnonymous(true).shouldIgnoreIfFailed())
+        const tag = new CQAnonymous()
+        t.false(tag.ignore)
+        tag.ignore = true
+        t.true(tag.ignore)
       })
     }
   ]

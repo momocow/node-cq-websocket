@@ -37,24 +37,22 @@ MODELS.forEach(function ({
   /**
    * #toString()
    */
-  {
-    const { target, string } = toString
-    test(`${name} #toString()`, t => {
-      t.plan(1)
+  test(`${name} #toString()`, t => {
+    t.plan(toString.length)
+    toString.forEach(({ target, string }) => {
       t.is(target.toString(), string)
     })
-  }
+  })
 
   /**
    * #toJSON()
    */
-  {
-    const { target, json } = toJSON
-    test(`${name} #toJSON()`, t => {
-      t.plan(1)
+  test(`${name} #toJSON()`, t => {
+    t.plan(toJSON.length)
+    toJSON.forEach(({ target, json }) => {
       t.deepEqual(target.toJSON(), json)
     })
-  }
+  })
 
   /**
    * #coerce()
@@ -63,14 +61,20 @@ MODELS.forEach(function ({
   // if the spec does not contain a "coerce" section,
   // it indicates that the tag may not be received from CoolQ
   if (coerce) {
-    const { target, spec } = coerce
     test(`${name} #coerce()`, t => {
-      const entries = Object.entries(spec)
-      t.plan(entries.length)
+      t.plan(
+        coerce
+          .map(({ spec }) => Object.keys(spec).length)
+          .reduce((acc, len) => acc + len, 0)
+      )
 
-      for (let [ k, v ] of entries) {
-        t.is(parse(target)[0][k], v)
-      }
+      coerce.forEach(({ target, spec }) => {
+        const entries = Object.entries(spec)
+        const parsed = parse(target)[0]
+        for (let [ k, v ] of entries) {
+          t.is(parsed[k], v)
+        }
+      })
     })
   }
 

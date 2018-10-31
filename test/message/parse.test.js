@@ -18,6 +18,7 @@ const {
   CQShare,
   CQText
 } = require('../..')
+const CQTag = require('../../src/message/CQTag')
 const parse = require('../../src/message/parse')
 
 test('parse(string_msg)', t => {
@@ -111,3 +112,11 @@ function macro (t, text, clazz) {
   // the #coerce() of each CQTag successor class coerces the data to the correct types
   t.true(coerce.calledOnce)
 }
+
+test('parse(): unsupported tags will be parsed into CQText', t => {
+  t.plan(3)
+  const tag = parse('[CQ:unknown,key=value]')[0]
+  t.true(tag instanceof CQText)
+  t.is(tag.text, '[CQ:unknown,key=value]')
+  t.is(tag.toString(), '[CQ:unknown,key=value]')
+})
