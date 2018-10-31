@@ -517,8 +517,6 @@ class CQWebSocket extends $Callable {
           this._monitor[_label].reconnecting = true
           this._eventBus.emit('socket.reconnecting', _type, this._monitor[_label].attempts)
           _reconnect(_type, _label)
-          break
-        default:
       }
     }, wsType)
     return this
