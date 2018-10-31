@@ -100,7 +100,42 @@ test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event 
         {
           type: 'at',
           data: {
-            qq: 123456789
+            qq: '123456789'
+          }
+        }
+      ])
+      t.end()
+    })
+
+  emitMessage(t)
+})
+
+test.cb('CQEvent: can decide which type of messages to append on according to the format', function (t) {
+  t.plan(2)
+
+  t.context.bot
+    .on('message.private', function (e) {
+      e.setMessage([ new CQAt(1) ])
+    })
+    .on('message.private', function (e) {
+      const msg = e.messageFormat === 'array'
+        ? { type: 'text', data: { text: 'hello' } }
+        : 'hello'
+      e.appendMessage(msg)
+    })
+    .on('api.send.post', function () {
+      t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
+      t.deepEqual(t.context.callSpy.firstCall.args[1].message, [
+        {
+          type: 'at',
+          data: {
+            qq: '1'
+          }
+        },
+        {
+          type: 'text',
+          data: {
+            text: 'hello'
           }
         }
       ])
@@ -111,7 +146,7 @@ test.cb('CQEvent: return a list of CQTag/CQHTTPMessage objects in message event 
 })
 
 test.cb('CQEvent: modify the response message on the CQEvent across multiple listeners', function (t) {
-  t.plan(2)
+  t.plan(3)
 
   t.context.bot
     .on('message.private', function (e) {
@@ -124,6 +159,7 @@ test.cb('CQEvent: modify the response message on the CQEvent across multiple lis
     })
     .on('message', function (e) {
       e.appendMessage('!')
+      t.is(e.messageFormat, 'string')
     })
     .on('api.send.post', function () {
       t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
@@ -174,6 +210,29 @@ test.cb('CQEvent: listen for response result on the CQEvent', function (t) {
         stubSend.restore()
       }, 5000) // timeout: 5 sec
 
+      return 'some messages'
+    })
+  emitMessage(t)
+})
+
+test.cb('CQEvent: can work without response handler', function (t) {
+  t.plan(1)
+
+  const stubSend = stub(t.context.bot._apiSock, 'send')
+  stubSend.callsFake(function (data) {
+    const { echo, params: { message } } = JSON.parse(data)
+    t.is(message, 'some messages')
+    this.onMessage(JSON.stringify({
+      retcode: 0,
+      echo
+    }))
+  })
+
+  t.context.bot
+    .on('message.private', function () {
+      setTimeout(() => {
+        t.end()
+      }, 1000)
       return 'some messages'
     })
   emitMessage(t)
