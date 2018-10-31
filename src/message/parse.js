@@ -77,9 +77,6 @@ function castCQTag (cqtag) {
       break
     case 'text':
       proto = CQText.prototype
-      break
-    default:
-      return cqtag
   }
 
   return Object.setPrototypeOf(cqtag, proto).coerce()
@@ -98,7 +95,7 @@ module.exports = function parse (message) {
       .map(castCQTag)
 
     // insert text tags into appropriate position
-    return nonTextTags.reduce((tags, cqtag, index) => {
+    const ret = nonTextTags.reduce((tags, cqtag, index) => {
       const cqtagStr = cqtag.toString()
       const cqtagIndex = message.indexOf(cqtagStr)
       if (cqtagIndex !== textTagScanner) {
@@ -107,13 +104,15 @@ module.exports = function parse (message) {
       }
       tags.push(cqtag)
       textTagScanner = cqtagIndex + cqtagStr.length
-      if (nonTextTags.length - 1 === index && textTagScanner < message.length) {
-        // last tag but there is still text
-        const text = message.substring(textTagScanner)
-        tags.push(new CQText(text))
-      }
       return tags
     }, [])
+
+    if (textTagScanner < message.length) {
+      // there is still text
+      const text = message.substring(textTagScanner)
+      ret.push(new CQText(text))
+    }
+    return ret
   }
 
   if (Array.isArray(message)) {
