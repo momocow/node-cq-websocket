@@ -4,7 +4,7 @@ const EMIT_DELAY = 100
 const { spy } = require('sinon')
 
 const { CQWebSocketAPI } = require('../fixture/connect-success')()
-const CQEvent = CQWebSocketAPI.CQEvent
+const { CQEvent } = require('../../src/event-bus')
 const { test } = require('ava')
 
 function emitEvent (t, msgObj = {}) {
@@ -13,12 +13,10 @@ function emitEvent (t, msgObj = {}) {
   }, EMIT_DELAY)
 }
 
-function macro (t, event, { raw_message } = {}) {
-  // @deprecated
-  const atMe = event.endsWith('.@me') || event.endsWith('.@.me')
+function macro (t, event, { rawMessage } = {}) {
   let postfix = ''
-  if (atMe) {
-    const matched = event.match(/^(message\.(discuss|group))(\.@\.?me)$/)
+  const matched = event.match(/^(message\.(discuss|group))(\.@\.me)$/)
+  if (matched) {
     event = matched[1]
     postfix = matched[3]
   }
@@ -33,7 +31,7 @@ function macro (t, event, { raw_message } = {}) {
   }
 
   const msgObj = {
-    post_type: majorType,
+    post_type: majorType
   }
 
   if (subType) {
@@ -43,13 +41,16 @@ function macro (t, event, { raw_message } = {}) {
   switch (majorType) {
     case 'message':
       msgObj.message_type = minorType
-      msgObj.raw_message = raw_message || `${atMe ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
+      msgObj.message = rawMessage || `${postfix === '.@.me' ? `[CQ:at,qq=${t.context.bot._qq}]` : ''} test`
       break
     case 'notice':
       msgObj.notice_type = minorType
       break
     case 'request':
       msgObj.request_type = minorType
+      break
+    case 'meta_event':
+      msgObj.meta_event_type = minorType
       break
     default:
       t.fail('Invalid major type')
@@ -64,32 +65,25 @@ function macro (t, event, { raw_message } = {}) {
   for (let i = 0; i < arrEvent.length; i++) {
     const _spy = spy()
     spies.push(_spy)
-  
+
     const prefix = i > 0 ? arrEvent[i - 1] + '.' : ''
     arrEvent[i] = prefix + arrEvent[i]
     t.context.bot.on(arrEvent[i], _spy)
   }
 
-  if (atMe) {
-    if (postfix === '.@.me') {
-      const _spy1 = spy()
-      const _spy2 = spy()
-      spies.push(_spy1)
-      spies.push(_spy2)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@', _spy1)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@.me', _spy2)
-    } else {
-      const _spy = spy()
-      spies.push(_spy)
-      t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@me', _spy)
-    }
+  if (postfix === '.@.me') {
+    const _spy1 = spy()
+    const _spy2 = spy()
+    spies.push(_spy1)
+    spies.push(_spy2)
+    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@', _spy1)
+    t.context.bot.on(arrEvent[arrEvent.length - 1] + '.@.me', _spy2)
   }
 
   t.plan(spies.length * (majorType === 'message' ? 4 : 3) - 1)
 
   // Assertion after root event has been emitted
   t.context.bot.on(arrEvent[0], function () {
-
     // 相關母子事件均被觸發過
     spies.forEach((_spy, i) => {
       t.true(_spy.calledOnce)
@@ -142,7 +136,7 @@ eventlist.forEach(function (event) {
 
 const extraMsgEvents = [ 'message.discuss.@', 'message.group.@' ]
 extraMsgEvents.forEach(function (event) {
-  test.cb(`Event [${event}]: someone @-ed but not bot`, macro, event, { raw_message: '[CQ:at,qq=987654321]' })
+  test.cb(`Event [${event}]: someone @-ed but not bot`, macro, event, { rawMessage: '[CQ:at,qq=987654321]' })
 })
 
 function invalidEventMacro (t, msgObj) {
@@ -197,4 +191,9 @@ test.cb(`Event [invalid request]`, invalidEventMacro, {
 test.cb(`Event [invalid request:group]`, invalidEventMacro, {
   post_type: 'request',
   request_type: 'group'
+})
+
+test.cb(`Event [invalid meta_event]`, invalidEventMacro, {
+  post_type: 'meta_event',
+  meta_event_type: 'fake'
 })

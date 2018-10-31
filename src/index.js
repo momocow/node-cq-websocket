@@ -3,8 +3,8 @@ const shortid = require('shortid')
 const $get = require('lodash.get')
 const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
-const $CQAtTag = require('./cq-tags/CQAtTag')
-const $CQ = require('./cq-tags/cq-utils')
+const message = require('./message')
+const { parse: parseCQTags } = message
 const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
 
 const WebSocketType = {
@@ -16,13 +16,21 @@ const WebSocketState = {
   DISABLED: -1, INIT: 0, CONNECTING: 1, CONNECTED: 2, CLOSING: 3, CLOSED: 4
 }
 
+const WebSocketProtocols = [
+  'https:',
+  'http:',
+  'ws:',
+  'wss:'
+]
+
 class CQWebSocket extends $Callable {
   constructor ({
     // connectivity configs
-    host,
-    port,
-    access_token: accessToken = '',
-    baseUrl = '127.0.0.1:6700',
+    protocol = 'ws:',
+    host = '127.0.0.1',
+    port = 6700,
+    accessToken = '',
+    baseUrl,
 
     // application aware configs
     enableAPI = true,
@@ -44,14 +52,25 @@ class CQWebSocket extends $Callable {
   } = {}) {
     super('__call__')
 
-    ///*****************/
+    /// *****************/
+    //     poka-yoke 😇
+    /// *****************/
+    protocol = protocol.toLowerCase()
+    if (protocol && !protocol.endsWith(':')) protocol += ':'
+    if (
+      baseUrl &&
+      WebSocketProtocols.filter(proto => baseUrl.startsWith(proto + '//')).length === 0
+    ) {
+      baseUrl = `${protocol}//${baseUrl}`
+    }
+
+    /// *****************/
     //     options
-    ///*****************/
+    /// *****************/
 
     this._token = String(accessToken)
     this._qq = parseInt(qq)
-    this._atme = new $CQAtTag(this._qq)
-    this._baseUrl = host ? `${host}${port ? `:${port}` : '' }` : baseUrl
+    this._baseUrl = baseUrl || `${protocol}//${host}:${port}`
 
     this._reconnectOptions = {
       reconnection,
@@ -59,7 +78,7 @@ class CQWebSocket extends $Callable {
       reconnectionDelay
     }
 
-    this._requestOptions = typeof requestOptions !== 'object' ? {} : requestOptions
+    this._requestOptions = requestOptions
 
     this._wsOptions = { }
 
@@ -74,9 +93,9 @@ class CQWebSocket extends $Callable {
         this._wsOptions[k] = v
       })
 
-    ///*****************/
+    /// *****************/
     //     states
-    ///*****************/
+    /// *****************/
 
     this._monitor = {
       EVENT: {
@@ -137,7 +156,7 @@ class CQWebSocket extends $Callable {
         action: method,
         params: params
       }
-  
+
       this._eventBus.emit('api.send.pre', apiRequest)
 
       const onSuccess = (ctxt) => {
@@ -178,38 +197,38 @@ class CQWebSocket extends $Callable {
     switch (msgObj.post_type) {
       case 'message':
         // parsing coolq tags
-        const tags = $CQ.parse(msgObj.raw_message)
+        const tags = parseCQTags(msgObj.message)
 
         switch (msgObj.message_type) {
           case 'private':
-            this._eventBus.emit('message.private', msgObj)
+            this._eventBus.emit('message.private', msgObj, tags)
             break
           case 'discuss':
             {
               // someone is @-ed
-              const attags = tags.filter(t => t instanceof $CQAtTag)
+              const attags = tags.filter(t => t.tagName === 'at')
               if (attags.length > 0) {
-                if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                  this._eventBus.emit('message.discuss.@.me', msgObj)
+                if (attags.filter(t => t.qq === this._qq).length > 0) {
+                  this._eventBus.emit('message.discuss.@.me', msgObj, tags)
                 } else {
-                  this._eventBus.emit('message.discuss.@', msgObj, attags)
+                  this._eventBus.emit('message.discuss.@', msgObj, tags)
                 }
               } else {
-                this._eventBus.emit('message.discuss', msgObj)
+                this._eventBus.emit('message.discuss', msgObj, tags)
               }
             }
             break
           case 'group':
             {
-              const attags = tags.filter(t => t instanceof $CQAtTag)
+              const attags = tags.filter(t => t.tagName === 'at')
               if (attags.length > 0) {
-                if (attags.filter(t => t.equals(this._atme)).length > 0) {
-                  this._eventBus.emit('message.group.@.me', msgObj)
+                if (attags.filter(t => t.qq === this._qq).length > 0) {
+                  this._eventBus.emit('message.group.@.me', msgObj, tags)
                 } else {
-                  this._eventBus.emit('message.group.@', msgObj, attags)
+                  this._eventBus.emit('message.group.@', msgObj, tags)
                 }
               } else {
-                this._eventBus.emit('message.group', msgObj)
+                this._eventBus.emit('message.group', msgObj, tags)
               }
             }
             break
@@ -289,6 +308,18 @@ class CQWebSocket extends $Callable {
             this._eventBus.emit('error', new Error(`Unexpected "request_type"\n${JSON.stringify(msgObj, null, 2)}`))
         }
         break
+      case 'meta_event':
+        switch (msgObj.meta_event_type) {
+          case 'lifecycle':
+            this._eventBus.emit('meta_event.lifecycle', msgObj)
+            break
+          case 'heartbeat':
+            this._eventBus.emit('meta_event.heartbeat', msgObj)
+            break
+          default:
+            this._eventBus.emit('error', new Error(`Unexpected "meta_event_type"\n${JSON.stringify(msgObj, null, 2)}`))
+        }
+        break
       default:
         this._eventBus.emit('error', new Error(`Unexpected "post_type"\n${JSON.stringify(msgObj, null, 2)}`))
     }
@@ -323,7 +354,7 @@ class CQWebSocket extends $Callable {
       if ([ WebSocketState.INIT, WebSocketState.CLOSED ].includes(this._monitor[_label].state)) {
         const tokenQS = this._token ? `?access_token=${this._token}` : ''
 
-        let _sock = new $WebSocket(`ws://${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
+        let _sock = new $WebSocket(`${this._baseUrl}/${_label.toLowerCase()}${tokenQS}`, undefined, this._wsOptions)
 
         if (_type === WebSocketType.EVENT) {
           this._eventSock = _sock
@@ -349,7 +380,6 @@ class CQWebSocket extends $Callable {
               this('get_login_info')
                 .then((ctxt) => {
                   this._qq = parseInt($get(ctxt, 'data.user_id', -1))
-                  this._atme = new $CQAtTag(this._qq)
                 })
                 .catch(err => {
                   this._eventBus.emit('error', err)
@@ -487,8 +517,6 @@ class CQWebSocket extends $Callable {
           this._monitor[_label].reconnecting = true
           this._eventBus.emit('socket.reconnecting', _type, this._monitor[_label].attempts)
           _reconnect(_type, _label)
-          break
-        default:
       }
     }, wsType)
     return this
@@ -501,8 +529,10 @@ class CQWebSocket extends $Callable {
   }
 }
 
-module.exports.default = CQWebSocket
-module.exports.CQWebSocket = CQWebSocket
-module.exports.WebSocketType = WebSocketType
-module.exports.WebSocketState = WebSocketState
-module.exports.CQEvent = require('./event-bus.js').CQEvent
+module.exports = {
+  default: CQWebSocket,
+  CQWebSocket,
+  WebSocketType,
+  WebSocketState,
+  ...message
+}

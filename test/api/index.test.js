@@ -4,9 +4,10 @@ const {
   default: defaultExport,
   CQWebSocket,
   WebSocketType,
-  WebSocketState,
-  CQEvent
+  WebSocketState
 } = require('../..')
+
+const { CQEvent } = require('../../src/event-bus')
 
 test('CQWebSocket is exposed as default export.', (t) => {
   t.plan(1)

@@ -26,7 +26,7 @@ if (options.help) {
     port: options.port,
     baseUrl: options.url,
     qq: options.qq,
-    access_token: options.token
+    accessToken: options.token
   })
   
   // 設定訊息監聽

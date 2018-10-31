@@ -6,10 +6,22 @@
       "@semantic-release/changelog",
       {
         "changelogFile": "docs/CHANGELOG.md",
-        "changelogTitle": "CQWeoSocket"
+        "changelogTitle": "CQWebSocket"
       }
     ],
     "@semantic-release/npm",
-    "@semantic-release/github"
+    "@semantic-release/github",
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "dist/**/*.js",
+          "docs/CHANGELOG.md",
+          "package.json",
+          "package-lock.json",
+          "npm-shrinkwrap.json"
+        ]
+      }
+    ]
   ]
 }

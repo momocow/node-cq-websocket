@@ -1,6 +1,5 @@
 const { spy } = require('sinon')
 
-
 const connectSuccess = require('./connect-success')
 
 module.exports = function (options) {

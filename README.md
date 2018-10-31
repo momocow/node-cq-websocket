@@ -74,12 +74,13 @@ SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket
 
 | 屬性 | 類型 | 默認值 |  說明
 | - | - | - | - |
-| `access_token` | string | `""` | API 訪問 token 。見 CQHTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
+| `accessToken` | string | `""` | API 訪問 token 。見 CQHTTP API 之[配置文件說明](https://cqhttp.cc/docs/4.2/#/Configuration) |
 |  `enableAPI` | boolean | `true` | 啟用 /api 連線 |
 |  `enableEvent` | boolean | `true` | 啟用 /event 連線 |
-|  `host` | string | `"127.0.0.1"` | 伺服器 IP |
-|  `port` | number | 6700 | 伺服器端口 |
-|  `baseUrl` | string | 6700 | 伺服器位址 (SDK在建立連線時會依照此設定加上前綴項 `ws://` 及後綴項 `/<api|event>[?access_token={token}]`) |
+|  `protocol` | string | `"ws:"` | 協議名 |
+|  `host` | string | `"127.0.0.1"` | 酷Q伺服器 IP |
+|  `port` | number | 6700 | 酷Q伺服器端口 |
+|  `baseUrl` | string | 6700 | 酷Q伺服器位址 (SDK在建立連線時會依照此設定加上前綴項 `ws://` 及後綴項 `/<api|event>[?accessToken={token}]`) |
 |  `qq` | number &#124; string | -1 | 觸發 `@me` 事件用的QQ帳號，通常同登入酷Q之帳號，用在討論組消息及群消息中辨認是否有人at此帳號 |
 |  `reconnection` | boolean | true | 是否連線錯誤時自動重連 |
 |  `reconnectionAttempts` | number | Infinity | **連續**連線失敗的次數不超過這個值 |
@@ -92,8 +93,10 @@ SDK 的主要類別，底下封裝了兩個用於與 CQHTTP API 連線之 socket
 - 返回值: 一個新配置的 `CQWebSocket` 類別實例
 
 設定 ws 伺服器位址時, 你可以從以下方式擇一配置。如果以下方式同時存在於配置中, 則採用其中編號最小的方式。
-  1. 使用 `host` 項指定伺服器, `port` 項為可選。
-  2. 使用 `baseUrl` 項指定伺服器 URL。
+  1. 使用 `baseUrl` 項指定伺服器 URL。
+   > 若 `baseUrl` 未以協議名作為開頭, 則自動加上前綴 `"ws://"` 。
+  2. 使用 `protocol`, `host`, `port` (皆為可選, 默認值見上表) 指定目標伺服器。
+   > `protocol` 會自動轉為小寫, 且若 `protocol` 未以 `":"` 結尾, 則自動加上後綴 `":"` 。
 
 ### 自動獲取機器人QQ號
 若機器人配置 `enableAPI` 為 true, 且沒有通過 `qq` 項配置機器人ID的話, 連線建立成功後會主動發送 API 請求向 CQHTTP API 取得酷Q正登錄的QQ號作為機器人QQ號。

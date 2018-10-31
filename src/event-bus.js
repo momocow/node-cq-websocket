@@ -2,6 +2,8 @@ const $get = require('lodash.get')
 
 const $traverse = require('./util/traverse')
 
+const CQTag = require('./message/CQTag')
+
 class CQEventBus {
   constructor (cqbot) {
     // eventType-to-handlers mapping
@@ -76,6 +78,11 @@ class CQEventBus {
           pre: [],
           post: []
         }
+      },
+      meta_event: {
+        '': [],
+        lifecycle: [],
+        heartbeat: []
       }
     }
 
@@ -84,8 +91,8 @@ class CQEventBus {
      *   from the original listener received via #once(event, listener)
      *   to the once listener wrapper function
      *     which wraps the original listener
-     *     and is the listener that is actually registered via #on(event, listener) 
-     * @type {Map<Function, Function>}
+     *     and is the listener that is actually registered via #on(event, listener)
+     * @type {WeakMap<Function, Function>}
      */
     this._onceListeners = new WeakMap()
 
@@ -143,7 +150,7 @@ class CQEventBus {
 
         let returned = await Promise.resolve(handler(...args))
 
-        if (isResponsable && typeof returned === 'string') {
+        if (isResponsable && (typeof returned === 'string' || Array.isArray(returned))) {
           cqevent.stopPropagation()
           cqevent.setMessage(returned)
         }
@@ -154,23 +161,25 @@ class CQEventBus {
       }
 
       if (isResponsable && cqevent.hasMessage()) {
-        this._bot(
-          'send_msg',
-          {
-            ...args[1],
-            message: cqevent.getMessage()
-          }, cqevent._responseOptions
-        ).then(ctxt => {
-          if (typeof cqevent._responseHandler === 'function') {
-            cqevent._responseHandler(ctxt)
-          }
-        }).catch(err => {
-          if (typeof cqevent._errorHandler === 'function') {
-            cqevent._errorHandler(err)
-          } else {
-            this.emit('error', err)
-          }
-        })
+        let message = cqevent.getMessage()
+        message = !Array.isArray(message) ? message
+          : message
+            .filter(cqmsg => typeof cqmsg === 'object')
+            .map(cqmsg => cqmsg instanceof CQTag ? cqmsg.toJSON() : cqmsg)
+
+        this._bot('send_msg', { ...args[1], message }, cqevent._responseOptions)
+          .then(ctxt => {
+            if (typeof cqevent._responseHandler === 'function') {
+              cqevent._responseHandler(ctxt)
+            }
+          })
+          .catch(err => {
+            if (typeof cqevent._errorHandler === 'function') {
+              cqevent._errorHandler(err)
+            } else {
+              this.emit('error', err)
+            }
+          })
       }
     }
   }
@@ -220,7 +229,7 @@ class CQEventBus {
     const idx = queue.indexOf(handler)
     const wrapperIdx = this._onceListeners.has(handler)
       ? queue.indexOf(this._onceListeners.get(handler)) : -1
-    
+
     // no matter the listener is a once listener wrapper or not,
     // the first occurence of the "handler" (2nd arg passed in) or its wrapper will be removed from the queue
     const victimIdx = idx >= 0 && wrapperIdx >= 0
@@ -295,10 +304,17 @@ function onSocketError (which, err) {
 class CQEvent {
   constructor () {
     this._isCanceled = false
+    /**
+     * @type {CQTag[] | string}
+     */
     this._message = ''
     this._responseHandler = null
     this._responseOptions = null
     this._errorHandler = null
+  }
+
+  get messageFormat () {
+    return typeof this._message === 'string' ? 'string' : 'array'
   }
 
   stopPropagation () {
@@ -310,15 +326,20 @@ class CQEvent {
   }
 
   hasMessage () {
-    return Boolean(this._message)
+    return typeof this._message === 'string'
+      ? Boolean(this._message) : this._message.length > 0
   }
 
   setMessage (msgIn) {
-    this._message = String(msgIn)
+    this._message = msgIn
   }
 
   appendMessage (msgIn) {
-    this._message += String(msgIn)
+    if (typeof this._message === 'string') {
+      this._message += String(msgIn)
+    } else {
+      this._message.push(msgIn)
+    }
   }
 
   /**
