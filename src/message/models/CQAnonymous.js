@@ -6,7 +6,11 @@ module.exports = class CQAnonymous extends CQTag {
     this.modifier.ignore = Boolean(shouldIgnoreIfFailed)
   }
 
-  shouldIgnoreIfFailed () {
+  get ignore () {
     return this.modifier.ignore
+  }
+
+  set ignore (shouldIgnoreIfFailed) {
+    this.modifier.ignore = Boolean(shouldIgnoreIfFailed)
   }
 }

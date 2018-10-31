@@ -183,8 +183,8 @@ export class CQAt extends CQTag {
 }
 
 export class CQAnonymous extends CQTag {
+  ignore: boolean
   constructor(shouldIgnoreIfFailed?: boolean)
-  shouldIgnoreIfFailed(): boolean
 }
 
 export class CQBFace extends CQTag {
@@ -226,7 +226,8 @@ export class CQFace extends CQTag {
 export class CQImage extends CQTag {
   readonly file: string
   readonly url?: string
-  constructor(file: string, ignoreCache?: boolean)
+  cache?: boolean
+  constructor(file: string, cache?: boolean)
 }
 
 export class CQMusic extends CQTag {
@@ -237,6 +238,7 @@ export class CQMusic extends CQTag {
 
 export class CQRecord extends CQTag {
   readonly file: string
+  magic?: true
   constructor(file: string, magic?: boolean)
   hasMagic(): boolean
 }

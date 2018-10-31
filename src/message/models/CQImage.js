@@ -2,9 +2,9 @@ const CQTag = require('../CQTag')
 const optional = require('../../util/optional')
 
 module.exports = class CQImage extends CQTag {
-  constructor (file, ignoreCache) {
+  constructor (file, cache = true) {
     super('image', { file })
-    this.modifier.cache = ignoreCache ? 0 : undefined
+    this.cache = cache
   }
 
   get file () {
@@ -13,6 +13,14 @@ module.exports = class CQImage extends CQTag {
 
   get url () {
     return this.data.url
+  }
+
+  get cache () {
+    return this.modifier.cache
+  }
+
+  set cache (cache) {
+    this.modifier.cache = !cache ? 0 : undefined
   }
 
   coerce () {

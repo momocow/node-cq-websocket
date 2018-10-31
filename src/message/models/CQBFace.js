@@ -3,7 +3,7 @@ const CQTag = require('../CQTag')
 module.exports = class CQBFace extends CQTag {
   /**
    * @param {number} id
-   * @param {string} p
+   * @param {string} p the unknown, mysterious "P"
    * @see https://github.com/richardchien/coolq-http-api/wiki/CQ-%E7%A0%81%E7%9A%84%E5%9D%91
    */
   constructor (id, p) {

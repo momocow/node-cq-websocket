@@ -6,6 +6,10 @@ module.exports = class CQCustomMusic extends CQTag {
     super('music', { type: 'custom', url, audio, title, content, image })
   }
 
+  get type () {
+    return 'custom'
+  }
+
   get url () {
     return this.data.url
   }

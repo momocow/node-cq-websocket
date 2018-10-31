@@ -17,4 +17,8 @@ module.exports = class CQText extends CQTag {
   toString () {
     return this.data.text
   }
+
+  toJSON () {
+    return this.toString()
+  }
 }
