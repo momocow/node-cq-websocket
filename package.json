@@ -8,6 +8,10 @@
   },
   "main": "./src/index.js",
   "types": "./cq-websocket.d.ts",
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
     "test": "nyc ava test/**/*.test.js",
     "build": "webpack --config ./webpack.config.js",
