@@ -3,6 +3,7 @@ const $get = require('lodash.get')
 const $traverse = require('./util/traverse')
 
 const CQTag = require('./message/CQTag')
+const CQText = require('./message/models/CQText')
 
 class CQEventBus {
   constructor (cqbot) {
@@ -338,6 +339,9 @@ class CQEvent {
     if (typeof this._message === 'string') {
       this._message += String(msgIn)
     } else {
+      if (typeof msgIn === 'string') {
+        msgIn = new CQText(msgIn)
+      }
       this._message.push(msgIn)
     }
   }
