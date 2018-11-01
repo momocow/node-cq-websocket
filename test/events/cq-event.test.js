@@ -123,6 +123,9 @@ test.cb('CQEvent: can decide which type of messages to append on according to th
         : 'hello'
       e.appendMessage(msg)
     })
+    .on('message.private', function (e) {
+      e.appendMessage(' world')
+    })
     .on('api.send.post', function () {
       t.is(t.context.callSpy.firstCall.args[0], 'send_msg')
       t.deepEqual(t.context.callSpy.firstCall.args[1].message, [
@@ -136,6 +139,12 @@ test.cb('CQEvent: can decide which type of messages to append on according to th
           type: 'text',
           data: {
             text: 'hello'
+          }
+        },
+        {
+          type: 'text',
+          data: {
+            text: ' world'
           }
         }
       ])
