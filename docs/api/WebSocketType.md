@@ -2,7 +2,7 @@
 
 ```ts
 enum WebSocketType {
-  API = '/api',
+  API   = '/api',
   EVENT = '/event'
 }
 ```
