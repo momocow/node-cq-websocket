@@ -118,7 +118,7 @@ export class CQWebSocket {
 
   connect (wsType?: WebSocketType): CQWebSocket
   disconnect (wsType?: WebSocketType): CQWebSocket
-  reconnect (delay: number, wsType?: WebSocketType): CQWebSocket
+  reconnect (delay?: number, wsType?: WebSocketType): CQWebSocket
   isSockConnected (wsType: WebSocketType): CQWebSocket
   isReady (): boolean
 
@@ -148,7 +148,7 @@ export class CQWebSocket {
   once (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   once (event_type: 'ready', listener: () => void): CQWebSocket
 
-  off (event_type: Events, listener: Function): CQWebSocket
+  off (event_type?: Events, listener?: Function): CQWebSocket
 }
 export interface CQWebSocket {
   <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<APIResponse<T>>
