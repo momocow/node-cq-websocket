@@ -2,6 +2,7 @@
 
 - [CQEvents](#cqevents)
   - [stopPropagation](#stoppropagation)
+  - [messageFormat](#messageformat)
   - [getMessage](#getmessage)
   - [setMessage](#setmessage)
   - [appendMessage](#appendmessage)
@@ -20,6 +21,16 @@ e.stopPropagation()
 
 <!-- TODO -->
 截獲事件並停止[事件傳播](#事件傳播)。
+
+## messageFormat
+```js
+e.messageFormat
+```
+- `"array"` | `"string"`
+
+messageFormat 字段下可以知道當前響應訊息的型態為 "string" 或 "array"。
+
+可參考[CQHTTP API 消息格式](https://cqhttp.cc/docs/#/Message)。
 
 ## getMessage
 ```js
