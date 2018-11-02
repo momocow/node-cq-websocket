@@ -8,7 +8,7 @@ test('#on(): valid event', function (t) {
   const _spy = spy()
   const bot = new CQWebSocket()
     .on('message.private', _spy)
-  
+
   const queue = bot._eventBus._getHandlerQueue('message.private')
   t.true(Array.isArray(queue))
   t.is(queue.length, 1)
@@ -23,7 +23,7 @@ test('#on(): invalid event', function (t) {
   const _spy = spy()
   const bot = new CQWebSocket()
     .on('invalid.event', _spy)
-  
+
   const queue = bot._eventBus._getHandlerQueue('invalid.event')
   t.false(Array.isArray(queue))
 

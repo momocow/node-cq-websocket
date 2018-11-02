@@ -18,7 +18,6 @@ const {
   CQShare,
   CQText
 } = require('../..')
-const CQTag = require('../../src/message/CQTag')
 const parse = require('../../src/message/parse')
 
 test('parse(string_msg)', t => {

@@ -14,7 +14,7 @@ test.cb('#isSockConnected(wsType=/event)', function (t) {
       t.end()
     })
     .connect(WebSocketType.EVENT)
-  
+
   t.false(bot.isSockConnected(WebSocketType.EVENT))
 })
 
@@ -28,7 +28,7 @@ test.cb('#isSockConnected(wsType=/api)', function (t) {
       t.end()
     })
     .connect(WebSocketType.API)
-  
+
   t.false(bot.isSockConnected(WebSocketType.API))
 })
 

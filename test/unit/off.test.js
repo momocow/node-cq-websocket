@@ -24,20 +24,20 @@ test('#off(): remove all listeners', function (t) {
     .on('socket.connect', NOOP2)
     .on('message.group.@me', NOOP1)
     .on('request.group.invite', NOOP1)
-  
-  const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
+
+  const total1 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
   t.is(bot._eventBus.count('socket.error'), 1)
 
   bot.off()
 
-  const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
-  
+  const total2 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
+
   t.is(total2, 0)
   t.is(bot._eventBus.count('socket.error'), 1)
 })
@@ -51,19 +51,19 @@ test('#off(event): remove all listeners of the specified event', function (t) {
     .on('socket.connect', NOOP2)
     .on('message.group.@me', NOOP1)
     .on('request.group.invite', NOOP1)
-  
-  const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
+
+  const total1 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
 
   bot.off('socket.connect')
 
-  const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
-  
+  const total2 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
+
   t.is(total2, 2)
 })
 
@@ -76,19 +76,19 @@ test('#off(event, listener): remove a specific listener', function (t) {
     .on('socket.connect', NOOP2)
     .on('message.group.@me', NOOP1)
     .on('request.group.invite', NOOP1)
-  
-  const total1 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
+
+  const total1 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
 
   t.is(total1, 4)
 
   bot.off('socket.connect', NOOP1)
 
-  const total2 = bot._eventBus.count('socket.connect')
-    + bot._eventBus.count('message.group.@.me')
-    + bot._eventBus.count('request.group.invite')
-  
+  const total2 = bot._eventBus.count('socket.connect') +
+    bot._eventBus.count('message.group.@.me') +
+    bot._eventBus.count('request.group.invite')
+
   t.is(total2, 3)
   t.is(bot._eventBus._getHandlerQueue('socket.connect')[0], NOOP2)
 })
@@ -102,7 +102,7 @@ test('#off(event, listener): if a listener is registered via multiple #on()\'s, 
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP1)
     .on('socket.connect', NOOP1)
-  
+
   t.is(bot._eventBus.count('socket.connect'), 4)
 
   bot.off('socket.connect', NOOP1)
