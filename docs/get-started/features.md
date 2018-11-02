@@ -155,6 +155,6 @@ bot.on('message', () => {
 每當機器人收到消息時，便會回應 `"[CQ:at,qq=123]你好~ 🤗"`。
 
 ### 延伸閱讀
-[CQ 碼](https://d.cqp.me/Pro/CQ%E7%A0%81)
-[CQHTTP API 之消息格式](https://cqhttp.cc/docs/#/Message)
-[CQHTTP API 之 CQ 碼](https://cqhttp.cc/docs/#/CQCode)
+- [CQ 碼](https://d.cqp.me/Pro/CQ%E7%A0%81)
+- [CQHTTP API 之消息格式](https://cqhttp.cc/docs/#/Message)
+- [CQHTTP API 之 CQ 碼](https://cqhttp.cc/docs/#/CQCode)
