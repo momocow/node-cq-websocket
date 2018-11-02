@@ -114,7 +114,7 @@ test.cb('CQEvent: can decide which type of messages to append on according to th
 
   t.context.bot
     .on('message.private', function (e) {
-      e.setMessage([ new CQAt(1) ])
+      e.setMessage([ new CQAt(1), ' ' ])
     })
     .on('message.private', function (e) {
       const msg = e.messageFormat === 'array'
@@ -132,6 +132,12 @@ test.cb('CQEvent: can decide which type of messages to append on according to th
           type: 'at',
           data: {
             qq: '1'
+          }
+        },
+        {
+          type: 'text',
+          data: {
+            text: ' '
           }
         },
         {
