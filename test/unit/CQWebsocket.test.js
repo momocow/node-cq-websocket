@@ -1,15 +1,14 @@
-const CQWebSocket = require('../..')
-const { WebsocketState } = CQWebSocket
+const { CQWebSocket, WebSocketState } = require('../..')
 
-const { test } = require('ava')
+const test = require('ava').default
 
-test('new Websocket() with default options', function (t) {
+test('new CQWebSocket() with default options', function (t) {
   t.plan(8)
 
   const bot = new CQWebSocket()
 
-  t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
-  t.is(bot._monitor.API.state, WebsocketState.INIT)
+  t.is(bot._monitor.EVENT.state, WebSocketState.INIT)
+  t.is(bot._monitor.API.state, WebSocketState.INIT)
   t.is(bot._baseUrl, 'ws://127.0.0.1:6700')
   t.is(bot._qq, -1)
   t.is(bot._token, '')
@@ -24,7 +23,7 @@ test('new Websocket() with default options', function (t) {
   t.deepEqual(bot._requestOptions, { })
 })
 
-test('new Websocket() with custom options', function (t) {
+test('new CQWebSocket() with custom options', function (t) {
   t.plan(8)
 
   const bot = new CQWebSocket({
@@ -32,7 +31,7 @@ test('new Websocket() with custom options', function (t) {
     enableEvent: true,
     baseUrl: '8.8.8.8:8888/ws',
     qq: 123456789,
-    access_token: 'qwerasdf',
+    accessToken: 'qwerasdf',
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 5000,
@@ -43,8 +42,8 @@ test('new Websocket() with custom options', function (t) {
     }
   })
 
-  t.is(bot._monitor.EVENT.state, WebsocketState.INIT)
-  t.is(bot._monitor.API.state, WebsocketState.DISABLED)
+  t.is(bot._monitor.EVENT.state, WebSocketState.INIT)
+  t.is(bot._monitor.API.state, WebSocketState.DISABLED)
   t.is(bot._baseUrl, 'ws://8.8.8.8:8888/ws')
   t.is(bot._qq, 123456789)
   t.is(bot._token, 'qwerasdf')

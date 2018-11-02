@@ -1,42 +1,41 @@
 // stuffs of stubbing
 const { spy } = require('sinon')
 
-const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
-const { WebsocketType } = CQWebsocket
+const test = require('ava').default
+const { CQWebSocketAPI: { CQWebSocket, WebSocketType } } = require('../fixture/connect-success')()
 
 test.cb('#isSockConnected(wsType=/event)', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', function () {
-      t.true(bot.isSockConnected(WebsocketType.EVENT))
+      t.true(bot.isSockConnected(WebSocketType.EVENT))
       t.end()
     })
-    .connect(WebsocketType.EVENT)
-  
-  t.false(bot.isSockConnected(WebsocketType.EVENT))
+    .connect(WebSocketType.EVENT)
+
+  t.false(bot.isSockConnected(WebSocketType.EVENT))
 })
 
 test.cb('#isSockConnected(wsType=/api)', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   bot
     .on('socket.connect', function () {
-      t.true(bot.isSockConnected(WebsocketType.API))
+      t.true(bot.isSockConnected(WebSocketType.API))
       t.end()
     })
-    .connect(WebsocketType.API)
-  
-  t.false(bot.isSockConnected(WebsocketType.API))
+    .connect(WebSocketType.API)
+
+  t.false(bot.isSockConnected(WebSocketType.API))
 })
 
 test('#isSockConnected(): should have thrown', function (t) {
   t.plan(2)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
   spy(bot, 'isSockConnected')
 
   let res

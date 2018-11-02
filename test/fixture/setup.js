@@ -1,13 +1,11 @@
 const { spy } = require('sinon')
 
-
 const connectSuccess = require('./connect-success')
 
 module.exports = function (options) {
-  const { wsStub, CQWebsocket } = connectSuccess()
-  const { WebsocketType } = CQWebsocket
+  const { wsStub, CQWebSocketAPI: { CQWebSocket, WebSocketType } } = connectSuccess()
 
-  const bot = new CQWebsocket(options)
+  const bot = new CQWebSocket(options)
   const spies = {
     connecting: spy(),
     connect: spy(),
@@ -37,19 +35,19 @@ module.exports = function (options) {
     wsStub,
 
     onMessage (wsType, data) {
-      if (!wsType || wsType === WebsocketType.EVENT) {
+      if (!wsType || wsType === WebSocketType.EVENT) {
         bot._eventSock.onMessage(data)
       }
-      if (!wsType || wsType === WebsocketType.API) {
+      if (!wsType || wsType === WebSocketType.API) {
         bot._apiSock.onMessage(data)
       }
     },
 
     onError (wsType) {
-      if (!wsType || wsType === WebsocketType.EVENT) {
+      if (!wsType || wsType === WebSocketType.EVENT) {
         bot._eventSock.onError()
       }
-      if (!wsType || wsType === WebsocketType.API) {
+      if (!wsType || wsType === WebSocketType.API) {
         bot._apiSock.onError()
       }
     },

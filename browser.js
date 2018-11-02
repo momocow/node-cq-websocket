@@ -1,1 +1,1 @@
-window.CQWebSocket = require('.')
+window.CQWebSocketSDK = require('.')

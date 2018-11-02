@@ -1,9 +1,8 @@
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { test } = require('ava')
-const { CQWebsocket } = require('../fixture/connect-success')()
-const { ApiTimoutError } = require('../../src/errors')
+const test = require('ava').default
+const { CQWebSocketAPI: { CQWebSocket, APITimeoutError } } = require('../fixture/connect-success')()
 
 test.cb('#__call__(method, params)', function (t) {
   t.plan(11)
@@ -12,12 +11,11 @@ test.cb('#__call__(method, params)', function (t) {
   const postSpy = spy()
   const apiResponseSpy = spy()
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789 })
+  const bot = new CQWebSocket({ qq: 123456789 })
     .on('api.send.pre', preSpy)
     .on('api.send.post', postSpy)
     .on('api.response', apiResponseSpy)
     .on('ready', function () {
-      
       const stubSend = stub(bot._apiSock, 'send')
       stubSend.callsFake(function (data) {
         const { echo } = JSON.parse(data)
@@ -67,7 +65,7 @@ test.cb('#__call__(method, params)', function (t) {
 test('#__call__() while disconnected.', async function (t) {
   t.plan(1)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
 
   let thrown = false
   try {
@@ -85,7 +83,7 @@ test.cb('#__call__(method, params, options) with timeout option', function (t) {
   t.plan(5)
 
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789 })
+  const bot = new CQWebSocket({ qq: 123456789 })
     .on('ready', function () {
       t.is(bot._responseHandlers.size, 0)
 
@@ -98,7 +96,7 @@ test.cb('#__call__(method, params, options) with timeout option', function (t) {
       t.is(bot._responseHandlers.size, 1)
 
       ret.catch(err => {
-        t.true(err instanceof ApiTimoutError)
+        t.true(err instanceof APITimeoutError)
         t.deepEqual(err.req, {
           action: 'test',
           params: {
@@ -117,14 +115,14 @@ test.cb('#__call__(method) use global request options if options is omitted', fu
   t.plan(2)
 
   // provide qq to avoid invoking `_apiSock.send`
-  const bot = new CQWebsocket({ qq: 123456789, requestOptions: { timeout: 2000 } })
+  const bot = new CQWebSocket({ qq: 123456789, requestOptions: { timeout: 2000 } })
 
   let start
   bot
     .on('ready', function () {
       start = Date.now()
       bot('test').catch(err => {
-        t.true(err instanceof ApiTimoutError)
+        t.true(err instanceof APITimeoutError)
         // Not sure if this assertion is stable (?)
         t.is(Math.round((Date.now() - start) / 1000), 2)
         t.end()

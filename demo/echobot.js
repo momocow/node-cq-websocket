@@ -26,7 +26,7 @@ if (options.help) {
     port: options.port,
     baseUrl: options.url,
     qq: options.qq,
-    access_token: options.token
+    accessToken: options.token
   })
   
   // 設定訊息監聽
@@ -56,7 +56,7 @@ if (options.help) {
           return context.message
         case 2:
           // 3. 或者透過CQEvent實例，先獲取事件處理權再設置響應訊息
-          e.cancel()
+          e.stopPropagation()
           e.setMessage(context.message)
       }
     })

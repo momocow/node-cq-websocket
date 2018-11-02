@@ -1,8 +1,8 @@
-export enum WebsocketType {
+export enum WebSocketType {
   API = '/api',
   EVENT = '/event'
 }
-export enum WebsocketState {
+export enum WebSocketState {
   DISABLED = -1,
   INIT = 0,
   CONNECTING = 1,
@@ -15,7 +15,7 @@ export interface CQRequestOptions {
 }
 type WebSocketProtocol = "http:" | "https:" | "ws:" | "wss:"
 export interface CQWebSocketOption {
-  access_token: string
+  accessToken: string
   enableAPI: boolean
   enableEvent: boolean
   protocol: WebSocketProtocol
@@ -37,7 +37,6 @@ type BaseEvents = 'message'
                     | 'request'
                     | 'error'
                     | 'ready'
-type MessageAtEvents = 'message.discuss.@' | 'message.group.@'
 type MessageEvents = 'message.private'
                     | 'message.discuss'
                     | 'message.discuss.@'
@@ -82,37 +81,44 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
 type ListenerReturn = void | Promise<void>
-type MessageListenerReturn = ListenerReturn | string | Promise<string>
-type MessageEventListener = (event: CQEvent, context: Record<string, any>) => MessageListenerReturn
-type MessageAtEventListener = (event: CQEvent, context: Record<string, any>, tags: CQAtTag[]) => MessageListenerReturn
+type ArrayMessage = (CQTag|CQHTTPMessage|string)[]
+type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage>
+type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
-type SocketEventListener = (type: WebsocketType, attempts: number) => ListenerReturn
+type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
-export interface ApiTimeoutError extends Error {
-
+export interface APITimeoutError extends Error {
+  readonly req: APIRequest
 }
 
-export class CQEvent {
+export interface SocketError extends Error { }
+
+export interface InvalidWsTypeError extends Error {
+  readonly which: WebSocketType
+}
+
+export interface InvalidContextError extends SyntaxError {
+  readonly which: WebSocketType
+  readonly data: string
+}
+
+export interface UnexpectedContextError extends Error {
+  readonly context: Record<string, any>
+  readonly reason: string
+}
+
+declare class CQEvent {
+  readonly messageFormat: "string" | "array"
   stopPropagation (): void
-  getMessage (): string
-  setMessage (msg: string): void
-  appendMessage (msg: string): void
+  getMessage (): string | ArrayMessage
+  setMessage (msg: string | ArrayMessage): void
+  appendMessage (msg: string | CQTag | CQHTTPMessage): void
   hasMessage (): boolean
   onResponse (handler: (res: object) => void, options: number | CQRequestOptions): void
-  onError (handler: (err: ApiTimeoutError) => void): void
+  onError (handler: (err: APITimeoutError) => void): void
 }
 
-export interface CQTag {
-  constructor (type: string, meta: Record<string, any>): CQTag
-  equals (equals: string | CQTag): boolean
-  toString (): string
-}
-
-export interface CQAtTag extends CQTag {
-  constructor (qq: number | string): CQAtTag
-  getQQ (): number
-}
 export interface APIRequest {
   action: string,
   params?: any
@@ -126,44 +132,157 @@ export interface APIResponse<T> {
 export class CQWebSocket {
   constructor (opt?: Partial<CQWebSocketOption>)
 
-  connect (wsType?: WebsocketType): CQWebSocket
-  disconnect (wsType?: WebsocketType): CQWebSocket
-  reconnect (delay: number, wsType?: WebsocketType): CQWebSocket
-  isSockConnected (wsType: WebsocketType): CQWebSocket
+  connect (wsType?: WebSocketType): CQWebSocket
+  disconnect (wsType?: WebSocketType): CQWebSocket
+  reconnect (delay?: number, wsType?: WebSocketType): CQWebSocket
+  isSockConnected (wsType: WebSocketType): CQWebSocket
   isReady (): boolean
 
-  on (event_type: Exclude<MessageEvents, MessageAtEvents> | 'message', listener: MessageEventListener): CQWebSocket
-  on (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
+  on (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
   on (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   on (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
-  on (event_type: 'socket.connect', listener: (type: WebsocketType, socket: any, attempts: number) => void): CQWebSocket
-  on (event_type: 'socket.closing', listener: (type: WebsocketType) => void): CQWebSocket
-  on (event_type: 'socket.close', listener: (type: WebsocketType, code: number, desc: string) => void): CQWebSocket
-  on (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
+  on (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
+  on (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
+  on (event_type: 'socket.close', listener: (type: WebSocketType, code: number, desc: string) => void): CQWebSocket
+  on (event_type: 'socket.error', listener: (type: WebSocketType, err: SocketError) => void): CQWebSocket
   on (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   on (event_type: 'api.send.post', listener: () => void): CQWebSocket
   on (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
-  on (event_type: 'error', listener: (err: Error) => void): CQWebSocket
+  on (event_type: 'error', listener: (err: InvalidContextError | UnexpectedContextError) => void): CQWebSocket
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
-  once (event_type: Exclude<MessageEvents, MessageAtEvents> | 'message', listener: MessageEventListener): CQWebSocket
-  once (event_type: MessageAtEvents, listener: MessageAtEventListener): CQWebSocket
+  once (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
   once (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
   once (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
-  once (event_type: 'socket.connect', listener: (type: WebsocketType, socket: any, attempts: number) => void): CQWebSocket
-  once (event_type: 'socket.closing', listener: (type: WebsocketType) => void): CQWebSocket
-  once (event_type: 'socket.close', listener: (type: WebsocketType, code: number, desc: string) => void): CQWebSocket
-  once (event_type: 'socket.error', listener: (type: WebsocketType, err: Error) => void): CQWebSocket
+  once (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
+  once (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
+  once (event_type: 'socket.close', listener: (type: WebSocketType, code: number, desc: string) => void): CQWebSocket
+  once (event_type: 'socket.error', listener: (type: WebSocketType, err: Error) => void): CQWebSocket
   once (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   once (event_type: 'api.send.post', listener: () => void): CQWebSocket
   once (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
   once (event_type: 'error', listener: (err: Error) => void): CQWebSocket
   once (event_type: 'ready', listener: () => void): CQWebSocket
 
-  off (event_type: Events, listener: Function): CQWebSocket
+  off (event_type?: Events, listener?: Function): CQWebSocket
 }
 export interface CQWebSocket {
   <T>(method: string, params?: Record<string, any>, options?: number | CQRequestOptions): Promise<APIResponse<T>>
 }
 
 export default CQWebSocket
+
+/******************************************/
+
+type Serializable = string | number | boolean
+
+interface CQHTTPMessage {
+  type: string
+  data: Record<string, string> | null
+}
+
+declare class CQTag {
+  readonly tagName: string
+  readonly data: Readonly<Record<string, Serializable>>
+  modifier: Record<string, Serializable>
+
+  equals(another: CQTag): boolean
+  coerce(): this
+  toJSON(): CQHTTPMessage
+  valueOf(): string
+  toString(): string
+}
+
+export class CQAt extends CQTag {
+  readonly qq: number
+  constructor(qq: number)
+}
+
+export class CQAnonymous extends CQTag {
+  ignore: boolean
+  constructor(shouldIgnoreIfFailed?: boolean)
+}
+
+export class CQBFace extends CQTag {
+  readonly id: number
+
+  /**
+   * To send a bface, not only `id` but also `p`,
+   * which is the name of child directory of `data/bface`,
+   * is required.
+   * @see https://github.com/richardchien/coolq-http-api/wiki/CQ-%E7%A0%81%E7%9A%84%E5%9D%91
+   */
+  constructor (id: number, p: string)
+}
+
+export class CQCustomMusic extends CQTag {
+  readonly url: string
+  readonly audio: string
+  readonly title: string
+  readonly content?: string
+  readonly image?: string
+  readonly type: "custom"
+  constructor(url: string, audio: string, title: string, content?: string, image?: string)
+}
+
+export class CQDice extends CQTag {
+  readonly type: number
+  constructor()
+}
+
+export class CQEmoji extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQFace extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQImage extends CQTag {
+  readonly file: string
+  readonly url?: string
+  cache?: boolean
+  constructor(file: string, cache?: boolean)
+}
+
+export class CQMusic extends CQTag {
+  readonly type: string
+  readonly id: number
+  constructor(type: string, id: number)
+}
+
+export class CQRecord extends CQTag {
+  readonly file: string
+  magic?: true
+  constructor(file: string, magic?: boolean)
+  hasMagic(): boolean
+}
+
+export class CQRPS extends CQTag {
+  readonly type: number
+  constructor()
+}
+
+export class CQSFace extends CQTag {
+  readonly id: number
+  constructor(id: number)
+}
+
+export class CQShake extends CQTag {
+  constructor()
+}
+
+export class CQShare extends CQTag {
+  readonly url: string
+  readonly title: string
+  readonly content?: string
+  readonly image?: string
+  constructor(url: string, title: string, content?: string, image?: string)
+}
+
+export class CQText extends CQTag {
+  readonly text: string
+  constructor(text: string)
+}

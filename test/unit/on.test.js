@@ -1,14 +1,14 @@
-const CQWebsocket = require('../..')
-const { test } = require('ava')
+const { CQWebSocket } = require('../..')
+const test = require('ava').default
 const { spy, stub } = require('sinon')
 
 test('#on(): valid event', function (t) {
   t.plan(3)
 
   const _spy = spy()
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('message.private', _spy)
-  
+
   const queue = bot._eventBus._getHandlerQueue('message.private')
   t.true(Array.isArray(queue))
   t.is(queue.length, 1)
@@ -21,9 +21,9 @@ test('#on(): invalid event', function (t) {
   t.plan(2)
 
   const _spy = spy()
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
     .on('invalid.event', _spy)
-  
+
   const queue = bot._eventBus._getHandlerQueue('invalid.event')
   t.false(Array.isArray(queue))
 
@@ -34,7 +34,7 @@ test('#on(): invalid event', function (t) {
 test('#on(): socket.error', async function (t) {
   t.plan(7)
 
-  const bot = new CQWebsocket()
+  const bot = new CQWebSocket()
 
   const queue = bot._eventBus._getHandlerQueue('socket.error')
   t.true(Array.isArray(queue))
