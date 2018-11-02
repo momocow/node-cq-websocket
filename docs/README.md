@@ -43,7 +43,7 @@ import { CQWebSocket } from 'cq-websocket'
 ```
 
 ## 快速開始
-[閱讀更多 ➡️](docs/get-started/README.md)
+[閱讀更多 ➡️](get-started/README.md)
 
 ## API 文件
-[閱讀更多 ➡️](docs/api/README.md)
+[閱讀更多 ➡️](api/README.md)

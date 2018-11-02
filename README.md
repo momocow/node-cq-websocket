@@ -26,12 +26,12 @@
 
 ## 🎉 功能/特色
 - 輕鬆配置, 快速搭建 QQ 聊天機器人。
-- 自動維護底層連線, 開發者只需專注在聊天應用的開發。若斷線, 可依照配置[重新連線](https://github.com/momocow/node-cq-websocket/tree/master/docs/get-started/features.md#%E6%96%B7%E7%B7%9A%E9%87%8D%E9%80%A3)。
-- 支持消息監聽器內, [快速響應](#快速響應)。
-- 連線建立時, 可[自動獲取機器人QQ號](https://github.com/momocow/node-cq-websocket/tree/master/docs/get-started/features.md#%E8%87%AA%E5%8B%95%E7%8D%B2%E5%8F%96%E6%A9%9F%E5%99%A8%E4%BA%BAqq%E8%99%9F)。
+- 自動維護底層連線, 開發者只需專注在聊天應用的開發。若斷線, 可依照配置[重新連線](docs/get-started/features.md#%E6%96%B7%E7%B7%9A%E9%87%8D%E9%80%A3)。
+- 支持消息監聽器內, [快速響應](docs/get-started/features.md#%E5%BF%AB%E9%80%9F%E9%9F%BF%E6%87%89)。
+- 連線建立時, 可[自動獲取機器人QQ號](docs/get-started/features.md#%E8%87%AA%E5%8B%95%E7%8D%B2%E5%8F%96%E6%A9%9F%E5%99%A8%E4%BA%BAqq%E8%99%9F)。
 
 ## 🗎 SDK 文件
-[閱讀更多 ➡️](https://github.com/momocow/node-cq-websocket/tree/master/docs/README.md)
+[閱讀更多 ➡️](docs/README.md)
 
 ## 🛠️ 開發者看板
 本 SDK 採用 [ava](https://github.com/avajs/ava) 框架執行測試。
@@ -49,7 +49,7 @@ npm run build-demo
 打包 `/demo/webpack/app.js` 內容, 在 `/demo/webpack/www` 目錄下產生一個 `bundle.js`。
 
 ### 開發日誌
-[閱讀更多 ➡️](https://github.com/momocow/node-cq-websocket/tree/master/docs/CHANGELOG.md)
+[閱讀更多 ➡️](docs/CHANGELOG.md)
 
 ### Known Issues
 - CQHTTP API 插件尚未支援收發 Fragmant, 暫時禁用
