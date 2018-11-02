@@ -1,5 +1,4 @@
-const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
-const { ApiTimoutError } = require('../../src/errors')
+const { CQWebSocketAPI: { CQWebSocket, APITimeoutError } } = require('../fixture/connect-success')()
 const { stub } = require('sinon')
 const { test } = require('ava')
 
@@ -44,7 +43,7 @@ test.cb('Auto-fetch failure due to gloabal request timeout', function (t) {
 
   bot
     .on('error', err => {
-      t.true(err instanceof ApiTimoutError)
+      t.true(err instanceof APITimeoutError)
       t.is(err.req.action, 'get_login_info')
       t.end()
     })

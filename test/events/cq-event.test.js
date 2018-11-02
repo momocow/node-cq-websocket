@@ -3,8 +3,7 @@ const EMIT_DELAY = 100
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { CQWebSocketAPI: { CQWebSocket, CQAt } } = require('../fixture/connect-success')()
-const { ApiTimoutError } = require('../../src/errors')
+const { CQWebSocketAPI: { CQWebSocket, CQAt, APITimeoutError } } = require('../fixture/connect-success')()
 const { test } = require('ava')
 
 const MSG_OBJ = {
@@ -260,7 +259,7 @@ test.cb('CQEvent: listen for response error on the CQEvent', function (t) {
       })
 
       e.onError(function (err) {
-        t.true(err instanceof ApiTimoutError)
+        t.true(err instanceof APITimeoutError)
         t.true(errorSpy.notCalled)
         t.end()
       })
@@ -276,7 +275,7 @@ test.cb('CQEvent: response timeout without error handler', function (t) {
 
   t.context.bot
     .on('error', err => {
-      t.true(err instanceof ApiTimoutError)
+      t.true(err instanceof APITimeoutError)
       t.end()
     })
     .on('message.private', function (e) {

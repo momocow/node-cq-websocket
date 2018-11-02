@@ -4,10 +4,53 @@ const {
   default: defaultExport,
   CQWebSocket,
   WebSocketType,
-  WebSocketState
+  WebSocketState,
+  CQAnonymous,
+  CQAt,
+  CQBFace,
+  CQCustomMusic,
+  CQDice,
+  CQEmoji,
+  CQFace,
+  CQImage,
+  CQMusic,
+  CQRecord,
+  CQRPS,
+  CQSFace,
+  CQShake,
+  CQShare,
+  CQText,
+  SocketError,
+  InvalidWsTypeError,
+  InvalidContextError,
+  APITimeoutError,
+  UnexpectedContextError
 } = require('../..')
 
 const { CQEvent } = require('../../src/event-bus')
+
+const exported = [
+  CQAnonymous,
+  CQAt,
+  CQBFace,
+  CQCustomMusic,
+  CQDice,
+  CQEmoji,
+  CQFace,
+  CQImage,
+  CQMusic,
+  CQRecord,
+  CQRPS,
+  CQSFace,
+  CQShake,
+  CQShare,
+  CQText,
+  SocketError,
+  InvalidWsTypeError,
+  InvalidContextError,
+  APITimeoutError,
+  UnexpectedContextError
+]
 
 test('CQWebSocket is exposed as default export.', (t) => {
   t.plan(1)
@@ -70,5 +113,13 @@ test('API: WebSocketState', t => {
   t.plan(1)
   t.deepEqual(WebSocketState, {
     DISABLED: -1, INIT: 0, CONNECTING: 1, CONNECTED: 2, CLOSING: 3, CLOSED: 4
+  })
+})
+
+test('API: misc', t => {
+  t.plan(exported.length)
+
+  exported.forEach(ex => {
+    t.truthy(ex)
   })
 })

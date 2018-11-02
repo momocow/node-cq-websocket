@@ -140,14 +140,16 @@ extraMsgEvents.forEach(function (event) {
 })
 
 function invalidEventMacro (t, msgObj) {
-  t.plan(2)
+  t.plan(4)
 
   const _spy = spy()
   t.context.bot
     .on('error', _spy)
     .on('error', (err) => {
-      t.true(err instanceof Error)
+      t.true(err instanceof CQWebSocketAPI.UnexpectedContextError)
       t.true(_spy.calledOnce)
+      t.true(typeof err.context === 'object')
+      t.true(typeof err.reason === 'string')
       t.end()
     })
 
