@@ -332,6 +332,9 @@ class CQEvent {
   }
 
   setMessage (msgIn) {
+    if (Array.isArray(msgIn)) {
+      msgIn = msgIn.map(m => typeof m === 'string' ? new CQText(m) : m)
+    }
     this._message = msgIn
   }
 
