@@ -1,7 +1,7 @@
 // stuffs of stubbing
 const { spy } = require('sinon')
 
-const { test } = require('ava')
+const test = require('ava').default
 const { CQWebSocketAPI: { CQWebSocket, WebSocketType } } = require('../fixture/connect-success')()
 
 test.cb('#isSockConnected(wsType=/event)', function (t) {

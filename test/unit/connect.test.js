@@ -3,7 +3,7 @@ const { stub, spy } = require('sinon')
 const { client } = require('websocket')
 const fakeConnect = stub(client.prototype, 'connect')
 
-const { test } = require('ava')
+const test = require('ava').default
 const { CQWebSocket, WebSocketType, WebSocketState } = require('../..')
 
 test.after.always(function () {

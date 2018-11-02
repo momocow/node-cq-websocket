@@ -1,5 +1,5 @@
 const { CQWebSocket } = require('../..')
-const { test } = require('ava')
+const test = require('ava').default
 const { stub } = require('sinon')
 
 test('#once(): handler not returning false', async function (t) {

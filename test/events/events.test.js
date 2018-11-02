@@ -5,7 +5,7 @@ const { spy } = require('sinon')
 
 const { CQWebSocketAPI } = require('../fixture/connect-success')()
 const { CQEvent } = require('../../src/event-bus')
-const { test } = require('ava')
+const test = require('ava').default
 
 function emitEvent (t, msgObj = {}) {
   setTimeout(function () {

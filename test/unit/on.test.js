@@ -1,5 +1,5 @@
 const { CQWebSocket } = require('../..')
-const { test } = require('ava')
+const test = require('ava').default
 const { spy, stub } = require('sinon')
 
 test('#on(): valid event', function (t) {

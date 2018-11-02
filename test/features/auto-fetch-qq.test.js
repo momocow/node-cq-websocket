@@ -1,6 +1,6 @@
 const { CQWebSocketAPI: { CQWebSocket, APITimeoutError } } = require('../fixture/connect-success')()
 const { stub } = require('sinon')
-const { test } = require('ava')
+const test = require('ava').default
 
 test.cb('Auto-fetch if no QQ account provided.', function (t) {
   t.plan(2)

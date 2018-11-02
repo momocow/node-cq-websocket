@@ -1,7 +1,7 @@
 // stuffs of stubbing
 const { spy } = require('sinon')
 
-const { test } = require('ava')
+const test = require('ava').default
 const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 
 test.cb('#reconnect() returns the bot itself', function (t) {

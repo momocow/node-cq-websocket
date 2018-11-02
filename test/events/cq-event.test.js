@@ -4,7 +4,7 @@ const EMIT_DELAY = 100
 const { stub, spy } = require('sinon')
 
 const { CQWebSocketAPI: { CQWebSocket, CQAt, APITimeoutError } } = require('../fixture/connect-success')()
-const { test } = require('ava')
+const test = require('ava').default
 
 const MSG_OBJ = {
   post_type: 'message',

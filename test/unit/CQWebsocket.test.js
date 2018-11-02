@@ -1,6 +1,6 @@
 const { CQWebSocket, WebSocketState } = require('../..')
 
-const { test } = require('ava')
+const test = require('ava').default
 
 test('new CQWebSocket() with default options', function (t) {
   t.plan(8)

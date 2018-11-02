@@ -1,6 +1,6 @@
 const { CQWebSocket } = require('../..')
 const traverse = require('../../src/util/traverse')
-const { test } = require('ava')
+const test = require('ava').default
 
 const NOOP1 = function () {}
 const NOOP2 = function () {}

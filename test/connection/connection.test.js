@@ -1,4 +1,4 @@
-const { test } = require('ava')
+const test = require('ava').default
 
 test.cb('success without failure', require('./success-without-failure'))
 test.cb('success after serveral consecutive failures', require('./success-after-failures'))

@@ -1,7 +1,7 @@
 // stuffs of stubbing
 const { stub, spy } = require('sinon')
 
-const { test } = require('ava')
+const test = require('ava').default
 const { CQWebSocketAPI: { CQWebSocket, APITimeoutError } } = require('../fixture/connect-success')()
 
 test.cb('#__call__(method, params)', function (t) {

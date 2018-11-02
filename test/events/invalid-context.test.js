@@ -1,5 +1,5 @@
 const { stub } = require('sinon')
-const { test } = require('ava')
+const test = require('ava').default
 const { CQWebSocketAPI: { CQWebSocket } } = require('../fixture/connect-success')()
 const { InvalidContextError } = require('../../src/errors')
 
