@@ -81,7 +81,7 @@ type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
 type ListenerReturn = void | Promise<void>
-type ArrayMessage = (CQTag|CQHTTPMessage)[]
+type ArrayMessage = (CQTag|CQHTTPMessage|string)[]
 type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage>
 type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
 type ContextEventListener = (context: Record<string, any>) => ListenerReturn
@@ -221,6 +221,7 @@ export class CQCustomMusic extends CQTag {
   readonly title: string
   readonly content?: string
   readonly image?: string
+  readonly type: "custom"
   constructor(url: string, audio: string, title: string, content?: string, image?: string)
 }
 
