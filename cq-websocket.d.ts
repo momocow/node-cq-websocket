@@ -88,8 +88,24 @@ type ContextEventListener = (context: Record<string, any>) => ListenerReturn
 type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
 type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
-export interface ApiTimeoutError extends Error {
+export interface APITimeoutError extends Error {
+  readonly req: APIRequest
+}
 
+export interface SocketError extends Error { }
+
+export interface InvalidWsTypeError extends Error {
+  readonly which: WebSocketType
+}
+
+export interface InvalidContextError extends SyntaxError {
+  readonly which: WebSocketType
+  readonly data: string
+}
+
+export interface UnexpectedContextError extends Error {
+  readonly context: Record<string, any>
+  readonly reason: string
 }
 
 declare class CQEvent {
@@ -100,7 +116,7 @@ declare class CQEvent {
   appendMessage (msg: string | CQTag | CQHTTPMessage): void
   hasMessage (): boolean
   onResponse (handler: (res: object) => void, options: number | CQRequestOptions): void
-  onError (handler: (err: ApiTimeoutError) => void): void
+  onError (handler: (err: APITimeoutError) => void): void
 }
 
 export interface APIRequest {
@@ -128,11 +144,11 @@ export class CQWebSocket {
   on (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
   on (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
   on (event_type: 'socket.close', listener: (type: WebSocketType, code: number, desc: string) => void): CQWebSocket
-  on (event_type: 'socket.error', listener: (type: WebSocketType, err: Error) => void): CQWebSocket
+  on (event_type: 'socket.error', listener: (type: WebSocketType, err: SocketError) => void): CQWebSocket
   on (event_type: 'api.send.pre', listener: (apiRequest: APIRequest) => void): CQWebSocket
   on (event_type: 'api.send.post', listener: () => void): CQWebSocket
   on (event_type: 'api.response', listener: (result: APIResponse<any>) => void): CQWebSocket
-  on (event_type: 'error', listener: (err: Error) => void): CQWebSocket
+  on (event_type: 'error', listener: (err: InvalidContextError | UnexpectedContextError) => void): CQWebSocket
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
   once (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket

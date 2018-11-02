@@ -5,7 +5,13 @@ const $CQEventBus = require('./event-bus.js').CQEventBus
 const $Callable = require('./util/callable')
 const message = require('./message')
 const { parse: parseCQTags } = message
-const { SocketError, InvalidWsTypeError, InvalidContextError, ApiTimoutError } = require('./errors')
+const {
+  SocketError,
+  InvalidWsTypeError,
+  InvalidContextError,
+  APITimeoutError,
+  UnexpectedContextError
+} = require('./errors')
 
 const WebSocketType = {
   API: '/api',
@@ -187,7 +193,7 @@ class CQWebSocket extends $Callable {
       if (options.timeout < Infinity) {
         ticket = setTimeout(() => {
           this._responseHandlers.delete(reqid)
-          onFailure(new ApiTimoutError(options.timeout, apiRequest))
+          onFailure(new APITimeoutError(options.timeout, apiRequest))
         }, options.timeout)
       }
     })
@@ -233,7 +239,10 @@ class CQWebSocket extends $Callable {
             }
             break
           default:
-            this._eventBus.emit('error', new Error(`Unexpected "message_type"\n${JSON.stringify(msgObj, null, 2)}`))
+            this._eventBus.emit('error', new UnexpectedContextError(
+              msgObj,
+              'unexpected "message_type"'
+            ))
         }
         break
       case 'notice': // Added, reason: CQHttp 4.X
@@ -250,7 +259,10 @@ class CQWebSocket extends $Callable {
                 this._eventBus.emit('notice.group_admin.unset', msgObj)
                 break
               default:
-                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
+                this._eventBus.emit('error', new UnexpectedContextError(
+                  msgObj,
+                  'unexpected "sub_type"'
+                ))
             }
             break
           case 'group_decrease':
@@ -265,7 +277,10 @@ class CQWebSocket extends $Callable {
                 this._eventBus.emit('notice.group_decrease.kick_me', msgObj)
                 break
               default:
-                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
+                this._eventBus.emit('error', new UnexpectedContextError(
+                  msgObj,
+                  'unexpected "sub_type"'
+                ))
             }
             break
           case 'group_increase':
@@ -277,14 +292,20 @@ class CQWebSocket extends $Callable {
                 this._eventBus.emit('notice.group_increase.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
+                this._eventBus.emit('error', new UnexpectedContextError(
+                  msgObj,
+                  'unexpected "sub_type"'
+                ))
             }
             break
           case 'friend_add':
             this._eventBus.emit('notice.friend_add', msgObj)
             break
           default:
-            this._eventBus.emit('error', new Error(`Unexpected "notice_type"\n${JSON.stringify(msgObj, null, 2)}`))
+            this._eventBus.emit('error', new UnexpectedContextError(
+              msgObj,
+              'unexpected "notice_type"'
+            ))
         }
         break
       case 'request':
@@ -301,11 +322,17 @@ class CQWebSocket extends $Callable {
                 this._eventBus.emit('request.group.invite', msgObj)
                 break
               default:
-                this._eventBus.emit('error', new Error(`Unexpected "sub_type"\n${JSON.stringify(msgObj, null, 2)}`))
+                this._eventBus.emit('error', new UnexpectedContextError(
+                  msgObj,
+                  'unexpected "sub_type"'
+                ))
             }
             break
           default:
-            this._eventBus.emit('error', new Error(`Unexpected "request_type"\n${JSON.stringify(msgObj, null, 2)}`))
+            this._eventBus.emit('error', new UnexpectedContextError(
+              msgObj,
+              'unexpected "request_type"'
+            ))
         }
         break
       case 'meta_event':
@@ -317,11 +344,17 @@ class CQWebSocket extends $Callable {
             this._eventBus.emit('meta_event.heartbeat', msgObj)
             break
           default:
-            this._eventBus.emit('error', new Error(`Unexpected "meta_event_type"\n${JSON.stringify(msgObj, null, 2)}`))
+            this._eventBus.emit('error', new UnexpectedContextError(
+              msgObj,
+              'unexpected "meta_event_type"'
+            ))
         }
         break
       default:
-        this._eventBus.emit('error', new Error(`Unexpected "post_type"\n${JSON.stringify(msgObj, null, 2)}`))
+        this._eventBus.emit('error', new UnexpectedContextError(
+          msgObj,
+          'unexpected "post_type"'
+        ))
     }
   }
 
@@ -534,5 +567,10 @@ module.exports = {
   CQWebSocket,
   WebSocketType,
   WebSocketState,
+  SocketError,
+  InvalidWsTypeError,
+  InvalidContextError,
+  APITimeoutError,
+  UnexpectedContextError,
   ...message
 }
