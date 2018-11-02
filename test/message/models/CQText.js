@@ -26,7 +26,12 @@ module.exports = {
   }],
   toJSON: [{
     target: new CQText('text'),
-    json: 'text'
+    json: {
+      type: 'text',
+      data: {
+        text: 'text'
+      }
+    }
   }],
   coerce: [{
     target: 'text',
