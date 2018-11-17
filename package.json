@@ -52,6 +52,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.1",
     "@semantic-release/git": "^7.0.5",
+    "@semantic-release/release-notes-generator": "^7.1.4",
     "ava": "^1.0.0-rc.1",
     "commitizen": "^3.0.4",
     "coveralls": "^3.0.2",
