@@ -7,5 +7,16 @@
   },
   "reviewers": ["momocow"],
   "semanticCommits": true,
-  "semanticCommitType": "chore"
+  "semanticCommitType": "chore",
+  "schedule": "before 3am on Monday",
+  "packageRules": [
+    {
+      "packagePatterns": ["^eslint"],
+      "groupName": "eslint packages"
+    },
+    {
+      "packagePatterns": ["^webpack"],
+      "groupName": "webpack packages"
+    }
+  ]
 }
