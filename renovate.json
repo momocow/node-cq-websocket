@@ -1,5 +1,6 @@
 {
   "assignees": ["momocow"],
+  "baseBranches": ["dev"],
   "extends": ["config:base"],
   "vulnerabilityAlerts": {
     "labels": ["security"],
