@@ -1,0 +1,23 @@
+{
+  "assignees": ["momocow"],
+  "baseBranches": ["dev"],
+  "extends": ["config:base"],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["momocow"]
+  },
+  "reviewers": ["momocow"],
+  "semanticCommits": true,
+  "semanticCommitType": "chore",
+  "schedule": "before 3am on Monday",
+  "packageRules": [
+    {
+      "packagePatterns": ["^eslint"],
+      "groupName": "eslint packages"
+    },
+    {
+      "packagePatterns": ["^webpack"],
+      "groupName": "webpack packages"
+    }
+  ]
+}
