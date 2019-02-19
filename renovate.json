@@ -1,5 +1,11 @@
 {
-  "extends": [
-    "config:base"
-  ]
+  "assignees": ["momocow"],
+  "extends": ["config:base"],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["momocow"]
+  },
+  "reviewers": ["momocow"],
+  "semanticCommits": true,
+  "semanticCommitType": "chore"
 }
