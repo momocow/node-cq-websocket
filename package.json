@@ -10,7 +10,7 @@
   "types": "./cq-websocket.d.ts",
   "files": [
     "src",
-    "dist"
+    "dist/**/*.min.js"
   ],
   "scripts": {
     "test": "nyc ava test/**/*.test.js",
@@ -52,6 +52,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.1",
     "@semantic-release/git": "^7.0.5",
+    "@semantic-release/release-notes-generator": "^7.1.4",
     "ava": "^1.0.0-rc.1",
     "commitizen": "^3.0.4",
     "coveralls": "^3.0.2",
@@ -63,6 +64,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "http-server": "^0.11.1",
+    "kaomojify-webpack-plugin": "^0.1.1",
     "mri": "^1.1.1",
     "nyc": "^11.9.0",
     "proxyquire": "^2.1.0",
