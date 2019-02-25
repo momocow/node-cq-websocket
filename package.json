@@ -65,7 +65,7 @@
     "eslint-plugin-standard": "4.0.0",
     "http-server": "0.11.1",
     "kaomojify-webpack-plugin": "0.1.1",
-    "mri": "1.1.1",
+    "mri": "1.1.4",
     "nyc": "11.9.0",
     "proxyquire": "2.1.0",
     "semantic-release": "15.10.6",
