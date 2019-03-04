@@ -50,8 +50,8 @@
     "websocket": "^1.0.28"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "3.0.1",
-    "@semantic-release/git": "7.0.5",
+    "@semantic-release/changelog": "3.0.2",
+    "@semantic-release/git": "7.0.8",
     "@semantic-release/release-notes-generator": "7.1.4",
     "ava": "1.2.1",
     "commitizen": "3.0.7",
@@ -68,7 +68,7 @@
     "mri": "1.1.4",
     "nyc": "11.9.0",
     "proxyquire": "2.1.0",
-    "semantic-release": "15.10.6",
+    "semantic-release": "15.13.3",
     "sinon": "4.5.0",
     "webpack": "4.23.1",
     "webpack-cli": "3.1.2"
