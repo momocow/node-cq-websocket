@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "test": "nyc ava test/**/*.test.js",
+    "perf": "tape performance/**/*.test.js",
     "build": "webpack --config ./webpack.config.js",
     "build-demo": "webpack --config demo/webpack/webpack.config.js",
     "demo-browser": "http-server demo/webpack/www",
@@ -65,6 +66,7 @@
     "eslint-plugin-standard": "4.0.0",
     "http-server": "0.11.1",
     "kaomojify-webpack-plugin": "0.1.1",
+    "leakage": "0.4.0",
     "mri": "1.1.4",
     "nyc": "13.3.0",
     "proxyquire": "2.1.0",
