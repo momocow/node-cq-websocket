@@ -2,7 +2,7 @@ const test = require('tape')
 const { iterate } = require('leakage')
 const { EventEmitter } = require('events')
 
-const { CQWebSocket } = require('..')
+const { CQWebSocket } = require('../../')
 
 test('EventEmitter#once()', function (t) {
   const bot = new EventEmitter()
@@ -18,6 +18,7 @@ test('EventEmitter#once()', function (t) {
   t.end()
 })
 
+// [WONT_FIX]
 test('CQWebSocket#once()', function (t) {
   const bot = new CQWebSocket()
   iterate(() => {
