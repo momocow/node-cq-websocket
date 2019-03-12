@@ -18,17 +18,18 @@ test('EventEmitter#once()', function (t) {
   t.end()
 })
 
-// [WONT_FIX]
 test('CQWebSocket#once()', function (t) {
   const bot = new CQWebSocket()
-  iterate(() => {
+  iterate.async(() => {
     let a = 0
     bot.once('message', function (arg) {
       // zero side effect
       arg++
     })
-    bot._eventBus.emit('message', a)
+    return bot._eventBus.emit('message', a)
   })
-  t.same(bot._eventBus._EventMap.message[''].length, 0)
-  t.end()
+    .then(function () {
+      t.same(bot._eventBus._EventMap.message[''].length, 0)
+      t.end()
+    })
 })

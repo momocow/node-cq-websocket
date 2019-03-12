@@ -21,15 +21,17 @@ test('EventEmitter#on(), EventEmitter#removeAllListener()', function (t) {
 
 test('CQWebSocket#on(), CQWebSocket#off()', function (t) {
   const bot = new CQWebSocket()
-  iterate(() => {
+  iterate.async(async () => {
     let a = 0
     bot.on('message', function (arg) {
       // zero side effect
       arg++
     })
-    bot._eventBus.emit('message', a)
+    await bot._eventBus.emit('message', a)
     bot.off('message')
   })
-  t.same(bot._eventBus._EventMap.message[''].length, 0)
-  t.end()
+    .then(function () {
+      t.same(bot._eventBus._EventMap.message[''].length, 0)
+      t.end()
+    })
 })
