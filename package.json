@@ -54,7 +54,7 @@
     "@semantic-release/changelog": "3.0.2",
     "@semantic-release/git": "7.0.8",
     "@semantic-release/release-notes-generator": "7.1.4",
-    "ava": "1.2.1",
+    "ava": "1.4.1",
     "commitizen": "3.0.7",
     "coveralls": "3.0.3",
     "cz-conventional-changelog": "2.1.0",
