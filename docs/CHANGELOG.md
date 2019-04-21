@@ -1,5 +1,12 @@
 CQWebSocket
 
+## [2.0.1](https://github.com/momocow/node-cq-websocket/compare/v2.0.0...v2.0.1) (2019-04-21)
+
+
+### Bug Fixes
+
+* **pack:** Fix missing .d.ts in the NPM package. ([a6bf75b](https://github.com/momocow/node-cq-websocket/commit/a6bf75b))
+
 # [2.0.0](https://github.com/momocow/node-cq-websocke/compare/v1.8.1...v2.0.0) (2018-11-02)
 
 
