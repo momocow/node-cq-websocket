@@ -10,7 +10,7 @@ deploy:
   provider: script
   skip_cleanup: true
   on:
-    branch: master
+    branch: v2
   script:
     - npm run release
 
