@@ -10,7 +10,8 @@
   "types": "./cq-websocket.d.ts",
   "files": [
     "src",
-    "dist/**/*.min.js"
+    "dist/**/*.min.js",
+    "cq-websocket.d.ts"
   ],
   "scripts": {
     "test": "nyc ava test/**/*.test.js",
