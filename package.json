@@ -73,8 +73,8 @@
     "semantic-release": "15.13.4",
     "sinon": "7.2.6",
     "tape": "4.10.1",
-    "webpack": "4.29.6",
-    "webpack-cli": "3.2.3"
+    "webpack": "4.35.3",
+    "webpack-cli": "3.3.5"
   },
   "nyc": {
     "include": [
