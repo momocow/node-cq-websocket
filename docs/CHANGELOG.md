@@ -1,5 +1,12 @@
 CQWebSocket
 
+## [2.0.2](https://github.com/momocow/node-cq-websocket/compare/v2.0.1...v2.0.2) (2019-07-23)
+
+
+### Bug Fixes
+
+* **types:** Fix definitions of meta events. ([ca1a731](https://github.com/momocow/node-cq-websocket/commit/ca1a731)), closes [#77](https://github.com/momocow/node-cq-websocket/issues/77)
+
 ## [2.0.1](https://github.com/momocow/node-cq-websocket/compare/v2.0.0...v2.0.1) (2019-04-21)
 
 
