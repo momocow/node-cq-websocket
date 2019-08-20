@@ -1,6 +1,6 @@
 {
   "name": "cq-websocket",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "A Node SDK for developing QQ chatbots based on WebSocket, which is depending on CoolQ and CQHTTP API plugin. ",
   "engines": {
     "cqhttp": "^4.5.0",
@@ -10,11 +10,11 @@
   "types": "./cq-websocket.d.ts",
   "files": [
     "src",
-    "dist/**/*.min.js"
+    "dist/**/*.min.js",
+    "cq-websocket.d.ts"
   ],
   "scripts": {
     "test": "nyc ava test/**/*.test.js",
-    "perf": "tape performance/**/*.test.js",
     "build": "webpack --config ./webpack.config.js",
     "build-demo": "webpack --config demo/webpack/webpack.config.js",
     "demo-browser": "http-server demo/webpack/www",
@@ -55,7 +55,7 @@
     "@semantic-release/git": "7.0.8",
     "@semantic-release/release-notes-generator": "7.1.4",
     "ava": "1.2.1",
-    "commitizen": "3.0.7",
+    "commitizen": "4.0.3",
     "coveralls": "3.0.3",
     "cz-conventional-changelog": "2.1.0",
     "eslint": "5.15.0",
@@ -66,9 +66,8 @@
     "eslint-plugin-standard": "4.0.0",
     "http-server": "0.11.1",
     "kaomojify-webpack-plugin": "0.1.1",
-    "leakage": "0.4.0",
     "mri": "1.1.4",
-    "nyc": "13.3.0",
+    "nyc": "14.1.1",
     "proxyquire": "2.1.0",
     "semantic-release": "15.13.4",
     "sinon": "7.2.6",
