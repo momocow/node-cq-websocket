@@ -1,0 +1,10 @@
+{
+  "name": "cq-websocket-perf",
+  "scripts": {
+    "perf": "tape performance/**/*.test.js"
+  },
+  "devDependencies": {
+    "tape": "^4.11.0",
+    "leakage": "^0.4.0"
+  }
+}

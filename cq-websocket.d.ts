@@ -65,6 +65,9 @@ type RequestEvents = 'request.friend'
                     // node
                     | 'request.group'
 
+type MetaEvents = 'meta_event.lifecycle'
+                  | 'meta_event.heartbeat'
+
 type SocketEvents = 'socket.connecting'
                     | 'socket.connect'
                     | 'socket.failed'
@@ -139,7 +142,10 @@ export class CQWebSocket {
   isReady (): boolean
 
   on (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
-  on (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
+  on (
+    event_type: NoticeEvents | RequestEvents | MetaEvents | 'notice' | 'request' | 'meta_event',
+    listener: ContextEventListener
+  ): CQWebSocket
   on (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
   on (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
   on (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
@@ -152,7 +158,10 @@ export class CQWebSocket {
   on (event_type: 'ready', listener: () => void): CQWebSocket
 
   once (event_type: MessageEvents | 'message', listener: MessageEventListener): CQWebSocket
-  once (event_type: NoticeEvents | RequestEvents | 'notice' | 'request', listener: ContextEventListener): CQWebSocket
+  once (
+    event_type: NoticeEvents | RequestEvents | MetaEvents | 'notice' | 'request' | 'meta_event',
+    listener: ContextEventListener
+  ): CQWebSocket
   once (event_type: Exclude<SocketEvents, SocketExcludeType>, listener: SocketEventListener): CQWebSocket
   once (event_type: 'socket.connect', listener: (type: WebSocketType, socket: any, attempts: number) => void): CQWebSocket
   once (event_type: 'socket.closing', listener: (type: WebSocketType) => void): CQWebSocket
