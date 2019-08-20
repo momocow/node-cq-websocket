@@ -1,5 +1,4 @@
 {
-  "branch": "v2",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
