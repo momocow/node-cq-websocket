@@ -14,6 +14,8 @@ module.exports = [
   'notice.group_increase.approve',
   'notice.group_increase.invite',
   'notice.friend_add',
+  'notice.group_ban.lift_ban',
+  'notice.group_ban.ban',
 
   'request.friend',
   'request.group.add',
