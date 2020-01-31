@@ -301,6 +301,21 @@ class CQWebSocket extends $Callable {
           case 'friend_add':
             this._eventBus.emit('notice.friend_add', msgObj)
             break
+          case 'group_ban':
+            switch (msgObj.sub_type) {
+              case 'ban':
+                this._eventBus.emit('notice.group_ban.ban', msgObj)
+                break
+              case 'lift_ban':
+                this._eventBus.emit('notice.group_ban.lift_ban', msgObj)
+                break
+              default:
+                this._eventBus.emit('error', new UnexpectedContextError(
+                  msgObj,
+                  'unexpected "sub_type"'
+                ))
+            }
+            break
           default:
             this._eventBus.emit('error', new UnexpectedContextError(
               msgObj,
