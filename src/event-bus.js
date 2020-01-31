@@ -48,7 +48,12 @@ class CQEventBus {
           approve: [],
           invite: []
         },
-        friend_add: []
+        friend_add: [],
+        group_ban: {
+          '': [],
+          ban: [],
+          lift_ban: []
+        }
       },
       request: {
         '': [],
