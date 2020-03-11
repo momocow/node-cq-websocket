@@ -85,7 +85,7 @@ export type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents |
 
 export type ListenerReturn = void | Promise<void>
 export type ArrayMessage = (CQTag|CQHTTPMessage|string)[]
-export type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage>
+export type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage> | Promise<void | string | ArrayMessage>
 export type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
 export type ContextEventListener = (context: Record<string, any>) => ListenerReturn
 export type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
