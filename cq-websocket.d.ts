@@ -13,7 +13,7 @@ export enum WebSocketState {
 export interface CQRequestOptions {
   timeout: number
 }
-type WebSocketProtocol = "http:" | "https:" | "ws:" | "wss:"
+export type WebSocketProtocol = "http:" | "https:" | "ws:" | "wss:"
 export interface CQWebSocketOption {
   accessToken: string
   enableAPI: boolean
@@ -32,12 +32,12 @@ export interface CQWebSocketOption {
   requestOptions: CQRequestOptions
 }
 
-type BaseEvents = 'message'
+export type BaseEvents = 'message'
                     | 'notice'
                     | 'request'
                     | 'error'
                     | 'ready'
-type MessageEvents = 'message.private'
+export type MessageEvents = 'message.private'
                     | 'message.discuss'
                     | 'message.discuss.@'
                     | 'message.discuss.@.me'
@@ -45,7 +45,7 @@ type MessageEvents = 'message.private'
                     | 'message.group.@'
                     | 'message.group.@.me'
 
-type NoticeEvents = 'notice.group_upload'
+export type NoticeEvents = 'notice.group_upload'
                     | 'notice.group_admin.set'
                     | 'notice.group_admin.unset'
                     | 'notice.group_decrease.leave'
@@ -59,16 +59,16 @@ type NoticeEvents = 'notice.group_upload'
                     | 'notice.group_decrease'
                     | 'notice.group_increase'
 
-type RequestEvents = 'request.friend'
+export type RequestEvents = 'request.friend'
                     | 'request.group.add'
                     | 'request.group.invite'
                     // node
                     | 'request.group'
 
-type MetaEvents = 'meta_event.lifecycle'
+export type MetaEvents = 'meta_event.lifecycle'
                   | 'meta_event.heartbeat'
 
-type SocketEvents = 'socket.connecting'
+export type SocketEvents = 'socket.connecting'
                     | 'socket.connect'
                     | 'socket.failed'
                     | 'socket.reconnecting'
@@ -79,17 +79,17 @@ type SocketEvents = 'socket.connecting'
                     | 'socket.close'
                     | 'socket.error'
 
-type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
+export type APIEvents = 'api.send.pre' | 'api.send.post' | 'api.response'
 
-type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
+export type Events = BaseEvents | MessageEvents | NoticeEvents | RequestEvents | SocketEvents | APIEvents
 
-type ListenerReturn = void | Promise<void>
-type ArrayMessage = (CQTag|CQHTTPMessage|string)[]
-type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage>
-type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
-type ContextEventListener = (context: Record<string, any>) => ListenerReturn
-type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
-type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
+export type ListenerReturn = void | Promise<void>
+export type ArrayMessage = (CQTag|CQHTTPMessage|string)[]
+export type MessageListenerReturn = ListenerReturn | string | Promise<string> | ArrayMessage | Promise<ArrayMessage> | Promise<void | string | ArrayMessage>
+export type MessageEventListener = (event: CQEvent, context: Record<string, any>, tags: CQTag[]) => MessageListenerReturn
+export type ContextEventListener = (context: Record<string, any>) => ListenerReturn
+export type SocketEventListener = (type: WebSocketType, attempts: number) => ListenerReturn
+export type SocketExcludeType = 'socket.connect' | 'socket.closing' | 'socket.close' | 'socket.error'
 
 export interface APITimeoutError extends Error {
   readonly req: APIRequest
@@ -111,7 +111,7 @@ export interface UnexpectedContextError extends Error {
   readonly reason: string
 }
 
-declare class CQEvent {
+export declare class CQEvent {
   readonly messageFormat: "string" | "array"
   stopPropagation (): void
   getMessage (): string | ArrayMessage
@@ -183,14 +183,14 @@ export default CQWebSocket
 
 /******************************************/
 
-type Serializable = string | number | boolean
+export type Serializable = string | number | boolean
 
-interface CQHTTPMessage {
+export interface CQHTTPMessage {
   type: string
   data: Record<string, string> | null
 }
 
-declare class CQTag {
+export declare class CQTag {
   readonly tagName: string
   readonly data: Readonly<Record<string, Serializable>>
   modifier: Record<string, Serializable>

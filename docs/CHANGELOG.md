@@ -1,5 +1,12 @@
 CQWebSocket
 
+# [2.1.0](https://github.com/momocow/node-cq-websocket/compare/v2.0.2...v2.1.0) (2020-01-31)
+
+
+### Features
+
+* add group_ban event ([928e257](https://github.com/momocow/node-cq-websocket/commit/928e257)), closes [#84](https://github.com/momocow/node-cq-websocket/issues/84)
+
 ## [2.0.2](https://github.com/momocow/node-cq-websocket/compare/v2.0.1...v2.0.2) (2019-07-23)
 
 
