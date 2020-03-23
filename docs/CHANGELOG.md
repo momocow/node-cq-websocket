@@ -1,5 +1,12 @@
 CQWebSocket
 
+## [2.1.1](https://github.com/momocow/node-cq-websocket/compare/v2.1.0...v2.1.1) (2020-03-23)
+
+
+### Bug Fixes
+
+* Fix typing ([#87](https://github.com/momocow/node-cq-websocket/issues/87)) and upgrade dependencies. ([bbb54ad](https://github.com/momocow/node-cq-websocket/commit/bbb54adc15a1e59d963f77e0111a56c0227473a3))
+
 # [2.1.0](https://github.com/momocow/node-cq-websocket/compare/v2.0.2...v2.1.0) (2020-01-31)
 
 
