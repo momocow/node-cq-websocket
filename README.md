@@ -1,3 +1,7 @@
+> **本項目即日起停止維護，隨著酷Q、CQHTTP一同走入歷史，畫下完美句點。感謝各方好友的支持與參與。**
+
+---
+
 # node-cq-websocket
 [![npm](https://img.shields.io/npm/dt/cq-websocket.svg)](https://www.npmjs.com/package/cq-websocket)
 [![npm](https://img.shields.io/npm/v/cq-websocket.svg)](https://www.npmjs.com/package/cq-websocket)
